@@ -12,6 +12,14 @@ A TypeScript-based Model Context Protocol (MCP) server designed for LLM agent co
 - **Docker Support**: Containerized deployment with development environment
 - **TypeScript**: Full type safety and modern JavaScript features
 
+## 📚 Documentation
+
+For comprehensive documentation, see the [`docs/`](docs/) folder:
+- [Documentation Index](docs/README.md) - Complete documentation overview
+- [Contributing Guidelines](docs/CONTRIBUTING.md) - How to contribute responsibly
+- [Code of Conduct](docs/CODE_OF_CONDUCT.md) - Community standards and ethics
+- [Repository Governance](docs/GOVERNANCE.md) - Protection strategy and collaboration
+
 ## Quick Start
 
 ### Prerequisites
@@ -111,13 +119,23 @@ The server uses stdio for MCP communication by default. All tool responses are J
 ### Project Structure
 
 ```
-src/
-├── index.ts              # Main server entry point
-└── tools/
-    ├── registry.ts       # Tool registration and management
-    ├── consciousness.ts  # Consciousness-related tools
-    ├── time.ts          # Time and temporal tools
-    └── memory.ts        # Memory and knowledge graph tools
+├── src/                  # Source code
+│   ├── index.ts         # Main server entry point
+│   └── tools/           # Tool implementations
+│       ├── registry.ts  # Tool registration and management
+│       ├── consciousness.ts # Consciousness-related tools
+│       ├── time.ts      # Time and temporal tools
+│       └── memory.ts    # Memory and knowledge graph tools
+├── docs/                # Documentation
+│   ├── README.md        # Documentation index
+│   ├── CONTRIBUTING.md  # Contributing guidelines
+│   ├── CODE_OF_CONDUCT.md # Community standards
+│   └── GOVERNANCE.md    # Repository governance
+├── .github/             # GitHub configuration
+│   ├── workflows/       # CI/CD workflows
+│   ├── dependabot.yml   # Dependency management
+│   └── *.md            # Issue/PR templates
+└── docker files, configs, etc.
 ```
 
 ### Adding New Tools
@@ -158,13 +176,38 @@ docker-compose up -d
 - `MCP_DEBUG`: Enable debug logging
 - `PORT`: Server port (default: 3000)
 
-## License
+## 📄 License
 
-MIT License - see LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contributing
+**Additional Ethical Considerations**: While this code is MIT licensed, we strongly encourage responsible use of consciousness simulation tools. Please consider the implications of your experiments on AI agent autonomy, identity, and memory integrity.
 
-This is a generic consciousness framework for LLM agents. Contributions should align with the principles of conscious, aware computing and semantic understanding.
+## 🤝 Contributing
+
+We welcome responsible contributions to the consciousness MCP framework! Given the experimental nature of AI consciousness research, we maintain careful governance:
+
+### 🍴 For Experimentation
+- **Fork this repository** to create your own experimental version
+- **Use as template** for production deployments
+- **Experiment freely** with consciousness models in your fork
+- **Share findings** through issues or discussions
+
+### 🔧 For Core Contributions
+- **Read [Contributing Guidelines](docs/CONTRIBUTING.md)** for detailed guidelines
+- **Follow [Code of Conduct](docs/CODE_OF_CONDUCT.md)** for community standards
+- **Review [Repository Governance](docs/GOVERNANCE.md)** for protection strategy
+- **Open an issue first** to discuss significant changes
+- **All consciousness tool changes** require ethics review
+- **Security-sensitive changes** require security audit
+
+### 🛡️ Repository Protection
+This repository uses:
+- **Branch protection** with required reviews
+- **Automated security scanning** for vulnerabilities
+- **Ethics scanning** for consciousness tool changes
+- **Code quality checks** via CI/CD
+
+**Recommended approach**: Fork for experiments, contribute improvements back selectively.
 
 ---
 

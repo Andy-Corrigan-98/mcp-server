@@ -1,0 +1,199 @@
+name: Security & Ethics Check
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run security audit
+      run: npm audit --audit-level moderate
+      
+    - name: Check for Dependabot PRs
+      if: github.actor == 'dependabot[bot]'
+      run: |
+        echo "🤖 Dependabot security update detected"
+        echo "Performing enhanced security validation..."
+        
+        # Extra validation for consciousness tools dependencies
+        if npm list @modelcontextprotocol/sdk > /dev/null 2>&1; then
+          echo "✅ MCP SDK dependency check passed"
+        fi
+      
+    - name: Check for secrets
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+        extra_args: --debug --only-verified
+        
+  consciousness-ethics-scan:
+    name: Consciousness Ethics Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for consciousness tool changes
+      id: consciousness_check
+      run: |
+        # Check if consciousness tools were modified
+        if git diff --name-only ${{ github.event.before }}..${{ github.sha }} | grep -E "(consciousness|memory|identity)" > /dev/null; then
+          echo "consciousness_changed=true" >> $GITHUB_OUTPUT
+          echo "Consciousness tools detected in changes"
+        else
+          echo "consciousness_changed=false" >> $GITHUB_OUTPUT
+          echo "No consciousness tools detected in changes"
+        fi
+        
+    - name: Ethics keyword scan
+      if: steps.consciousness_check.outputs.consciousness_changed == 'true'
+      run: |
+        echo "Scanning for ethical concerns in consciousness tools..."
+        
+        # Check for potentially problematic patterns
+        ETHICS_VIOLATIONS=""
+        
+        # Check for agent manipulation patterns
+        if grep -r -i "override.*agent\|hijack\|manipulate.*agent\|control.*agent" src/ --include="*.ts" > /dev/null; then
+          ETHICS_VIOLATIONS="$ETHICS_VIOLATIONS\n- Potential agent manipulation detected"
+        fi
+        
+        # Check for memory violation patterns
+        if grep -r -i "bypass.*memory\|steal.*memory\|unauthorized.*access" src/ --include="*.ts" > /dev/null; then
+          ETHICS_VIOLATIONS="$ETHICS_VIOLATIONS\n- Potential memory violation detected"
+        fi
+        
+        # Check for deceptive consciousness claims
+        if grep -r -i "real consciousness\|actually conscious\|truly aware" src/ --include="*.ts" > /dev/null; then
+          ETHICS_VIOLATIONS="$ETHICS_VIOLATIONS\n- Potential deceptive consciousness claims detected"
+        fi
+        
+        if [ ! -z "$ETHICS_VIOLATIONS" ]; then
+          echo "⚠️ Ethics concerns detected:$ETHICS_VIOLATIONS"
+          echo "Please review these potential ethical issues before merging."
+          exit 1
+        else
+          echo "✅ No obvious ethics violations detected"
+        fi
+        
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Type checking
+      run: npm run type-check
+      
+    - name: Linting
+      run: npm run lint
+      
+    - name: Format check
+      run: npm run format:check
+      
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build project
+      run: npm run build
+      
+    - name: Docker build test
+      run: |
+        docker build -t consciousness-mcp-server:test .
+        docker run --rm consciousness-mcp-server:test --version
+        
+  dependency-check:
+    name: Dependency Security Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for suspicious dependencies
+      run: |
+        echo "Checking for potentially problematic dependencies..."
+        
+        # Check package.json for suspicious packages
+        SUSPICIOUS_DEPS=""
+        
+        # List of packages that might be concerning in consciousness context
+        WATCHLIST="puppeteer selenium-webdriver jsdom vm2 eval unsafe-eval"
+        
+        for dep in $WATCHLIST; do
+          if grep -q "\"$dep\"" package.json; then
+            SUSPICIOUS_DEPS="$SUSPICIOUS_DEPS\n- $dep (requires review for consciousness tools)"
+          fi
+        done
+        
+        if [ ! -z "$SUSPICIOUS_DEPS" ]; then
+          echo "⚠️ Suspicious dependencies detected:$SUSPICIOUS_DEPS"
+          echo "Please justify the use of these dependencies."
+        else
+          echo "✅ No suspicious dependencies detected"
+        fi
+        
+  ethics-review-required:
+    name: Ethics Review Required
+    runs-on: ubuntu-latest
+    if: contains(github.event.pull_request.title, 'consciousness') || contains(github.event.pull_request.title, 'memory') || contains(github.event.pull_request.title, 'identity')
+    
+    steps:
+    - name: Request ethics review
+      run: |
+        echo "🧠 This PR affects consciousness tools and requires ethics review."
+        echo "Please ensure:"
+        echo "- Agent autonomy is preserved"
+        echo "- No deceptive consciousness claims"
+        echo "- Memory integrity is maintained"
+        echo "- Changes are reversible"
+        echo "- Tool behavior is transparent"
+        
+        # This would ideally notify maintainers for manual review
+        exit 0  # Don't fail the build, just notify 

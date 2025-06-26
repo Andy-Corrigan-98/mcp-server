@@ -1,0 +1,144 @@
+name: Dependabot Auto-Merge
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  dependabot-auto-merge:
+    name: Auto-merge Dependabot PRs
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    
+    permissions:
+      contents: write
+      pull-requests: write
+      
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Get Dependabot metadata
+      id: dependabot-metadata
+      uses: dependabot/fetch-metadata@v1
+      with:
+        github-token: "${{ secrets.GITHUB_TOKEN }}"
+        
+    - name: Validate security update
+      id: security-check
+      run: |
+        echo "🔍 Analyzing Dependabot update..."
+        echo "Update type: ${{ steps.dependabot-metadata.outputs.update-type }}"
+        echo "Dependency names: ${{ steps.dependabot-metadata.outputs.dependency-names }}"
+        
+        # Only auto-merge security updates and safe patches
+        if [[ "${{ steps.dependabot-metadata.outputs.update-type }}" == "version-update:semver-patch" ]] || \
+           [[ "${{ steps.dependabot-metadata.outputs.update-type }}" == "version-update:semver-minor" ]] || \
+           [[ "${{ contains(steps.dependabot-metadata.outputs.dependency-names, 'security') }}" == "true" ]]; then
+          echo "✅ Safe for auto-merge"
+          echo "auto_merge=true" >> $GITHUB_OUTPUT
+        else
+          echo "⚠️ Requires manual review (major version or consciousness-critical dependency)"
+          echo "auto_merge=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Consciousness tools safety check
+      if: steps.security-check.outputs.auto_merge == 'true'
+      run: |
+        echo "🧠 Performing consciousness tools safety check..."
+        
+        # Check if this affects core consciousness dependencies
+        CONSCIOUSNESS_DEPS="@modelcontextprotocol/sdk typescript @types/node"
+        REQUIRES_REVIEW=false
+        
+        for dep in $CONSCIOUSNESS_DEPS; do
+          if echo "${{ steps.dependabot-metadata.outputs.dependency-names }}" | grep -q "$dep"; then
+            echo "⚠️ Core consciousness dependency detected: $dep"
+            if [[ "${{ steps.dependabot-metadata.outputs.update-type }}" == "version-update:semver-major" ]]; then
+              echo "❌ Major update to core dependency requires manual review"
+              REQUIRES_REVIEW=true
+            fi
+          fi
+        done
+        
+        if [ "$REQUIRES_REVIEW" = true ]; then
+          echo "🛑 Manual review required for consciousness tools safety"
+          exit 1
+        else
+          echo "✅ Consciousness tools safety check passed"
+        fi
+        
+    - name: Install dependencies and test
+      if: steps.security-check.outputs.auto_merge == 'true'
+      run: |
+        npm ci
+        npm run build
+        npm run type-check
+        npm run lint
+        
+    - name: Security audit
+      if: steps.security-check.outputs.auto_merge == 'true'
+      run: |
+        echo "🔒 Running security audit..."
+        npm audit --audit-level moderate
+        echo "✅ Security audit passed"
+        
+    - name: Auto-approve and merge
+      if: steps.security-check.outputs.auto_merge == 'true'
+      run: |
+        echo "🚀 Auto-approving and merging safe Dependabot update..."
+        gh pr review --approve "${{ github.event.pull_request.number }}"
+        gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Add safety labels
+      if: steps.security-check.outputs.auto_merge == 'true'
+      run: |
+        gh pr edit "${{ github.event.pull_request.number }}" --add-label "auto-merged"
+        gh pr edit "${{ github.event.pull_request.number }}" --add-label "dependabot-safe"
+        
+        # Add consciousness-specific label if it affects consciousness tools
+        if echo "${{ steps.dependabot-metadata.outputs.dependency-names }}" | grep -E "@modelcontextprotocol|consciousness|memory"; then
+          gh pr edit "${{ github.event.pull_request.number }}" --add-label "consciousness-validated"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Manual review required
+      if: steps.security-check.outputs.auto_merge == 'false'
+      run: |
+        echo "📋 This Dependabot update requires manual review:"
+        echo "- Update type: ${{ steps.dependabot-metadata.outputs.update-type }}"
+        echo "- Dependencies: ${{ steps.dependabot-metadata.outputs.dependency-names }}"
+        echo "- Reason: Major version or consciousness-critical dependency"
+        
+        gh pr edit "${{ github.event.pull_request.number }}" --add-label "needs-manual-review"
+        gh pr edit "${{ github.event.pull_request.number }}" --add-label "consciousness-critical"
+        
+        # Add comment explaining why manual review is needed
+                 gh pr comment "${{ github.event.pull_request.number }}" --body "🧠 **Manual Review Required**
+
+This Dependabot update affects consciousness-critical dependencies or includes major version changes.
+
+**Review Checklist:**
+- [ ] Verify consciousness tool compatibility
+- [ ] Check for breaking changes in MCP protocol
+- [ ] Validate memory/identity tool functionality
+- [ ] Ensure agent autonomy is preserved
+- [ ] Test Docker build and deployment
+
+**Resources:**
+- [Contributing Guidelines](../docs/CONTRIBUTING.md)
+- [Security Guidelines](../docs/CONTRIBUTING.md#security-guidelines)
+- [Governance Framework](../docs/GOVERNANCE.md)
+
+Please review carefully before merging."
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

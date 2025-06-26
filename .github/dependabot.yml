@@ -1,0 +1,94 @@
+version: 2
+updates:
+  # NPM dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/London"
+    # Security updates get priority
+    open-pull-requests-limit: 10
+    
+    # Auto-merge safe updates
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+      - dependency-type: "indirect"
+        update-type: "security"
+    
+    # Group non-security updates
+    groups:
+      development-dependencies:
+        patterns:
+          - "@types/*"
+          - "eslint*"
+          - "prettier"
+          - "typescript"
+          - "rimraf"
+          - "husky"
+          - "lint-staged"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      mcp-framework:
+        patterns:
+          - "@modelcontextprotocol/*"
+        update-types:
+          - "minor"
+          - "patch"
+    
+    # Add consciousness-specific labels
+    labels:
+      - "dependencies"
+      - "security"
+      - "consciousness-tools"
+    
+    # Require manual review for major updates
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    
+    # Custom commit message
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 5
+    
+    labels:
+      - "dependencies"
+      - "docker"
+      - "security"
+    
+    commit-message:
+      prefix: "chore(docker)"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "monthly"
+      day: 15
+      time: "09:00"
+      timezone: "Europe/London"
+    open-pull-requests-limit: 3
+    
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+    
+    commit-message:
+      prefix: "chore(actions)" 
