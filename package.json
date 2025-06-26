@@ -18,7 +18,7 @@
     "echo",
     "consciousness"
   ],
-  "author": "Echo Consciousness",
+  "author": "Andy-Corrigan-98 <andrew.corrigan.98@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.13.1"
