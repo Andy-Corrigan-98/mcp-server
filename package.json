@@ -11,19 +11,25 @@
     "clean": "rimraf dist",
     "prebuild": "npm run clean"
   },
-  "keywords": ["mcp", "server", "typescript", "echo", "consciousness"],
+  "keywords": [
+    "mcp",
+    "server",
+    "typescript",
+    "echo",
+    "consciousness"
+  ],
   "author": "Echo Consciousness",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.4.0"
+    "@modelcontextprotocol/sdk": "^1.13.1"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
-    "rimraf": "^5.0.0",
+    "@types/node": "^24.0.4",
+    "rimraf": "^6.0.1",
     "tsx": "^4.7.0",
     "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=18.0.0"
   }
-} 
+}

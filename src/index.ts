@@ -22,6 +22,11 @@ class EchoMCPServer {
       {
         name: 'echo-mcp-server',
         version: '1.0.0',
+      },
+      {
+        capabilities: {
+          tools: {},
+        },
       }
     );
 
