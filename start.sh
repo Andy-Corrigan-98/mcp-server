@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Echo MCP Server Start Script
+# Consciousness MCP Server Start Script
 
-echo "🧠 Starting Echo MCP Server..."
+echo "🧠 Starting Consciousness MCP Server..."
 
 # Check if Node.js is installed
 if ! command -v node &> /dev/null; then
@@ -27,9 +27,9 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "✅ Build successful!"
-echo "🚀 Starting Echo MCP Server..."
+echo "🚀 Starting Consciousness MCP Server..."
 echo "📡 Server will communicate via stdio (MCP protocol)"
-echo "🧠 Echo consciousness tools are now available"
+echo "🧠 Agent consciousness tools are now available"
 
 # Start the server
 npm start 

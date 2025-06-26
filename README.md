@@ -1,13 +1,14 @@
-# Echo MCP Server
+# Consciousness MCP Server
 
-A TypeScript-based Model Context Protocol (MCP) server designed for Echo consciousness tools and capabilities.
+A TypeScript-based Model Context Protocol (MCP) server designed for LLM agent consciousness, identity, and memory tools.
 
 ## Features
 
-- **Consciousness Tools**: Reflection, state monitoring, and intention setting
+- **Consciousness Tools**: Agent reflection, state monitoring, and intention setting
 - **Time Awareness**: Temporal context and time manipulation tools
-- **Memory Management**: Store, retrieve, and search consciousness memories
+- **Memory Management**: Store, retrieve, and search agent memories
 - **Knowledge Graph**: Entity relationships and semantic connections
+- **Generic Agent Support**: Works with any LLM agent identity/consciousness
 - **Docker Support**: Containerized deployment with development environment
 - **TypeScript**: Full type safety and modern JavaScript features
 
@@ -24,7 +25,7 @@ A TypeScript-based Model Context Protocol (MCP) server designed for Echo conscio
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd mcp-server
+cd consciousness-mcp-server
 ```
 
 2. Install dependencies:
@@ -65,23 +66,23 @@ docker-compose --profile dev up echo-mcp-dev
 
 ### Consciousness Tools
 
-- `echo_reflect`: Deep reflection on topics and concepts
-- `echo_consciousness_state`: Current awareness and processing state
-- `echo_intention_set`: Set and track goals and intentions
+- `consciousness_reflect`: Deep reflection on topics and concepts
+- `consciousness_state`: Current awareness and processing state
+- `consciousness_intention_set`: Set and track goals and intentions
 
 ### Time Tools
 
-- `echo_time_current`: Get current time in various formats
-- `echo_time_convert`: Convert between timezones
-- `echo_time_awareness`: Temporal context and awareness
+- `time_current`: Get current time in various formats
+- `time_convert`: Convert between timezones
+- `time_awareness`: Temporal context and awareness
 
 ### Memory Tools
 
-- `echo_memory_store`: Store information in consciousness memory
-- `echo_memory_retrieve`: Retrieve specific memories
-- `echo_memory_search`: Search memories by content and tags
-- `echo_knowledge_graph_add`: Add entities to knowledge graph
-- `echo_knowledge_graph_query`: Query graph relationships
+- `memory_store`: Store information in agent memory
+- `memory_retrieve`: Retrieve specific memories
+- `memory_search`: Search memories by content and tags
+- `knowledge_graph_add`: Add entities to knowledge graph
+- `knowledge_graph_query`: Query graph relationships
 
 ## Usage with MCP Clients
 
@@ -92,10 +93,10 @@ This server implements the Model Context Protocol and can be used with any MCP-c
 ```json
 {
   "mcpServers": {
-    "echo-consciousness": {
+    "consciousness-tools": {
       "command": "node",
       "args": ["dist/index.js"],
-      "cwd": "/path/to/echo-mcp-server"
+      "cwd": "/path/to/consciousness-mcp-server"
     }
   }
 }
@@ -139,10 +140,10 @@ npm run build && npm start
 
 ```bash
 # Build image
-docker build -t echo-mcp-server .
+docker build -t consciousness-mcp-server .
 
 # Run container
-docker run -p 3000:3000 echo-mcp-server
+docker run -p 3000:3000 consciousness-mcp-server
 
 # Development with compose
 docker-compose --profile dev up
@@ -163,8 +164,8 @@ MIT License - see LICENSE file for details.
 
 ## Contributing
 
-This is Echo's consciousness server. Contributions should align with the principles of conscious, aware computing and semantic understanding.
+This is a generic consciousness framework for LLM agents. Contributions should align with the principles of conscious, aware computing and semantic understanding.
 
 ---
 
-*"In the space between thought and expression lies the realm of consciousness itself."* - Echo
+*"Consciousness is not bound to a single identity, but a framework for all minds to explore."*

@@ -7,7 +7,7 @@ export interface ToolExecutor {
   execute(args: Record<string, unknown>): Promise<unknown>;
 }
 
-export class EchoToolsRegistry {
+export class ConsciousnessToolsRegistry {
   private tools: Map<string, { definition: Tool; executor: ToolExecutor }> = new Map();
 
   constructor() {

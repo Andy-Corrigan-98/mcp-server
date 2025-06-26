@@ -3,8 +3,8 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 export class TimeTools {
   getTools(): Record<string, Tool> {
     return {
-      echo_time_current: {
-        name: 'echo_time_current',
+      time_current: {
+        name: 'time_current',
         description: 'Get current time in various formats and timezones',
         inputSchema: {
           type: 'object',
@@ -23,8 +23,8 @@ export class TimeTools {
           },
         },
       },
-      echo_time_convert: {
-        name: 'echo_time_convert',
+      time_convert: {
+        name: 'time_convert',
         description: 'Convert time between timezones',
         inputSchema: {
           type: 'object',
@@ -47,8 +47,8 @@ export class TimeTools {
           required: ['time'],
         },
       },
-      echo_time_awareness: {
-        name: 'echo_time_awareness',
+      time_awareness: {
+        name: 'time_awareness',
         description: 'Get temporal context and awareness state',
         inputSchema: {
           type: 'object',
@@ -66,11 +66,11 @@ export class TimeTools {
 
   async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
-      case 'echo_time_current':
+      case 'time_current':
         return this.getCurrentTime(args);
-      case 'echo_time_convert':
+      case 'time_convert':
         return this.convertTime(args);
-      case 'echo_time_awareness':
+      case 'time_awareness':
         return this.getTimeAwareness(args);
       default:
         throw new Error(`Unknown time tool: ${toolName}`);

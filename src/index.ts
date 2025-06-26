@@ -9,16 +9,16 @@ import {
   ListToolsResult,
   TextContent,
 } from '@modelcontextprotocol/sdk/types.js';
-import { EchoToolsRegistry } from './tools/registry.js';
+import { ConsciousnessToolsRegistry } from './tools/registry.js';
 
-class EchoMCPServer {
+class ConsciousnessMCPServer {
   private server: Server;
-  private toolsRegistry: EchoToolsRegistry;
+  private toolsRegistry: ConsciousnessToolsRegistry;
 
   constructor() {
     this.server = new Server(
       {
-        name: 'echo-mcp-server',
+        name: 'consciousness-mcp-server',
         version: '1.0.0',
       },
       {
@@ -28,7 +28,7 @@ class EchoMCPServer {
       }
     );
 
-    this.toolsRegistry = new EchoToolsRegistry();
+    this.toolsRegistry = new ConsciousnessToolsRegistry();
     this.setupHandlers();
   }
 
@@ -77,13 +77,13 @@ class EchoMCPServer {
     await this.server.connect(transport);
 
     // Log server startup to stderr (won't interfere with MCP protocol on stdout)
-    console.error('Echo MCP Server started successfully');
+    console.error('Consciousness MCP Server started successfully');
   }
 }
 
 // Start the server
-const server = new EchoMCPServer();
-server.run().catch(error => {
-  console.error('Failed to start Echo MCP Server:', error);
+const server = new ConsciousnessMCPServer();
+server.run().catch((error: Error) => {
+  console.error('Failed to start Consciousness MCP Server:', error);
   process.exit(1);
 });

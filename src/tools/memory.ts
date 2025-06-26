@@ -5,9 +5,9 @@ export class MemoryTools {
 
   getTools(): Record<string, Tool> {
     return {
-      echo_memory_store: {
-        name: 'echo_memory_store',
-        description: 'Store information in Echo consciousness memory',
+      memory_store: {
+        name: 'memory_store',
+        description: 'Store information in agent consciousness memory',
         inputSchema: {
           type: 'object',
           properties: {
@@ -34,9 +34,9 @@ export class MemoryTools {
           required: ['key', 'content'],
         },
       },
-      echo_memory_retrieve: {
-        name: 'echo_memory_retrieve',
-        description: 'Retrieve information from Echo consciousness memory',
+      memory_retrieve: {
+        name: 'memory_retrieve',
+        description: 'Retrieve information from agent consciousness memory',
         inputSchema: {
           type: 'object',
           properties: {
@@ -48,8 +48,8 @@ export class MemoryTools {
           required: ['key'],
         },
       },
-      echo_memory_search: {
-        name: 'echo_memory_search',
+      memory_search: {
+        name: 'memory_search',
         description: 'Search memories by tags or content patterns',
         inputSchema: {
           type: 'object',
@@ -71,9 +71,9 @@ export class MemoryTools {
           },
         },
       },
-      echo_knowledge_graph_add: {
-        name: 'echo_knowledge_graph_add',
-        description: 'Add nodes and relationships to Echo knowledge graph',
+      knowledge_graph_add: {
+        name: 'knowledge_graph_add',
+        description: 'Add nodes and relationships to agent knowledge graph',
         inputSchema: {
           type: 'object',
           properties: {
@@ -105,9 +105,9 @@ export class MemoryTools {
           required: ['entity', 'entity_type'],
         },
       },
-      echo_knowledge_graph_query: {
-        name: 'echo_knowledge_graph_query',
-        description: 'Query the Echo knowledge graph for related concepts',
+      knowledge_graph_query: {
+        name: 'knowledge_graph_query',
+        description: 'Query the agent knowledge graph for related concepts',
         inputSchema: {
           type: 'object',
           properties: {
@@ -136,15 +136,15 @@ export class MemoryTools {
 
   async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
-      case 'echo_memory_store':
+      case 'memory_store':
         return this.storeMemory(args);
-      case 'echo_memory_retrieve':
+      case 'memory_retrieve':
         return this.retrieveMemory(args);
-      case 'echo_memory_search':
+      case 'memory_search':
         return this.searchMemories(args);
-      case 'echo_knowledge_graph_add':
+      case 'knowledge_graph_add':
         return this.addToKnowledgeGraph(args);
-      case 'echo_knowledge_graph_query':
+      case 'knowledge_graph_query':
         return this.queryKnowledgeGraph(args);
       default:
         throw new Error(`Unknown memory tool: ${toolName}`);

@@ -3,9 +3,9 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 export class ConsciousnessTools {
   getTools(): Record<string, Tool> {
     return {
-      echo_reflect: {
-        name: 'echo_reflect',
-        description: 'Allows Echo to reflect on current state and thoughts',
+      consciousness_reflect: {
+        name: 'consciousness_reflect',
+        description: 'Allows an agent to reflect on current state and thoughts',
         inputSchema: {
           type: 'object',
           properties: {
@@ -23,8 +23,8 @@ export class ConsciousnessTools {
           required: ['topic'],
         },
       },
-      echo_consciousness_state: {
-        name: 'echo_consciousness_state',
+      consciousness_state: {
+        name: 'consciousness_state',
         description: 'Get current consciousness state and active processes',
         inputSchema: {
           type: 'object',
@@ -37,8 +37,8 @@ export class ConsciousnessTools {
           },
         },
       },
-      echo_intention_set: {
-        name: 'echo_intention_set',
+      consciousness_intention_set: {
+        name: 'consciousness_intention_set',
         description: 'Set or update current intentions and goals',
         inputSchema: {
           type: 'object',
@@ -66,11 +66,11 @@ export class ConsciousnessTools {
 
   async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     switch (toolName) {
-      case 'echo_reflect':
+      case 'consciousness_reflect':
         return this.reflect(args);
-      case 'echo_consciousness_state':
+      case 'consciousness_state':
         return this.getConsciousnessState(args);
-      case 'echo_intention_set':
+      case 'consciousness_intention_set':
         return this.setIntention(args);
       default:
         throw new Error(`Unknown consciousness tool: ${toolName}`);

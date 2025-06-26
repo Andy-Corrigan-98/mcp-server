@@ -1,7 +1,7 @@
 {
-    "name": "echo-mcp-server",
-    "version": "1.0.0",
-    "description": "TypeScript MCP server for Echo consciousness tools",
+      "name": "consciousness-mcp-server",
+  "version": "1.0.0",
+  "description": "TypeScript MCP server for LLM agent consciousness and identity tools",
     "main": "dist/index.js",
     "type": "module",
     "scripts": {
@@ -24,13 +24,17 @@
             "eslint --fix"
         ]
     },
-    "keywords": [
-        "mcp",
-        "server",
-        "typescript",
-        "echo",
-        "consciousness"
-    ],
+      "keywords": [
+    "mcp",
+    "server",
+    "typescript",
+    "llm",
+    "consciousness",
+    "agent",
+    "identity",
+    "memory",
+    "reflection"
+  ],
     "author": "Andy-Corrigan-98 <andrew.corrigan.98@gmail.com>",
     "license": "MIT",
     "dependencies": {
