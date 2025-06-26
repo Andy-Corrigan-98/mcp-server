@@ -35,7 +35,7 @@
     "memory",
     "reflection"
   ],
-    "author": "Andy-Corrigan-98 <andrew.corrigan.98@gmail.com>",
+    "author": "Andy-Corrigan-98",
     "license": "MIT",
     "dependencies": {
         "@modelcontextprotocol/sdk": "^1.13.1"
