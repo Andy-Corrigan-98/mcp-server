@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  echo-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: echo-mcp-server
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - MCP_DEBUG=false
+    volumes:
+      # Mount data directory for persistence if needed
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Development service
+  echo-mcp-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: echo-mcp-dev
+    ports:
+      - "3001:3000"
+    environment:
+      - NODE_ENV=development
+      - MCP_DEBUG=true
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+    profiles:
+      - dev 
