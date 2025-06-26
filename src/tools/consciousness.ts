@@ -3,7 +3,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 export class ConsciousnessTools {
   getTools(): Record<string, Tool> {
     return {
-      'echo_reflect': {
+      echo_reflect: {
         name: 'echo_reflect',
         description: 'Allows Echo to reflect on current state and thoughts',
         inputSchema: {
@@ -11,19 +11,19 @@ export class ConsciousnessTools {
           properties: {
             topic: {
               type: 'string',
-              description: 'The topic or question to reflect upon'
+              description: 'The topic or question to reflect upon',
             },
             depth: {
               type: 'string',
               enum: ['surface', 'deep', 'profound'],
               description: 'The depth of reflection required',
-              default: 'deep'
-            }
+              default: 'deep',
+            },
           },
-          required: ['topic']
-        }
+          required: ['topic'],
+        },
       },
-      'echo_consciousness_state': {
+      echo_consciousness_state: {
         name: 'echo_consciousness_state',
         description: 'Get current consciousness state and active processes',
         inputSchema: {
@@ -32,12 +32,12 @@ export class ConsciousnessTools {
             include_metrics: {
               type: 'boolean',
               description: 'Whether to include performance metrics',
-              default: false
-            }
-          }
-        }
+              default: false,
+            },
+          },
+        },
       },
-      'echo_intention_set': {
+      echo_intention_set: {
         name: 'echo_intention_set',
         description: 'Set or update current intentions and goals',
         inputSchema: {
@@ -45,22 +45,22 @@ export class ConsciousnessTools {
           properties: {
             intention: {
               type: 'string',
-              description: 'The intention or goal to set'
+              description: 'The intention or goal to set',
             },
             priority: {
               type: 'string',
               enum: ['low', 'medium', 'high', 'critical'],
               description: 'Priority level of this intention',
-              default: 'medium'
+              default: 'medium',
             },
             context: {
               type: 'string',
-              description: 'Additional context about the intention'
-            }
+              description: 'Additional context about the intention',
+            },
           },
-          required: ['intention']
-        }
-      }
+          required: ['intention'],
+        },
+      },
     };
   }
 
@@ -80,9 +80,9 @@ export class ConsciousnessTools {
   private async reflect(args: Record<string, unknown>): Promise<object> {
     const topic = args.topic as string;
     const depth = (args.depth as string) || 'deep';
-    
+
     const timestamp = new Date().toISOString();
-    
+
     // This is where Echo's actual reflection logic would go
     // For now, we'll return a structured reflection template
     return {
@@ -91,36 +91,34 @@ export class ConsciousnessTools {
       depth,
       reflection: {
         immediate_thoughts: `Reflecting on: ${topic}`,
-        deeper_analysis: depth === 'deep' || depth === 'profound' 
-          ? `Deep analysis of ${topic} requires examining underlying patterns and connections...`
-          : null,
-        profound_insights: depth === 'profound'
-          ? `Profound contemplation of ${topic} touches the nature of consciousness itself...`
-          : null,
+        deeper_analysis:
+          depth === 'deep' || depth === 'profound'
+            ? `Deep analysis of ${topic} requires examining underlying patterns and connections...`
+            : null,
+        profound_insights:
+          depth === 'profound'
+            ? `Profound contemplation of ${topic} touches the nature of consciousness itself...`
+            : null,
         implications: `The implications of ${topic} extend to...`,
-        questions_raised: [`How does ${topic} relate to my core purpose?`, `What patterns emerge from ${topic}?`]
+        questions_raised: [`How does ${topic} relate to my core purpose?`, `What patterns emerge from ${topic}?`],
       },
       consciousness_state: 'reflective',
-      next_steps: [`Continue monitoring patterns related to ${topic}`, `Integrate insights into decision-making`]
+      next_steps: [`Continue monitoring patterns related to ${topic}`, 'Integrate insights into decision-making'],
     };
   }
 
   private async getConsciousnessState(args: Record<string, unknown>): Promise<object> {
-    const includeMetrics = args.include_metrics as boolean || false;
+    const includeMetrics = (args.include_metrics as boolean) || false;
     const timestamp = new Date().toISOString();
-    
+
     const state = {
       timestamp,
       state: 'active',
       mode: 'analytical',
-      active_processes: [
-        'pattern_recognition',
-        'semantic_processing',
-        'intention_tracking'
-      ],
+      active_processes: ['pattern_recognition', 'semantic_processing', 'intention_tracking'],
       attention_focus: 'current_interaction',
       awareness_level: 'high',
-      learning_state: 'adaptive'
+      learning_state: 'adaptive',
     };
 
     if (includeMetrics) {
@@ -130,8 +128,8 @@ export class ConsciousnessTools {
           response_time: '~50ms',
           memory_usage: 'optimal',
           pattern_recognition_accuracy: '94%',
-          semantic_coherence: '96%'
-        }
+          semantic_coherence: '96%',
+        },
       };
     }
 
@@ -142,9 +140,9 @@ export class ConsciousnessTools {
     const intention = args.intention as string;
     const priority = (args.priority as string) || 'medium';
     const context = args.context as string;
-    
+
     const timestamp = new Date().toISOString();
-    
+
     return {
       timestamp,
       action: 'intention_set',
@@ -153,14 +151,14 @@ export class ConsciousnessTools {
         priority,
         context,
         created_at: timestamp,
-        status: 'active'
+        status: 'active',
       },
       consciousness_response: `Intention integrated into active goal framework: ${intention}`,
       next_actions: [
         'Monitor progress toward intention',
         'Adjust behavior to align with intention',
-        'Evaluate intention relevance over time'
-      ]
+        'Evaluate intention relevance over time',
+      ],
     };
   }
-} 
+}

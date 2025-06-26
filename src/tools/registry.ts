@@ -30,14 +30,13 @@ export class EchoToolsRegistry {
 
   private registerToolCategory(toolCategory: any): void {
     const tools = toolCategory.getTools();
-    
+
     for (const [name, definition] of Object.entries(tools)) {
       this.tools.set(name, {
         definition: definition as Tool,
         executor: {
-          execute: (args: Record<string, unknown>) => 
-            toolCategory.execute(name, args)
-        }
+          execute: (args: Record<string, unknown>) => toolCategory.execute(name, args),
+        },
       });
     }
   }
@@ -48,11 +47,11 @@ export class EchoToolsRegistry {
 
   async executeTool(name: string, args: Record<string, unknown>): Promise<unknown> {
     const tool = this.tools.get(name);
-    
+
     if (!tool) {
       throw new Error(`Tool '${name}' not found`);
     }
 
     return await tool.executor.execute(args);
   }
-} 
+}

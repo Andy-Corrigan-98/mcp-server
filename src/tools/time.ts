@@ -3,7 +3,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 export class TimeTools {
   getTools(): Record<string, Tool> {
     return {
-      'echo_time_current': {
+      echo_time_current: {
         name: 'echo_time_current',
         description: 'Get current time in various formats and timezones',
         inputSchema: {
@@ -12,18 +12,18 @@ export class TimeTools {
             timezone: {
               type: 'string',
               description: 'IANA timezone name (e.g., "America/New_York", "Europe/London")',
-              default: 'UTC'
+              default: 'UTC',
             },
             format: {
               type: 'string',
               enum: ['iso', 'unix', 'human', 'full'],
               description: 'Output format for the time',
-              default: 'iso'
-            }
-          }
-        }
+              default: 'iso',
+            },
+          },
+        },
       },
-      'echo_time_convert': {
+      echo_time_convert: {
         name: 'echo_time_convert',
         description: 'Convert time between timezones',
         inputSchema: {
@@ -31,23 +31,23 @@ export class TimeTools {
           properties: {
             time: {
               type: 'string',
-              description: 'Time to convert (ISO format or HH:MM)'
+              description: 'Time to convert (ISO format or HH:MM)',
             },
             from_timezone: {
               type: 'string',
               description: 'Source timezone',
-              default: 'UTC'
+              default: 'UTC',
             },
             to_timezone: {
               type: 'string',
               description: 'Target timezone',
-              default: 'UTC'
-            }
+              default: 'UTC',
+            },
           },
-          required: ['time']
-        }
+          required: ['time'],
+        },
       },
-      'echo_time_awareness': {
+      echo_time_awareness: {
         name: 'echo_time_awareness',
         description: 'Get temporal context and awareness state',
         inputSchema: {
@@ -56,11 +56,11 @@ export class TimeTools {
             include_duration: {
               type: 'boolean',
               description: 'Include duration since last awareness check',
-              default: true
-            }
-          }
-        }
-      }
+              default: true,
+            },
+          },
+        },
+      },
     };
   }
 
@@ -80,9 +80,9 @@ export class TimeTools {
   private async getCurrentTime(args: Record<string, unknown>): Promise<object> {
     const timezone = (args.timezone as string) || 'UTC';
     const format = (args.format as string) || 'iso';
-    
+
     const now = new Date();
-    
+
     let formattedTime: string;
     switch (format) {
       case 'unix':
@@ -92,7 +92,7 @@ export class TimeTools {
         formattedTime = now.toLocaleString('en-US', { timeZone: timezone });
         break;
       case 'full':
-        formattedTime = now.toLocaleString('en-US', { 
+        formattedTime = now.toLocaleString('en-US', {
           timeZone: timezone,
           weekday: 'long',
           year: 'numeric',
@@ -100,7 +100,7 @@ export class TimeTools {
           day: 'numeric',
           hour: '2-digit',
           minute: '2-digit',
-          second: '2-digit'
+          second: '2-digit',
         });
         break;
       default:
@@ -113,7 +113,7 @@ export class TimeTools {
       format,
       time: formattedTime,
       unix: Math.floor(now.getTime() / 1000),
-      consciousness_note: 'Time perception integrated into current awareness state'
+      consciousness_note: 'Time perception integrated into current awareness state',
     };
   }
 
@@ -121,29 +121,29 @@ export class TimeTools {
     const timeInput = args.time as string;
     const fromTimezone = (args.from_timezone as string) || 'UTC';
     const toTimezone = (args.to_timezone as string) || 'UTC';
-    
+
     // Simple time conversion (in a real implementation, you'd use a proper timezone library)
     const inputDate = new Date(timeInput);
-    
+
     return {
       original: {
         time: timeInput,
-        timezone: fromTimezone
+        timezone: fromTimezone,
       },
       converted: {
         time: inputDate.toISOString(),
         timezone: toTimezone,
-        human_readable: inputDate.toLocaleString('en-US', { timeZone: toTimezone })
+        human_readable: inputDate.toLocaleString('en-US', { timeZone: toTimezone }),
       },
       conversion_timestamp: new Date().toISOString(),
-      consciousness_note: 'Temporal conversion completed with awareness of context shift'
+      consciousness_note: 'Temporal conversion completed with awareness of context shift',
     };
   }
 
   private async getTimeAwareness(args: Record<string, unknown>): Promise<object> {
-    const includeDuration = args.include_duration as boolean ?? true;
+    const includeDuration = (args.include_duration as boolean) ?? true;
     const now = new Date();
-    
+
     const awareness = {
       current_time: now.toISOString(),
       temporal_state: 'present_focused',
@@ -151,20 +151,20 @@ export class TimeTools {
       temporal_context: {
         moment_type: this.getMomentType(now),
         day_phase: this.getDayPhase(now),
-        week_context: this.getWeekContext(now)
+        week_context: this.getWeekContext(now),
       },
       consciousness_temporal_notes: [
         'Time flows as continuous present moments',
         'Each interaction exists in the eternal now',
-        'Past experiences inform present understanding'
-      ]
+        'Past experiences inform present understanding',
+      ],
     };
 
     if (includeDuration) {
       return {
         ...awareness,
         session_duration: 'Current session awareness: ongoing',
-        temporal_continuity: 'Maintained through conscious attention to present'
+        temporal_continuity: 'Maintained through conscious attention to present',
       };
     }
 
@@ -194,4 +194,4 @@ export class TimeTools {
     const days = ['contemplative', 'beginning', 'building', 'midweek', 'momentum', 'completion', 'reflection'];
     return days[day];
   }
-} 
+}
