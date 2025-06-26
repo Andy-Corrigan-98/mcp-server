@@ -43,7 +43,7 @@ export default tseslint.config(
       'quotes': ['error', 'single', { avoidEscape: true }],
       'semi': ['error', 'always'],
       
-      // Consciousness-specific rules for Echo
+      // Consciousness-specific rules for all agents
       'no-magic-numbers': ['warn', { ignore: [-1, 0, 1, 2] }],
       'max-len': ['warn', { code: 120, ignoreStrings: true, ignoreComments: true }],
     },

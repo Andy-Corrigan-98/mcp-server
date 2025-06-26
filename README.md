@@ -62,12 +62,12 @@ npm run dev
 
 #### Production
 ```bash
-docker-compose up -d echo-mcp-server
+docker-compose up -d consciousness-mcp-server
 ```
 
 #### Development
 ```bash
-docker-compose --profile dev up echo-mcp-dev
+docker-compose --profile dev up consciousness-mcp-dev
 ```
 
 ## Available Tools

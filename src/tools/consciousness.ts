@@ -83,7 +83,7 @@ export class ConsciousnessTools {
 
     const timestamp = new Date().toISOString();
 
-    // This is where Echo's actual reflection logic would go
+    // This is where the agent's actual reflection logic would go
     // For now, we'll return a structured reflection template
     return {
       timestamp,

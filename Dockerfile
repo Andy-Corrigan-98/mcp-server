@@ -21,11 +21,11 @@ EXPOSE 3000
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs
-RUN adduser -S echoserver -u 1001
+RUN adduser -S mcpserver -u 1001
 
 # Change ownership of the app directory
-RUN chown -R echoserver:nodejs /app
-USER echoserver
+RUN chown -R mcpserver:nodejs /app
+USER mcpserver
 
 # Start the server
 CMD ["npm", "start"] 
