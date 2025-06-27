@@ -2,44 +2,22 @@ import { PrismaClient, ImportanceLevel } from '@prisma/client';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
+import { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationshipData, DatabaseConfig } from './types.js';
 
 // Load environment variables
 dotenv.config();
 
-export interface MemoryData {
-  key: string;
-  content: unknown;
-  tags: string[];
-  importance: ImportanceLevel;
-}
-
-export interface MemoryResult extends MemoryData {
-  id: number;
-  storedAt: Date;
-  accessCount: number;
-  lastAccessed: Date | null;
-}
-
-export interface KnowledgeEntityData {
-  name: string;
-  entityType: string;
-  properties: Record<string, unknown>;
-}
-
-export interface KnowledgeRelationshipData {
-  sourceEntityName: string;
-  targetEntityName: string;
-  relationshipType: string;
-  strength?: number;
-}
-
+/**
+ * Prisma-based consciousness database service
+ * Provides Entity Framework Core-like experience for Node.js
+ */
 export class ConsciousnessPrismaService {
   private prisma: PrismaClient;
   private static instance: ConsciousnessPrismaService;
 
-  constructor() {
+  constructor(config?: DatabaseConfig) {
     // Ensure database directory exists
-    const dbUrl = process.env.DATABASE_URL || 'file:/app/data/consciousness.db';
+    const dbUrl = config?.databaseUrl || process.env.DATABASE_URL || 'file:/app/data/consciousness.db';
     if (dbUrl.startsWith('file:')) {
       const dbPath = dbUrl.replace('file:', '');
       const dbDir = dirname(dbPath);
@@ -51,13 +29,13 @@ export class ConsciousnessPrismaService {
     }
 
     this.prisma = new PrismaClient({
-      log: process.env.DB_DEBUG === 'true' ? ['query', 'info', 'warn', 'error'] : [],
+      log: config?.enableDebugLogging || process.env.DB_DEBUG === 'true' ? ['query', 'info', 'warn', 'error'] : [],
     });
   }
 
-  static getInstance(): ConsciousnessPrismaService {
+  static getInstance(config?: DatabaseConfig): ConsciousnessPrismaService {
     if (!ConsciousnessPrismaService.instance) {
-      ConsciousnessPrismaService.instance = new ConsciousnessPrismaService();
+      ConsciousnessPrismaService.instance = new ConsciousnessPrismaService(config);
     }
     return ConsciousnessPrismaService.instance;
   }
@@ -109,11 +87,7 @@ export class ConsciousnessPrismaService {
     });
   }
 
-  async searchMemories(
-    query?: string,
-    tags?: string[],
-    importanceFilter?: ImportanceLevel
-  ): Promise<MemoryResult[]> {
+  async searchMemories(query?: string, tags?: string[], importanceFilter?: ImportanceLevel): Promise<MemoryResult[]> {
     const whereConditions: any = {};
 
     // Add importance filter
@@ -127,10 +101,7 @@ export class ConsciousnessPrismaService {
 
     // Add content search
     if (query) {
-      whereConditions.OR = [
-        { content: { contains: query } },
-        { key: { contains: query } },
-      ];
+      whereConditions.OR = [{ content: { contains: query } }, { key: { contains: query } }];
     }
 
     // Add tag filtering (simple approach for now)
@@ -142,10 +113,7 @@ export class ConsciousnessPrismaService {
 
     const memories = await this.prisma.memory.findMany({
       where: whereConditions,
-      orderBy: [
-        { importance: 'desc' },
-        { storedAt: 'desc' },
-      ],
+      orderBy: [{ importance: 'desc' }, { storedAt: 'desc' }],
     });
 
     return memories.map(memory => this.mapMemoryToResult(memory));
@@ -207,53 +175,38 @@ export class ConsciousnessPrismaService {
   }
 
   async getEntityRelationships(entityName: string, depth: number = 2) {
-    // For now, simplified relationship query
-    // In a real implementation, you might use recursive queries or multiple rounds
-    const entity = await this.getEntity(entityName);
-    if (!entity) return [];
+    // Start with the root entity
+    const visited = new Set<string>();
+    const results: any[] = [];
 
-    const result: Array<{
-      entity: string;
-      level: number;
-      entityType: string;
-      properties: string;
-      relationshipType: string | null;
-      strength: number | null;
-    }> = [
-      {
-        entity: entity.name,
-        level: 0,
-        entityType: entity.entityType,
-        properties: entity.properties,
-        relationshipType: null,
-        strength: null,
-      },
-    ];
+    const exploreEntity = async (name: string, currentDepth: number) => {
+      if (currentDepth > depth || visited.has(name)) {
+        return;
+      }
 
-    // Add direct relationships
-    for (const rel of entity.sourceRelationships) {
-      result.push({
-        entity: rel.targetEntity.name,
-        level: 1,
-        entityType: rel.targetEntity.entityType,
-        properties: rel.targetEntity.properties,
-        relationshipType: rel.relationshipType,
-        strength: rel.strength,
-      });
-    }
+      visited.add(name);
+      const entity = await this.getEntity(name);
 
-    for (const rel of entity.targetRelationships) {
-      result.push({
-        entity: rel.sourceEntity.name,
-        level: 1,
-        entityType: rel.sourceEntity.entityType,
-        properties: rel.sourceEntity.properties,
-        relationshipType: rel.relationshipType,
-        strength: rel.strength,
-      });
-    }
+      if (entity) {
+        results.push(entity);
 
-    return result;
+        // Explore related entities
+        for (const rel of entity.sourceRelationships) {
+          if (currentDepth < depth) {
+            await exploreEntity(rel.targetEntityName, currentDepth + 1);
+          }
+        }
+
+        for (const rel of entity.targetRelationships) {
+          if (currentDepth < depth) {
+            await exploreEntity(rel.sourceEntityName, currentDepth + 1);
+          }
+        }
+      }
+    };
+
+    await exploreEntity(entityName, 1);
+    return results;
   }
 
   private mapMemoryToResult(memory: any): MemoryResult {
@@ -272,4 +225,4 @@ export class ConsciousnessPrismaService {
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
   }
-} 
+}
