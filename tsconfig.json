@@ -13,7 +13,16 @@
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "baseUrl": "./src",
+    "paths": {
+      "@/*": ["./*"],
+      "@/tools/*": ["./tools/*"],
+      "@/db/*": ["./db/*"],
+      "@/validation/*": ["./validation/*"],
+      "@/memory": ["./tools/memory/index.js"],
+      "@/memory/*": ["./tools/memory/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
