@@ -16,14 +16,15 @@
             "format:check": "prettier --check src/**/*.ts",
             "type-check": "tsc --noEmit",
             "check": "npm run type-check && npm run lint && npm run format:check && npm run test",
-                "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
-    "test:ci": "jest --ci --coverage --watchAll=false",
-    "prepare": "husky"
+            "db:generate": "prisma generate",
+            "db:push": "prisma db push",
+            "db:studio": "prisma studio",
+            "test": "jest",
+            "test:watch": "jest --watch",
+            "test:coverage": "jest --coverage",
+            "test:ci": "jest --ci --coverage --watchAll=false",
+            "commitlint": "commitlint --from HEAD~1 --to HEAD --verbose",
+            "prepare": "husky"
       },
       "lint-staged": {
             "src/**/*.{ts,tsx}": [
@@ -51,6 +52,8 @@
             "dotenv": "^16.4.7"
       },
       "devDependencies": {
+            "@commitlint/cli": "^19.8.1",
+            "@commitlint/config-conventional": "^19.8.1",
             "@eslint/js": "^9.29.0",
             "@jest/globals": "^30.0.3",
             "@types/better-sqlite3": "^7.6.12",
