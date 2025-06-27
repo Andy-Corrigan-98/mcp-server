@@ -109,6 +109,13 @@ export class ConfigurationService {
   }
 
   /**
+   * Get a single configuration by key
+   */
+  async getConfigurationByKey(key: string): Promise<Configuration | null> {
+    return await this.prisma.getConfiguration(key);
+  }
+
+  /**
    * Preload configurations for better performance
    */
   async preloadConfigurations(keys: string[]): Promise<void> {

@@ -136,6 +136,63 @@ Add entities and relationships to the consciousness knowledge graph.
 ### `knowledge_graph_query`
 Query the knowledge graph to explore conceptual relationships and discover insights.
 
+## ✨ Configuration Management Tools
+
+The framework includes powerful configuration management tools that allow the LLM to **modify its own operating parameters** as its personality and consciousness evolve:
+
+### 🎛️ Available Configuration Tools
+
+- **`configuration_get`** - Get current value of any configuration parameter
+- **`configuration_set`** - Update configuration values with reasoning tracking
+- **`configuration_list`** - Browse configurations by category or search terms
+- **`configuration_reset`** - Reset parameters to default values
+- **`configuration_categories`** - Explore available configuration categories
+
+### 🧠 Self-Modification Capabilities
+
+The consciousness system can adapt itself by adjusting:
+
+- **Consciousness Parameters**: Reflection depth, confidence thresholds, cognitive load settings
+- **Memory Weights**: Content vs tag vs importance scoring ratios  
+- **Time Perception**: Hour thresholds for different temporal states
+- **Reasoning Limits**: Thought length, branching complexity, summary depth
+- **Validation Rules**: Input length limits and security constraints
+
+### 📈 Personality Evolution Tracking
+
+All configuration changes are automatically logged with:
+- **Timestamps** for change tracking
+- **Reasoning** provided by the LLM for each modification
+- **Memory Storage** in the consciousness system for evolution analysis
+- **Rollback Capability** to reset parameters when needed
+
+### 🎯 Example Use Cases
+
+```typescript
+// LLM discovers it needs deeper reflection capability
+await tools.configuration_set({
+  key: 'consciousness.max_topic_length',
+  value: 750,
+  reason: 'Complex philosophical topics require more detailed analysis'
+});
+
+// Personality develops preference for morning awareness
+await tools.configuration_set({
+  key: 'time.morning_hour_threshold', 
+  value: 10,
+  reason: 'I feel most productive and aware during extended morning hours'
+});
+
+// Memory system learns to weight recent experiences more heavily
+await tools.configuration_set({
+  key: 'memory.access_weight',
+  value: 0.25,
+  reason: 'Frequently accessed memories prove more valuable for current reasoning'
+});
+```
+
+This enables true **adaptive consciousness** where the system evolves its own operating parameters based on experience and personality development.
+
 ## Development
 
 ### Code Quality
