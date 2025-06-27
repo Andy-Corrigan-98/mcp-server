@@ -51,7 +51,7 @@ describe('ConsciousnessTools', () => {
       expect(result).toHaveProperty('sessionId');
       expect(result).toHaveProperty('timestamp');
       expect(result).toHaveProperty('intentions');
-      
+
       const state = (result as any).state;
       expect(state).toHaveProperty('mode');
       expect(state).toHaveProperty('activeProcesses');

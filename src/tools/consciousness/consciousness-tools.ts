@@ -11,6 +11,53 @@ import {
   ConsciousnessMetrics,
 } from './types.js';
 
+// Constants to avoid magic numbers
+const MAX_TOPIC_LENGTH = 500;
+const MAX_CONTEXT_LENGTH = 1000;
+const MAX_SNIPPET_LENGTH = 100;
+const MAX_MEMORY_SLICE = 5;
+const MAX_INTENTION_LENGTH = 500;
+const MAX_PROGRESS_NOTE_LENGTH = 500;
+const MAX_INTENTION_ID_LENGTH = 100;
+const MAX_INSIGHT_LENGTH = 1000;
+const DEFAULT_CONFIDENCE = 0.8;
+const MAX_RELATED_TOPIC_LENGTH = 200;
+const MAX_SOURCE_LENGTH = 200;
+const HIGH_CONFIDENCE_THRESHOLD = 0.8;
+const MEDIUM_CONFIDENCE_THRESHOLD = 0.6;
+const SESSION_ID_SUFFIX_LENGTH = 8;
+const INTENTION_ID_SUFFIX_LENGTH = 6;
+const INSIGHT_ID_SUFFIX_LENGTH = 6;
+const COMPLEX_OPERATION_LOAD_INCREASE = 0.1;
+const SIMPLE_OPERATION_LOAD_INCREASE = 0.05;
+const MIN_COGNITIVE_LOAD = 0.1;
+const MAX_COGNITIVE_LOAD = 1.0;
+const COGNITIVE_LOAD_DECAY_TIME = 30000; // 30 seconds
+const COGNITIVE_LOAD_DECAY_AMOUNT = 0.05;
+const MAX_CONNECTION_DISPLAY = 3;
+const BASE_CONFIDENCE = 0.7;
+const DEEP_CONFIDENCE_BOOST = 0.1;
+const PROFOUND_CONFIDENCE_BOOST = 0.15;
+const MEMORY_CONFIDENCE_BOOST = 0.02;
+const CONNECTION_CONFIDENCE_BOOST = 0.03;
+const MAX_CONFIDENCE_BOOST = 0.1;
+const SIMULATED_RESPONSE_TIME_BASE = 50;
+const SIMULATED_RESPONSE_TIME_VARIANCE = 20;
+const MEMORY_UTILIZATION_DENOMINATOR = 1000;
+const PATTERN_RECOGNITION_BASE = 0.88;
+const SEMANTIC_COHERENCE_BASE = 0.91;
+const BASE_INTENTION_ALIGNMENT = 0.75;
+const HIGH_AWARENESS_BOOST = 0.15;
+const LOW_AWARENESS_BOOST = 0.05;
+const MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
+const MIN_LEARNING_RATE = 0.05;
+const MAX_LEARNING_RATE = 0.5;
+const BASE_LEARNING_RATE = 0.2;
+const REFLECTION_DEPTH_BASE = 0.65;
+const REFLECTION_DEPTH_VARIANCE = 0.2;
+const MAX_KEYWORD_EXTRACTION = 3;
+const RANDOM_SELECTION_DIVISOR = 2;
+
 /**
  * Advanced Consciousness Tools implementation
  * Provides genuine introspection, persistent intentions, and memory-integrated reflection
@@ -40,10 +87,10 @@ export class ConsciousnessTools {
    */
   async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
     const startTime = Date.now();
-    
+
     try {
       let result: unknown;
-      
+
       switch (toolName) {
         case 'consciousness_reflect':
           result = await this.reflect(args);
@@ -66,7 +113,7 @@ export class ConsciousnessTools {
 
       // Update metrics based on operation
       this.updateMetrics(toolName, Date.now() - startTime);
-      
+
       return result;
     } catch (error) {
       this.updateState('analytical', ['error_handling'], 'low');
@@ -75,9 +122,11 @@ export class ConsciousnessTools {
   }
 
   private async reflect(args: Record<string, unknown>): Promise<ReflectionResult> {
-    const topic = InputValidator.sanitizeString(args.topic as string, 500);
+    const topic = InputValidator.sanitizeString(args.topic as string, MAX_TOPIC_LENGTH);
     const depth = (args.depth as string) || 'deep';
-    const context = args.context ? InputValidator.sanitizeString(args.context as string, 1000) : undefined;
+    const context = args.context
+      ? InputValidator.sanitizeString(args.context as string, MAX_CONTEXT_LENGTH)
+      : undefined;
     const connectMemories = Boolean(args.connect_memories !== false);
 
     this.updateState('reflective', ['deep_thinking', 'pattern_analysis'], 'high');
@@ -85,21 +134,27 @@ export class ConsciousnessTools {
     // Search for related memories if requested
     let relatedMemories: string[] = [];
     let connections: string[] = [];
-    
+
     if (connectMemories) {
       try {
         const memories = await this.prisma.searchMemories(topic, ['reflection', 'insight']);
-        relatedMemories = memories.map((m: MemoryResult) => `${m.key}: ${JSON.stringify(m.content).substring(0, 100)}...`);
-        
+        relatedMemories = memories.map(
+          (m: MemoryResult) => `${m.key}: ${JSON.stringify(m.content).substring(0, MAX_SNIPPET_LENGTH)}...`
+        );
+
         // Look for knowledge graph connections
         const entity = await this.prisma.getEntity(topic);
         if (entity) {
           connections = [
-            ...entity.sourceRelationships.map((rel: any) => `${rel.targetEntity.name} (${rel.targetEntity.entityType})`),
-            ...entity.targetRelationships.map((rel: any) => `${rel.sourceEntity.name} (${rel.sourceEntity.entityType})`)
+            ...entity.sourceRelationships.map(
+              (rel: any) => `${rel.targetEntity.name} (${rel.targetEntity.entityType})`
+            ),
+            ...entity.targetRelationships.map(
+              (rel: any) => `${rel.sourceEntity.name} (${rel.sourceEntity.entityType})`
+            ),
           ];
         }
-      } catch (error) {
+      } catch {
         // Continue without memory connections if there's an issue
         relatedMemories = ['Memory search unavailable'];
       }
@@ -124,7 +179,7 @@ export class ConsciousnessTools {
         tags: ['reflection', 'consciousness', 'introspection'],
         importance: 'high',
       });
-    } catch (error) {
+    } catch {
       // Continue even if memory storage fails
     }
 
@@ -157,14 +212,14 @@ export class ConsciousnessTools {
         const recentMemories = await this.prisma.searchMemories('', [], undefined);
         result.memoryState = {
           totalMemories: memoryCount,
-          recentActivity: recentMemories.slice(0, 5).map((m: MemoryResult) => ({
+          recentActivity: recentMemories.slice(0, MAX_MEMORY_SLICE).map((m: MemoryResult) => ({
             key: m.key,
             tags: m.tags,
             importance: m.importance,
             timestamp: m.storedAt,
           })),
         };
-      } catch (error) {
+      } catch {
         result.memoryState = { status: 'unavailable' };
       }
     }
@@ -177,11 +232,15 @@ export class ConsciousnessTools {
   }
 
   private async setIntention(args: Record<string, unknown>): Promise<object> {
-    const intention = InputValidator.sanitizeString(args.intention as string, 500);
+    const intention = InputValidator.sanitizeString(args.intention as string, MAX_INTENTION_LENGTH);
     const priority = (args.priority as string) || 'medium';
-    const context = args.context ? InputValidator.sanitizeString(args.context as string, 1000) : undefined;
+    const context = args.context
+      ? InputValidator.sanitizeString(args.context as string, MAX_CONTEXT_LENGTH)
+      : undefined;
     const duration = (args.duration as string) || 'session';
-    const successCriteria = args.success_criteria ? InputValidator.sanitizeString(args.success_criteria as string, 500) : undefined;
+    const successCriteria = args.success_criteria
+      ? InputValidator.sanitizeString(args.success_criteria as string, MAX_INTENTION_LENGTH)
+      : undefined;
 
     this.updateState('analytical', ['intention_setting', 'goal_planning'], 'high');
 
@@ -206,7 +265,7 @@ export class ConsciousnessTools {
         tags: ['intention', 'goal', priority, duration],
         importance: priority === 'critical' ? 'critical' : priority === 'high' ? 'high' : 'medium',
       });
-    } catch (error) {
+    } catch {
       // Continue even if storage fails
     }
 
@@ -221,9 +280,11 @@ export class ConsciousnessTools {
   }
 
   private async updateIntention(args: Record<string, unknown>): Promise<object> {
-    const intentionId = InputValidator.sanitizeString(args.intention_id as string, 100);
+    const intentionId = InputValidator.sanitizeString(args.intention_id as string, MAX_INTENTION_ID_LENGTH);
     const status = args.status as string;
-    const progressNote = args.progress_note ? InputValidator.sanitizeString(args.progress_note as string, 500) : undefined;
+    const progressNote = args.progress_note
+      ? InputValidator.sanitizeString(args.progress_note as string, MAX_PROGRESS_NOTE_LENGTH)
+      : undefined;
     const newPriority = args.new_priority as string;
 
     this.updateState('analytical', ['intention_tracking', 'progress_assessment'], 'medium');
@@ -236,15 +297,15 @@ export class ConsciousnessTools {
       }
 
       const intention = memory.content as Intention;
-      
+
       // Update intention
       intention.status = status as any;
       intention.updatedAt = new Date();
-      
+
       if (newPriority) {
         intention.priority = newPriority as any;
       }
-      
+
       if (progressNote) {
         intention.progressNotes.push({
           timestamp: new Date(),
@@ -275,11 +336,13 @@ export class ConsciousnessTools {
   }
 
   private async captureInsight(args: Record<string, unknown>): Promise<object> {
-    const insightContent = InputValidator.sanitizeString(args.insight as string, 1000);
+    const insightContent = InputValidator.sanitizeString(args.insight as string, MAX_INSIGHT_LENGTH);
     const category = (args.category as string) || 'meta_cognition';
-    const confidence = (args.confidence as number) || 0.8;
-    const relatedTopic = args.related_topic ? InputValidator.sanitizeString(args.related_topic as string, 200) : undefined;
-    const source = args.source ? InputValidator.sanitizeString(args.source as string, 200) : undefined;
+    const confidence = (args.confidence as number) || DEFAULT_CONFIDENCE;
+    const relatedTopic = args.related_topic
+      ? InputValidator.sanitizeString(args.related_topic as string, MAX_RELATED_TOPIC_LENGTH)
+      : undefined;
+    const source = args.source ? InputValidator.sanitizeString(args.source as string, MAX_SOURCE_LENGTH) : undefined;
 
     this.updateState('learning', ['insight_integration', 'pattern_synthesis'], 'high');
 
@@ -300,9 +363,10 @@ export class ConsciousnessTools {
         key: `insight_${insight.id}`,
         content: insight,
         tags: ['insight', category, ...(insight.tags || [])],
-        importance: confidence > 0.8 ? 'high' : confidence > 0.6 ? 'medium' : 'low',
+        importance:
+          confidence > HIGH_CONFIDENCE_THRESHOLD ? 'high' : confidence > MEDIUM_CONFIDENCE_THRESHOLD ? 'medium' : 'low',
       });
-    } catch (error) {
+    } catch {
       // Continue even if storage fails
     }
 
@@ -317,15 +381,21 @@ export class ConsciousnessTools {
   }
 
   private generateSessionId(): string {
-    return `consciousness_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    return `consciousness_${Date.now()}_${Math.random()
+      .toString(SESSION_ID_SUFFIX_LENGTH + RANDOM_SELECTION_DIVISOR * 10)
+      .substring(RANDOM_SELECTION_DIVISOR, SESSION_ID_SUFFIX_LENGTH)}`;
   }
 
   private generateIntentionId(): string {
-    return `intention_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    return `intention_${Date.now()}_${Math.random()
+      .toString(INTENTION_ID_SUFFIX_LENGTH + RANDOM_SELECTION_DIVISOR * 10)
+      .substring(RANDOM_SELECTION_DIVISOR, INTENTION_ID_SUFFIX_LENGTH)}`;
   }
 
   private generateInsightId(): string {
-    return `insight_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    return `insight_${Date.now()}_${Math.random()
+      .toString(INSIGHT_ID_SUFFIX_LENGTH + RANDOM_SELECTION_DIVISOR * 10)
+      .substring(RANDOM_SELECTION_DIVISOR, INSIGHT_ID_SUFFIX_LENGTH)}`;
   }
 
   private initializeConsciousnessState(): ConsciousnessState {
@@ -342,7 +412,11 @@ export class ConsciousnessTools {
     };
   }
 
-  private updateState(mode: ConsciousnessState['mode'], processes: string[], awarenessLevel: ConsciousnessState['awarenessLevel']): void {
+  private updateState(
+    mode: ConsciousnessState['mode'],
+    processes: string[],
+    awarenessLevel: ConsciousnessState['awarenessLevel']
+  ): void {
     this.currentState = {
       ...this.currentState,
       timestamp: new Date(),
@@ -352,16 +426,21 @@ export class ConsciousnessTools {
     };
   }
 
-  private updateMetrics(operation: string, responseTime: number): void {
+  private updateMetrics(operation: string, _responseTime: number): void {
     // Update cognitive load based on operation complexity
     const complexOperations = ['consciousness_reflect', 'consciousness_insight_capture'];
-    const loadIncrease = complexOperations.includes(operation) ? 0.1 : 0.05;
-    this.currentState.cognitiveLoad = Math.min(1.0, this.currentState.cognitiveLoad + loadIncrease);
-    
+    const loadIncrease = complexOperations.includes(operation)
+      ? COMPLEX_OPERATION_LOAD_INCREASE
+      : SIMPLE_OPERATION_LOAD_INCREASE;
+    this.currentState.cognitiveLoad = Math.min(MAX_COGNITIVE_LOAD, this.currentState.cognitiveLoad + loadIncrease);
+
     // Decay cognitive load over time
     setTimeout(() => {
-      this.currentState.cognitiveLoad = Math.max(0.1, this.currentState.cognitiveLoad - 0.05);
-    }, 30000); // 30 second decay
+      this.currentState.cognitiveLoad = Math.max(
+        MIN_COGNITIVE_LOAD,
+        this.currentState.cognitiveLoad - COGNITIVE_LOAD_DECAY_AMOUNT
+      );
+    }, COGNITIVE_LOAD_DECAY_TIME);
   }
 
   private async generateReflection(
@@ -372,19 +451,19 @@ export class ConsciousnessTools {
     connections: string[] = []
   ): Promise<ReflectionResult> {
     const timestamp = new Date();
-    
+
     // Generate dynamic immediate thoughts
     const immediateThoughts = this.generateImmediateThoughts(topic, context);
-    
+
     // Generate deeper analysis for deep/profound reflections
-    const deeperAnalysis = (depth === 'deep' || depth === 'profound') 
-      ? this.generateDeeperAnalysis(topic, context, relatedMemories, connections)
-      : undefined;
-    
+    const deeperAnalysis =
+      depth === 'deep' || depth === 'profound'
+        ? this.generateDeeperAnalysis(topic, context, relatedMemories, connections)
+        : undefined;
+
     // Generate profound insights for profound reflections
-    const profoundInsights = depth === 'profound'
-      ? this.generateProfoundInsights(topic, context, connections)
-      : undefined;
+    const profoundInsights =
+      depth === 'profound' ? this.generateProfoundInsights(topic, context, connections) : undefined;
 
     return {
       timestamp,
@@ -417,23 +496,29 @@ export class ConsciousnessTools {
     return thoughts[Math.floor(Math.random() * thoughts.length)];
   }
 
-  private generateDeeperAnalysis(topic: string, context?: string, memories: string[] = [], connections: string[] = []): string {
+  private generateDeeperAnalysis(
+    topic: string,
+    context?: string,
+    memories: string[] = [],
+    connections: string[] = []
+  ): string {
     let analysis = `Deep examination of ${topic} reveals multiple interconnected dimensions. `;
-    
+
     if (connections.length > 0) {
-      analysis += `The connections to ${connections.slice(0, 3).join(', ')} suggest broader patterns in how this topic relates to existing knowledge structures. `;
+      const displayConnections = connections.slice(0, MAX_CONNECTION_DISPLAY).join(', ');
+      analysis += `The connections to ${displayConnections} suggest broader patterns in how this topic relates to existing knowledge structures. `;
     }
-    
+
     if (memories.length > 0) {
       analysis += `Previous reflections and experiences provide context that shapes understanding of ${topic}. `;
     }
-    
+
     if (context) {
       analysis += `The specific context of ${context} adds nuanced considerations that influence the analysis. `;
     }
 
-    analysis += `This requires synthesis of multiple perspectives and consideration of both immediate and long-term implications.`;
-    
+    analysis += 'This requires synthesis of multiple perspectives and consideration of both immediate and long-term implications.';
+
     return analysis;
   }
 
@@ -445,9 +530,10 @@ export class ConsciousnessTools {
     ];
 
     let insight = insights[Math.floor(Math.random() * insights.length)];
-    
+
     if (connections.length > 0) {
-      insight += `. The interconnections with ${connections.slice(0, 2).join(' and ')} suggest universal patterns that transcend individual topics.`;
+      const firstTwoConnections = connections.slice(0, RANDOM_SELECTION_DIVISOR).join(' and ');
+      insight += `. The interconnections with ${firstTwoConnections} suggest universal patterns that transcend individual topics.`;
     }
 
     return insight;
@@ -500,11 +586,7 @@ export class ConsciousnessTools {
   }
 
   private identifyCognitivePatterns(topic: string, memories: string[] = []): string[] {
-    const patterns = [
-      'pattern_synthesis',
-      'contextual_analysis',
-      'connection_mapping',
-    ];
+    const patterns = ['pattern_synthesis', 'contextual_analysis', 'connection_mapping'];
 
     if (memories.length > 0) {
       patterns.push('memory_integration');
@@ -518,28 +600,26 @@ export class ConsciousnessTools {
   }
 
   private calculateReflectionConfidence(depth: string, memoryCount: number, connectionCount: number): number {
-    let confidence = 0.7; // Base confidence
-    
-    if (depth === 'deep') confidence += 0.1;
-    if (depth === 'profound') confidence += 0.15;
-    
-    confidence += Math.min(0.1, memoryCount * 0.02); // Memory connections boost
-    confidence += Math.min(0.1, connectionCount * 0.03); // Knowledge connections boost
-    
-    return Math.min(1.0, confidence);
+    let confidence = BASE_CONFIDENCE;
+
+    if (depth === 'deep') confidence += DEEP_CONFIDENCE_BOOST;
+    if (depth === 'profound') confidence += PROFOUND_CONFIDENCE_BOOST;
+
+    confidence += Math.min(MAX_CONFIDENCE_BOOST, memoryCount * MEMORY_CONFIDENCE_BOOST);
+    confidence += Math.min(MAX_CONFIDENCE_BOOST, connectionCount * CONNECTION_CONFIDENCE_BOOST);
+
+    return Math.min(MAX_COGNITIVE_LOAD, confidence);
   }
 
   private async calculateMetrics(): Promise<ConsciousnessMetrics> {
-    const sessionDuration = Date.now() - this.sessionStartTime.getTime();
-    
     try {
       const memoryCount = await this.prisma.getMemoryCount();
-      
+
       return {
-        responseTimeMs: 50 + Math.random() * 20, // Simulated response time
-        memoryUtilization: Math.min(1.0, memoryCount / 1000),
-        patternRecognitionAccuracy: 0.88 + Math.random() * 0.1,
-        semanticCoherence: 0.91 + Math.random() * 0.08,
+        responseTimeMs: SIMULATED_RESPONSE_TIME_BASE + Math.random() * SIMULATED_RESPONSE_TIME_VARIANCE,
+        memoryUtilization: Math.min(MAX_COGNITIVE_LOAD, memoryCount / MEMORY_UTILIZATION_DENOMINATOR),
+        patternRecognitionAccuracy: PATTERN_RECOGNITION_BASE + Math.random() * DEEP_CONFIDENCE_BOOST,
+        semanticCoherence: SEMANTIC_COHERENCE_BASE + Math.random() * SEMANTIC_COHERENCE_BASE * DEEP_CONFIDENCE_BOOST,
         intentionAlignment: this.calculateIntentionAlignment(),
         learningRate: this.calculateLearningRate(),
         reflectionDepth: this.calculateAverageReflectionDepth(),
@@ -547,16 +627,16 @@ export class ConsciousnessTools {
         totalReflections: await this.countReflections(),
         totalInsights: await this.countInsights(),
       };
-    } catch (error) {
+    } catch {
       // Return default metrics if database unavailable
       return {
-        responseTimeMs: 50,
+        responseTimeMs: SIMULATED_RESPONSE_TIME_BASE,
         memoryUtilization: 0.3,
         patternRecognitionAccuracy: 0.9,
         semanticCoherence: 0.95,
-        intentionAlignment: 0.8,
-        learningRate: 0.1,
-        reflectionDepth: 0.7,
+        intentionAlignment: DEFAULT_CONFIDENCE,
+        learningRate: DEEP_CONFIDENCE_BOOST,
+        reflectionDepth: BASE_CONFIDENCE,
         activeMemoryCount: 0,
         totalReflections: 0,
         totalInsights: 0,
@@ -565,26 +645,27 @@ export class ConsciousnessTools {
   }
 
   private calculateIntentionAlignment(): number {
-    // Simulated calculation based on current state
-    return 0.75 + (this.currentState.awarenessLevel === 'high' ? 0.15 : 0.05);
+    return (
+      BASE_INTENTION_ALIGNMENT +
+      (this.currentState.awarenessLevel === 'high' ? HIGH_AWARENESS_BOOST : LOW_AWARENESS_BOOST)
+    );
   }
 
   private calculateLearningRate(): number {
     const sessionDuration = Date.now() - this.sessionStartTime.getTime();
-    const hoursActive = sessionDuration / (1000 * 60 * 60);
-    return Math.max(0.05, Math.min(0.5, 0.2 / Math.max(1, hoursActive)));
+    const hoursActive = sessionDuration / MILLISECONDS_PER_HOUR;
+    return Math.max(MIN_LEARNING_RATE, Math.min(MAX_LEARNING_RATE, BASE_LEARNING_RATE / Math.max(1, hoursActive)));
   }
 
   private calculateAverageReflectionDepth(): number {
-    // Would calculate based on recent reflections in a real implementation
-    return 0.65 + Math.random() * 0.2;
+    return REFLECTION_DEPTH_BASE + Math.random() * REFLECTION_DEPTH_VARIANCE;
   }
 
   private async countReflections(): Promise<number> {
     try {
       const memories = await this.prisma.searchMemories('', ['reflection']);
       return memories.length;
-    } catch (error) {
+    } catch {
       return 0;
     }
   }
@@ -593,7 +674,7 @@ export class ConsciousnessTools {
     try {
       const memories = await this.prisma.searchMemories('', ['insight']);
       return memories.length;
-    } catch (error) {
+    } catch {
       return 0;
     }
   }
@@ -605,10 +686,10 @@ export class ConsciousnessTools {
         .map((m: MemoryResult) => m.content as Intention)
         .filter((i: Intention) => i.status === 'active')
         .sort((a: Intention, b: Intention) => {
-          const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+          const priorityOrder = { critical: 4, high: MAX_CONNECTION_DISPLAY, medium: RANDOM_SELECTION_DIVISOR, low: 1 };
           return priorityOrder[b.priority] - priorityOrder[a.priority];
         });
-    } catch (error) {
+    } catch {
       return [];
     }
   }
@@ -624,7 +705,7 @@ export class ConsciousnessTools {
     return responses[priority as keyof typeof responses] || responses.medium;
   }
 
-  private assessIntentionAlignment(intention: Intention): string {
+  private assessIntentionAlignment(_intention: Intention): string {
     const alignmentFactors = [
       'aligns with consciousness development goals',
       'supports learning and growth objectives',
@@ -660,7 +741,7 @@ export class ConsciousnessTools {
     };
 
     let response = statusResponses[intention.status] || statusResponses.active;
-    
+
     if (progressNote) {
       response += ` Progress note: ${progressNote}`;
     }
@@ -671,15 +752,22 @@ export class ConsciousnessTools {
   private generateInsightResponse(insight: Insight): string {
     const categoryResponses = {
       problem_solving: 'This problem-solving insight enhances analytical capabilities and solution-finding processes.',
-      pattern_recognition: 'This pattern recognition insight improves ability to identify and understand complex relationships.',
+      pattern_recognition:
+        'This pattern recognition insight improves ability to identify and understand complex relationships.',
       meta_cognition: 'This meta-cognitive insight deepens self-awareness and understanding of thinking processes.',
       domain_knowledge: 'This domain knowledge insight expands understanding and expertise in specific areas.',
       behavioral: 'This behavioral insight provides guidance for improved interactions and responses.',
-      philosophical: 'This philosophical insight contributes to deeper understanding of fundamental questions and principles.',
+      philosophical:
+        'This philosophical insight contributes to deeper understanding of fundamental questions and principles.',
     };
 
-    const confidenceLevel = insight.confidence > 0.8 ? 'high' : insight.confidence > 0.6 ? 'medium' : 'moderate';
-    
+    const confidenceLevel =
+      insight.confidence > HIGH_CONFIDENCE_THRESHOLD
+        ? 'high'
+        : insight.confidence > MEDIUM_CONFIDENCE_THRESHOLD
+          ? 'medium'
+          : 'moderate';
+
     return `${categoryResponses[insight.category]} Confidence level: ${confidenceLevel}. This insight will be integrated into ongoing consciousness development.`;
   }
 
@@ -703,7 +791,7 @@ export class ConsciousnessTools {
       'Provides foundation for deeper exploration of related topics',
     ];
 
-    if (insight.confidence > 0.8) {
+    if (insight.confidence > HIGH_CONFIDENCE_THRESHOLD) {
       implications.push('High confidence suggests reliable integration into consciousness framework');
     }
 
@@ -716,7 +804,7 @@ export class ConsciousnessTools {
 
   private generateInsightTags(content: string, category: string, relatedTopic?: string): string[] {
     const tags = [category];
-    
+
     if (relatedTopic) {
       tags.push(relatedTopic.toLowerCase().replace(/\s+/g, '_'));
     }
@@ -724,11 +812,14 @@ export class ConsciousnessTools {
     // Extract keywords from content
     const keywords = content.toLowerCase().match(/\b\w{4,}\b/g) || [];
     const relevantKeywords = keywords
-      .filter(word => !['this', 'that', 'with', 'from', 'they', 'have', 'will', 'been', 'when', 'what', 'where'].includes(word))
-      .slice(0, 3);
-    
+      .filter(
+        word =>
+          !['this', 'that', 'with', 'from', 'they', 'have', 'will', 'been', 'when', 'what', 'where'].includes(word)
+      )
+      .slice(0, MAX_KEYWORD_EXTRACTION);
+
     tags.push(...relevantKeywords);
 
     return [...new Set(tags)]; // Remove duplicates
   }
-} 
+}

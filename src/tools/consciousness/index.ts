@@ -7,4 +7,4 @@ export type {
   Intention,
   Insight,
   ConsciousnessMetrics,
-} from './types.js'; 
+} from './types.js';

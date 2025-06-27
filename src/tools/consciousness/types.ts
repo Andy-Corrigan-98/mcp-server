@@ -131,7 +131,14 @@ export const CONSCIOUSNESS_TOOLS: Record<string, Tool> = {
         },
         category: {
           type: 'string',
-          enum: ['problem_solving', 'pattern_recognition', 'meta_cognition', 'domain_knowledge', 'behavioral', 'philosophical'],
+          enum: [
+            'problem_solving',
+            'pattern_recognition',
+            'meta_cognition',
+            'domain_knowledge',
+            'behavioral',
+            'philosophical',
+          ],
           description: 'Category of the insight',
           default: 'meta_cognition',
         },
@@ -215,7 +222,13 @@ export interface Intention {
 export interface Insight {
   id: string;
   content: string;
-  category: 'problem_solving' | 'pattern_recognition' | 'meta_cognition' | 'domain_knowledge' | 'behavioral' | 'philosophical';
+  category:
+    | 'problem_solving'
+    | 'pattern_recognition'
+    | 'meta_cognition'
+    | 'domain_knowledge'
+    | 'behavioral'
+    | 'philosophical';
   confidence: number;
   relatedTopic?: string;
   source?: string;
@@ -237,4 +250,4 @@ export interface ConsciousnessMetrics {
   activeMemoryCount: number;
   totalReflections: number;
   totalInsights: number;
-} 
+}

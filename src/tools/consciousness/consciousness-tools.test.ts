@@ -11,7 +11,7 @@ describe('ConsciousnessTools', () => {
   describe('tool registration', () => {
     it('should register all consciousness tools', () => {
       const tools = consciousnessTools.getTools();
-      
+
       expect(tools).toHaveProperty('consciousness_reflect');
       expect(tools).toHaveProperty('consciousness_state');
       expect(tools).toHaveProperty('consciousness_intention_set');
@@ -21,15 +21,15 @@ describe('ConsciousnessTools', () => {
 
     it('should have proper tool schemas', () => {
       const tools = consciousnessTools.getTools();
-      
+
       expect(tools.consciousness_reflect.inputSchema.properties).toHaveProperty('topic');
       expect(tools.consciousness_reflect.inputSchema.properties).toHaveProperty('depth');
       expect(tools.consciousness_reflect.inputSchema.properties).toHaveProperty('connect_memories');
-      
+
       expect(tools.consciousness_state.inputSchema.properties).toHaveProperty('include_metrics');
       expect(tools.consciousness_state.inputSchema.properties).toHaveProperty('include_memory_state');
       expect(tools.consciousness_state.inputSchema.properties).toHaveProperty('include_intentions');
-      
+
       expect(tools.consciousness_intention_set.inputSchema.properties).toHaveProperty('intention');
       expect(tools.consciousness_intention_set.inputSchema.properties).toHaveProperty('priority');
       expect(tools.consciousness_intention_set.inputSchema.properties).toHaveProperty('duration');
@@ -106,7 +106,7 @@ describe('ConsciousnessTools', () => {
 
       expect(result).toHaveProperty('metrics');
       const metrics = (result as any).metrics as ConsciousnessMetrics;
-      
+
       expect(metrics).toHaveProperty('responseTimeMs');
       expect(metrics).toHaveProperty('memoryUtilization');
       expect(metrics).toHaveProperty('patternRecognitionAccuracy');
@@ -141,7 +141,7 @@ describe('ConsciousnessTools', () => {
       expect(result).toHaveProperty('consciousnessResponse');
       expect(result).toHaveProperty('alignment');
       expect(result).toHaveProperty('nextActions');
-      
+
       const intention = (result as any).intention as Intention;
       expect(intention.description).toBe('Improve problem-solving efficiency');
       expect(intention.priority).toBe('high');
@@ -166,7 +166,7 @@ describe('ConsciousnessTools', () => {
 
     it('should handle different priority levels', async () => {
       const priorities = ['low', 'medium', 'high', 'critical'];
-      
+
       for (const priority of priorities) {
         const result = await consciousnessTools.execute('consciousness_intention_set', {
           intention: `Test intention with ${priority} priority`,
@@ -185,7 +185,7 @@ describe('ConsciousnessTools', () => {
       const setResult = await consciousnessTools.execute('consciousness_intention_set', {
         intention: 'Test intention for update',
       });
-      
+
       const intentionId = (setResult as any).intention.id;
 
       // Then update it
@@ -215,7 +215,7 @@ describe('ConsciousnessTools', () => {
         intention: 'Test intention for priority update',
         priority: 'low',
       });
-      
+
       const intentionId = (setResult as any).intention.id;
 
       // Update priority
@@ -242,7 +242,7 @@ describe('ConsciousnessTools', () => {
       expect(result).toHaveProperty('consciousnessResponse');
       expect(result).toHaveProperty('categoryAnalysis');
       expect(result).toHaveProperty('implications');
-      
+
       const insight = (result as any).insight as Insight;
       expect(insight.content).toBe('Breaking problems into smaller components improves solution clarity');
       expect(insight.category).toBe('problem_solving');
@@ -267,8 +267,15 @@ describe('ConsciousnessTools', () => {
     });
 
     it('should handle different insight categories', async () => {
-      const categories = ['problem_solving', 'pattern_recognition', 'meta_cognition', 'domain_knowledge', 'behavioral', 'philosophical'];
-      
+      const categories = [
+        'problem_solving',
+        'pattern_recognition',
+        'meta_cognition',
+        'domain_knowledge',
+        'behavioral',
+        'philosophical',
+      ];
+
       for (const category of categories) {
         const result = await consciousnessTools.execute('consciousness_insight_capture', {
           insight: `Test insight for ${category} category`,
@@ -282,7 +289,7 @@ describe('ConsciousnessTools', () => {
 
     it('should sanitize long insights', async () => {
       const longInsight = 'x'.repeat(1500); // Within limit but will be truncated by sanitizer
-      
+
       const result = await consciousnessTools.execute('consciousness_insight_capture', {
         insight: longInsight,
       });
@@ -298,7 +305,7 @@ describe('ConsciousnessTools', () => {
         insight: 'Test insight',
         confidence: -0.5,
       });
-      
+
       expect((result1 as any).insight.confidence).toBe(0);
 
       // Test maximum bound
@@ -306,16 +313,14 @@ describe('ConsciousnessTools', () => {
         insight: 'Test insight',
         confidence: 1.5,
       });
-      
+
       expect((result2 as any).insight.confidence).toBe(1);
     });
   });
 
   describe('input validation', () => {
     it('should handle missing required parameters', async () => {
-      await expect(
-        consciousnessTools.execute('consciousness_reflect', {})
-      ).rejects.toThrow();
+      await expect(consciousnessTools.execute('consciousness_reflect', {})).rejects.toThrow();
     });
 
     it('should sanitize string inputs', async () => {
@@ -327,9 +332,9 @@ describe('ConsciousnessTools', () => {
     });
 
     it('should handle unknown tool names', async () => {
-      await expect(
-        consciousnessTools.execute('unknown_tool', {})
-      ).rejects.toThrow('Unknown consciousness tool: unknown_tool');
+      await expect(consciousnessTools.execute('unknown_tool', {})).rejects.toThrow(
+        'Unknown consciousness tool: unknown_tool'
+      );
     });
   });
 
@@ -381,4 +386,4 @@ describe('ConsciousnessTools', () => {
       expect(result).toBeTruthy();
     });
   });
-}); 
+});
