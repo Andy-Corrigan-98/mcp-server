@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Memory {
+  id            Int      @id @default(autoincrement())
+  key           String   @unique
+  content       String   // JSON stringified content
+  tags          String   @default("[]") // JSON stringified array
+  importance    ImportanceLevel @default(medium)
+  storedAt      DateTime @default(now()) @map("stored_at")
+  accessCount   Int      @default(0) @map("access_count") 
+  lastAccessed  DateTime? @map("last_accessed")
+
+  @@map("memories")
+}
+
+model KnowledgeEntity {
+  id               Int      @id @default(autoincrement())
+  name             String   @unique
+  entityType       String   @map("entity_type")
+  properties       String   @default("{}") // JSON stringified properties
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relationships where this entity is the source
+  sourceRelationships KnowledgeRelationship[] @relation("SourceEntity")
+  // Relationships where this entity is the target  
+  targetRelationships KnowledgeRelationship[] @relation("TargetEntity")
+
+  @@map("knowledge_entities")
+}
+
+model KnowledgeRelationship {
+  id               Int      @id @default(autoincrement())
+  sourceEntityName String   @map("source_entity_name")
+  targetEntityName String   @map("target_entity_name")
+  relationshipType String   @map("relationship_type")
+  strength         Float    @default(1.0)
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Foreign key relationships
+  sourceEntity KnowledgeEntity @relation("SourceEntity", fields: [sourceEntityName], references: [name])
+  targetEntity KnowledgeEntity @relation("TargetEntity", fields: [targetEntityName], references: [name])
+
+  @@unique([sourceEntityName, targetEntityName, relationshipType])
+  @@map("knowledge_relationships")
+}
+
+enum ImportanceLevel {
+  low
+  medium
+  high
+  critical
+}
