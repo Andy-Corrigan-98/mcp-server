@@ -15,6 +15,8 @@ describe('ConsciousnessTools', () => {
       expect(tools).toHaveProperty('consciousness_reflect');
       expect(tools).toHaveProperty('consciousness_state');
       expect(tools).toHaveProperty('consciousness_intention_set');
+      expect(tools).toHaveProperty('consciousness_intention_update');
+      expect(tools).toHaveProperty('consciousness_insight_capture');
     });
 
     it('should return valid tool schemas', () => {
@@ -32,17 +34,28 @@ describe('ConsciousnessTools', () => {
         topic: 'testing consciousness reflection',
       });
 
-      expect(result).toHaveProperty('reflection');
+      expect(result).toHaveProperty('topic', 'testing consciousness reflection');
       expect(result).toHaveProperty('timestamp');
-      expect(result).toHaveProperty('consciousness_state');
+      expect(result).toHaveProperty('depth');
+      expect(result).toHaveProperty('immediateThoughts');
+      expect(result).toHaveProperty('implications');
+      expect(result).toHaveProperty('questionsRaised');
+      expect(result).toHaveProperty('actionItems');
+      expect(result).toHaveProperty('confidenceLevel');
     });
 
     it('should get consciousness state', async () => {
       const result = await consciousnessTools.execute('consciousness_state', {});
 
       expect(result).toHaveProperty('state');
-      expect(result).toHaveProperty('mode');
-      expect(result).toHaveProperty('active_processes');
+      expect(result).toHaveProperty('sessionId');
+      expect(result).toHaveProperty('timestamp');
+      expect(result).toHaveProperty('intentions');
+      
+      const state = (result as any).state;
+      expect(state).toHaveProperty('mode');
+      expect(state).toHaveProperty('activeProcesses');
+      expect(state).toHaveProperty('awarenessLevel');
     });
 
     it('should set consciousness intention', async () => {
@@ -53,7 +66,10 @@ describe('ConsciousnessTools', () => {
 
       expect(result).toHaveProperty('intention');
       expect(result).toHaveProperty('timestamp');
-      expect(result).toHaveProperty('consciousness_response');
+      expect(result).toHaveProperty('consciousnessResponse');
+      expect(result).toHaveProperty('action', 'intention_set');
+      expect(result).toHaveProperty('alignment');
+      expect(result).toHaveProperty('nextActions');
     });
 
     it('should throw error for unknown tool', async () => {
