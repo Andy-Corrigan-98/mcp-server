@@ -6,13 +6,6 @@ export default {
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/**/*.test.ts',
-    '!src/index.ts',
-  ],
-  coverageDirectory: 'coverage',
   moduleFileExtensions: ['ts', 'js'],
   testTimeout: 10000,
   moduleNameMapper: {

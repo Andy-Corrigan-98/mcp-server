@@ -19,10 +19,8 @@
             "db:generate": "prisma generate",
             "db:push": "prisma db push",
             "db:studio": "prisma studio",
-            "test": "jest",
-            "test:watch": "jest --watch",
-            "test:coverage": "jest --coverage",
-            "test:ci": "jest --ci --coverage --watchAll=false",
+                "test": "jest",
+    "test:watch": "jest --watch",
             "commitlint": "commitlint --from HEAD~1 --to HEAD --verbose",
             "prepare": "husky"
       },
