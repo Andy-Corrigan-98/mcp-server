@@ -8,10 +8,6 @@ describe('ConsciousnessTools', () => {
     consciousnessTools = new ConsciousnessTools();
   });
 
-  it('should fail to test pre-push hook', () => {
-    expect(true).toBe(false); // This will fail
-  });
-
   describe('getTools', () => {
     it('should return all consciousness tools', () => {
       const tools = consciousnessTools.getTools();
