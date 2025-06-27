@@ -280,15 +280,7 @@ export class MemoryTools {
     const properties = (args.properties as object) || {};
     const relationships = (args.relationships as any[]) || [];
 
-    // In a real implementation, this would integrate with a graph database
-    const graphEntry = {
-      entity,
-      entity_type: entityType,
-      properties,
-      relationships,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    // Database storage implementation
 
     // Store in database
     this.db.addEntity({
@@ -323,7 +315,6 @@ export class MemoryTools {
   private async queryKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
     const entity = args.entity as string;
     const depth = (args.depth as number) || 2;
-    const relationshipTypes = args.relationship_types as string[];
 
     // Use database to get entity relationships
     const result = this.db.getEntityRelationships(entity, depth);
