@@ -103,8 +103,8 @@ npm run db:push     # Push schema changes to database
 npm run db:studio   # Open Prisma Studio (GUI)
 ```
 
-### Schema Location
-- **Prisma Schema**: `prisma/schema.prisma`
+### Schema & Storage
+- **Schema Definition**: See `prisma/schema.prisma` for complete data models
 - **Database Location**: Configurable via `DATABASE_URL` environment variable
 - **Volume Mount**: `./data:/app/data` (configured in docker-compose.yml)
 - **Backup**: Simply copy the `.db` file to backup your consciousness state
@@ -126,52 +126,6 @@ Add entities and relationships to the consciousness knowledge graph.
 ### `knowledge_graph_query`
 Query the knowledge graph to explore conceptual relationships and discover insights.
 
-## Database Schema
-
-```prisma
-model Memory {
-  id            Int      @id @default(autoincrement())
-  key           String   @unique
-  content       String   // JSON stringified content
-  tags          String   @default("[]") // JSON stringified array
-  importance    ImportanceLevel @default(medium)
-  storedAt      DateTime @default(now())
-  accessCount   Int      @default(0)
-  lastAccessed  DateTime?
-}
-
-model KnowledgeEntity {
-  id               Int      @id @default(autoincrement())
-  name             String   @unique
-  entityType       String
-  properties       String   @default("{}")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  
-  sourceRelationships KnowledgeRelationship[] @relation("SourceEntity")
-  targetRelationships KnowledgeRelationship[] @relation("TargetEntity")
-}
-
-model KnowledgeRelationship {
-  id               Int      @id @default(autoincrement())
-  sourceEntityName String
-  targetEntityName String
-  relationshipType String
-  strength         Float    @default(1.0)
-  createdAt        DateTime @default(now())
-
-  sourceEntity KnowledgeEntity @relation("SourceEntity", fields: [sourceEntityName], references: [name])
-  targetEntity KnowledgeEntity @relation("TargetEntity", fields: [targetEntityName], references: [name])
-}
-
-enum ImportanceLevel {
-  low
-  medium
-  high
-  critical
-}
-```
-
 ## Development
 
 ### Code Quality
@@ -179,6 +133,13 @@ enum ImportanceLevel {
 npm run check      # Type check, lint, and format check
 npm run lint:fix   # Fix linting issues
 npm run format     # Format code with Prettier
+```
+
+### Testing
+```bash
+npm test           # Run all tests
+npm run test:watch # Run tests in watch mode
+npm run test:coverage # Generate coverage report
 ```
 
 ### Security
