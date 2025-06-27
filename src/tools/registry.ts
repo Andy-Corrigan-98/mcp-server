@@ -1,6 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ConsciousnessTools } from './consciousness/index.js';
-import { TimeTools } from './time.js';
+import { TimeTools } from './time/index.js';
 import { MemoryTools } from './memory/index.js';
 import { ReasoningTools } from './reasoning/index.js';
 

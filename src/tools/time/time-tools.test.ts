@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from '@jest/globals';
-import { TimeTools } from './time.js';
+import { TimeTools } from './time-tools.js';
 
 describe('TimeTools', () => {
   let timeTools: TimeTools;

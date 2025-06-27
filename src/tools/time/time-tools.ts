@@ -1,4 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import type { TimeResult, TimeConversionResult, TimeAwarenessResult } from './types.js';
 
 export class TimeTools {
   getTools(): Record<string, Tool> {
@@ -77,7 +78,7 @@ export class TimeTools {
     }
   }
 
-  private async getCurrentTime(args: Record<string, unknown>): Promise<object> {
+  private async getCurrentTime(args: Record<string, unknown>): Promise<TimeResult> {
     const timezone = (args.timezone as string) || 'UTC';
     const format = (args.format as string) || 'iso';
 
@@ -117,7 +118,7 @@ export class TimeTools {
     };
   }
 
-  private async convertTime(args: Record<string, unknown>): Promise<object> {
+  private async convertTime(args: Record<string, unknown>): Promise<TimeConversionResult> {
     const timeInput = args.time as string;
     const fromTimezone = (args.from_timezone as string) || 'UTC';
     const toTimezone = (args.to_timezone as string) || 'UTC';
@@ -140,7 +141,7 @@ export class TimeTools {
     };
   }
 
-  private async getTimeAwareness(args: Record<string, unknown>): Promise<object> {
+  private async getTimeAwareness(args: Record<string, unknown>): Promise<TimeAwarenessResult> {
     const includeDuration = (args.include_duration as boolean) ?? true;
     const now = new Date();
 
