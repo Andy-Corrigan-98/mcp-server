@@ -38,6 +38,8 @@ PORT=3000
 
 ### Docker Setup
 
+The Docker service is **completely self-contained** and automatically sets up its own database on startup.
+
 1. **Build and run with Docker Compose:**
    ```bash
    docker-compose up --build consciousness-mcp-server
@@ -54,7 +56,15 @@ PORT=3000
    docker run -p 3000:3000 -v ./data:/app/data consciousness-mcp-server
    ```
 
+The container automatically:
+- ✅ Generates Prisma client
+- ✅ Creates database schema if needed
+- ✅ Applies schema updates to existing databases
+- ✅ Starts the MCP server ready for use
+
 ### Local Development
+
+For local development (outside Docker), you need to set up the database manually:
 
 1. **Install dependencies:**
    ```bash

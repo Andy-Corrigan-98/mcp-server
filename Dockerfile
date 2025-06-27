@@ -6,18 +6,31 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY prisma ./prisma
 
 # Install all dependencies first for building
 RUN npm ci --ignore-scripts
 
-# Copy source code
+# Generate Prisma client for TypeScript compilation
+RUN npx prisma generate
+
+# Copy source code and entrypoint
 COPY . .
 
 # Build the TypeScript application
 RUN npm run build
 
-# Remove dev dependencies for production
-RUN npm ci --only=production --ignore-scripts && npm cache clean --force
+# Install only production dependencies in separate location to avoid conflicts
+RUN rm -rf node_modules && \
+    npm ci --only=production --ignore-scripts && \
+    npm install prisma --save && \
+    npm cache clean --force
+
+# Regenerate Prisma client for production
+RUN npx prisma generate
+
+# Make entrypoint script executable
+RUN chmod +x entrypoint.sh
 
 # Expose the port (MCP typically uses stdio, but we'll prepare for HTTP if needed)
 EXPOSE 3000
@@ -30,5 +43,5 @@ RUN adduser -S mcpserver -u 1001
 RUN chown -R mcpserver:nodejs /app
 USER mcpserver
 
-# Start the server
-CMD ["npm", "start"] 
+# Use entrypoint script for automatic database setup
+ENTRYPOINT ["./entrypoint.sh"] 

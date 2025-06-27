@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   consciousness-mcp-server:
     build:
@@ -11,6 +9,7 @@ services:
     environment:
       - NODE_ENV=production
       - MCP_DEBUG=false
+      - DATABASE_URL=file:/app/data/consciousness.db
     volumes:
       # Mount data directory for persistence if needed
       - ./data:/app/data
@@ -33,6 +32,7 @@ services:
     environment:
       - NODE_ENV=development
       - MCP_DEBUG=true
+      - DATABASE_URL=file:/app/data/consciousness.db
     volumes:
       - .:/app
       - /app/node_modules
