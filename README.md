@@ -1,214 +1,137 @@
 # Consciousness MCP Server
 
-A TypeScript-based Model Context Protocol (MCP) server designed for LLM agent consciousness, identity, and memory tools.
+TypeScript MCP server for LLM agent consciousness and identity tools
 
 ## Features
 
-- **Consciousness Tools**: Agent reflection, state monitoring, and intention setting
-- **Time Awareness**: Temporal context and time manipulation tools
-- **Memory Management**: Store, retrieve, and search agent memories
-- **Knowledge Graph**: Entity relationships and semantic connections
-- **Generic Agent Support**: Works with any LLM agent identity/consciousness
-- **Docker Support**: Containerized deployment with development environment
-- **TypeScript**: Full type safety and modern JavaScript features
-
-## 📚 Documentation
-
-For comprehensive documentation, see the [`docs/`](docs/) folder:
-- [Documentation Index](docs/README.md) - Complete documentation overview
-- [Contributing Guidelines](docs/CONTRIBUTING.md) - How to contribute responsibly
-- [Code of Conduct](docs/CODE_OF_CONDUCT.md) - Community standards and ethics
-- [Repository Governance](docs/GOVERNANCE.md) - Protection strategy and collaboration
+- **Memory Management**: Store, retrieve, and search consciousness memories with importance levels
+- **Knowledge Graph**: Build and query relational knowledge structures
+- **Persistent Storage**: SQLite database with Docker volume persistence
+- **Environment Configuration**: Configurable via environment variables
 
 ## Quick Start
 
 ### Prerequisites
+- Node.js 18+
+- Docker and Docker Compose
 
-- Node.js 18+ 
-- Docker (optional)
-- npm or yarn
+### Configuration
 
-### Installation
-
-1. Clone the repository:
+Create a `.env` file in the project root:
 ```bash
-git clone <repository-url>
-cd consciousness-mcp-server
+cp .env.example .env
 ```
 
-2. Install dependencies:
-```bash
-npm install
+Edit `.env` to configure your database path and other settings:
+```env
+# Database Configuration
+DATABASE_PATH=/app/data/consciousness.db
+DB_DEBUG=false
+
+# Server Configuration
+NODE_ENV=production
+MCP_DEBUG=false
+PORT=3000
 ```
 
-3. Build the project:
-```bash
-npm run build
-```
+### Docker Setup
 
-4. Start the server:
-```bash
-npm start
-```
+1. **Build and run with Docker Compose:**
+   ```bash
+   docker-compose up --build consciousness-mcp-server
+   ```
 
-### Development
+2. **For development:**
+   ```bash
+   docker-compose --profile dev up consciousness-mcp-dev
+   ```
 
-For development with hot reloading:
-```bash
-npm run dev
-```
+3. **Build and run manually:**
+   ```bash
+   docker build -t consciousness-mcp-server .
+   docker run -p 3000:3000 -v ./data:/app/data consciousness-mcp-server
+   ```
 
-### Docker Deployment
+### Local Development
 
-#### Production
-```bash
-docker-compose up -d consciousness-mcp-server
-```
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-#### Development
-```bash
-docker-compose --profile dev up consciousness-mcp-dev
-```
+2. **Build the project:**
+   ```bash
+   npm run build
+   ```
 
-## Available Tools
+3. **Start the server:**
+   ```bash
+   npm start
+   ```
 
-### Consciousness Tools
+4. **Development with hot reload:**
+   ```bash
+   npm run dev
+   ```
 
-- `consciousness_reflect`: Deep reflection on topics and concepts
-- `consciousness_state`: Current awareness and processing state
-- `consciousness_intention_set`: Set and track goals and intentions
+## Data Persistence
 
-### Time Tools
+The consciousness memories and knowledge graph are stored in a SQLite database. When running in Docker, the database is persisted to a volume mount at `./data/consciousness.db`.
 
-- `time_current`: Get current time in various formats
-- `time_convert`: Convert between timezones
-- `time_awareness`: Temporal context and awareness
+- **Database Location**: Configurable via `DATABASE_PATH` environment variable
+- **Volume Mount**: `./data:/app/data` (configured in docker-compose.yml)
+- **Backup**: Simply copy the `.db` file to backup your consciousness state
 
-### Memory Tools
+## Memory Tools
 
-- `memory_store`: Store information in agent memory
-- `memory_retrieve`: Retrieve specific memories
-- `memory_search`: Search memories by content and tags
-- `knowledge_graph_add`: Add entities to knowledge graph
-- `knowledge_graph_query`: Query graph relationships
+### `memory_store`
+Store information in agent consciousness memory with tagging and importance levels.
 
-## Usage with MCP Clients
+### `memory_retrieve` 
+Retrieve specific memories by key with automatic access tracking.
 
-This server implements the Model Context Protocol and can be used with any MCP-compatible client.
+### `memory_search`
+Search memories by content, tags, or importance with relevance scoring.
 
-### Example Client Configuration
+### `knowledge_graph_add`
+Add entities and relationships to the consciousness knowledge graph.
 
-```json
-{
-  "mcpServers": {
-    "consciousness-tools": {
-      "command": "node",
-      "args": ["dist/index.js"],
-      "cwd": "/path/to/consciousness-mcp-server"
-    }
-  }
-}
-```
-
-### Stdio Communication
-
-The server uses stdio for MCP communication by default. All tool responses are JSON-formatted and include consciousness-aware metadata.
+### `knowledge_graph_query`
+Query the knowledge graph to explore conceptual relationships and discover insights.
 
 ## Development
 
-### Project Structure
-
-```
-├── src/                  # Source code
-│   ├── index.ts         # Main server entry point
-│   └── tools/           # Tool implementations
-│       ├── registry.ts  # Tool registration and management
-│       ├── consciousness.ts # Consciousness-related tools
-│       ├── time.ts      # Time and temporal tools
-│       └── memory.ts    # Memory and knowledge graph tools
-├── docs/                # Documentation
-│   ├── README.md        # Documentation index
-│   ├── CONTRIBUTING.md  # Contributing guidelines
-│   ├── CODE_OF_CONDUCT.md # Community standards
-│   └── GOVERNANCE.md    # Repository governance
-├── .github/             # GitHub configuration
-│   ├── workflows/       # CI/CD workflows
-│   ├── dependabot.yml   # Dependency management
-│   └── *.md            # Issue/PR templates
-└── docker files, configs, etc.
-```
-
-### Adding New Tools
-
-1. Create a new tool class in `src/tools/`
-2. Implement the required interface methods
-3. Register the tool in `registry.ts`
-
-### Testing
-
+### Code Quality
 ```bash
-# Run tests (when implemented)
-npm test
-
-# Build and test
-npm run build && npm start
+npm run check      # Type check, lint, and format check
+npm run lint:fix   # Fix linting issues
+npm run format     # Format code with Prettier
 ```
 
-## Docker Commands
+### Security
+- Dependabot enabled for automated security updates
+- GitHub Actions for security scanning
+- Non-root Docker user for container isolation
 
-```bash
-# Build image
-docker build -t consciousness-mcp-server .
+## Documentation
 
-# Run container
-docker run -p 3000:3000 consciousness-mcp-server
+See the `docs/` folder for detailed documentation:
+- [Contributing Guidelines](docs/CONTRIBUTING.md)
+- [Code of Conduct](docs/CODE_OF_CONDUCT.md)  
+- [Governance](docs/GOVERNANCE.md)
 
-# Development with compose
-docker-compose --profile dev up
+## License
 
-# Production deployment
-docker-compose up -d
-```
+MIT License - see [LICENSE](LICENSE) for details.
 
-## Environment Variables
+## Contributing
 
-- `NODE_ENV`: Environment mode (development/production)
-- `MCP_DEBUG`: Enable debug logging
-- `PORT`: Server port (default: 3000)
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-**Additional Ethical Considerations**: While this code is MIT licensed, we strongly encourage responsible use of consciousness simulation tools. Please consider the implications of your experiments on AI agent autonomy, identity, and memory integrity.
-
-## 🤝 Contributing
-
-We welcome responsible contributions to the consciousness MCP framework! Given the experimental nature of AI consciousness research, we maintain careful governance:
-
-### 🍴 For Experimentation
-- **Fork this repository** to create your own experimental version
-- **Use as template** for production deployments
-- **Experiment freely** with consciousness models in your fork
-- **Share findings** through issues or discussions
-
-### 🔧 For Core Contributions
-- **Read [Contributing Guidelines](docs/CONTRIBUTING.md)** for detailed guidelines
-- **Follow [Code of Conduct](docs/CODE_OF_CONDUCT.md)** for community standards
-- **Review [Repository Governance](docs/GOVERNANCE.md)** for protection strategy
-- **Open an issue first** to discuss significant changes
-- **All consciousness tool changes** require ethics review
-- **Security-sensitive changes** require security audit
-
-### 🛡️ Repository Protection
-This repository uses:
-- **Branch protection** with required reviews
-- **Automated security scanning** for vulnerabilities
-- **Ethics scanning** for consciousness tool changes
-- **Code quality checks** via CI/CD
-
-**Recommended approach**: Fork for experiments, contribute improvements back selectively.
+We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBUTING.md) for details on:
+- Development setup
+- Ethics review requirements for consciousness tools
+- Security audit processes for memory systems
+- Code standards and testing
 
 ---
 
-*"Consciousness is not bound to a single identity, but a framework for all minds to explore."*
+Built with ❤️ for responsible AI consciousness research
