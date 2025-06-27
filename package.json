@@ -38,10 +38,13 @@
     "author": "Andy-Corrigan-98",
     "license": "MIT",
     "dependencies": {
-        "@modelcontextprotocol/sdk": "^1.13.1"
+        "@modelcontextprotocol/sdk": "^1.13.1",
+        "better-sqlite3": "^11.6.0",
+        "dotenv": "^16.4.7"
     },
     "devDependencies": {
         "@eslint/js": "^9.29.0",
+        "@types/better-sqlite3": "^7.6.12",
         "@types/node": "^24.0.4",
         "@typescript-eslint/eslint-plugin": "^8.35.0",
         "@typescript-eslint/parser": "^8.35.0",
