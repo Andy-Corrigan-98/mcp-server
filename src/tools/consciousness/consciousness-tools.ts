@@ -517,7 +517,8 @@ export class ConsciousnessTools {
       analysis += `The specific context of ${context} adds nuanced considerations that influence the analysis. `;
     }
 
-    analysis += 'This requires synthesis of multiple perspectives and consideration of both immediate and long-term implications.';
+    analysis +=
+      'This requires synthesis of multiple perspectives and consideration of both immediate and long-term implications.';
 
     return analysis;
   }
