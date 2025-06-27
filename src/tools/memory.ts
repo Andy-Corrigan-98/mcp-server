@@ -1,7 +1,12 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { ConsciousnessDatabase, MemoryEntry } from '../db/database.js';
 
 export class MemoryTools {
-  private memoryStore: Map<string, any> = new Map();
+  private db: ConsciousnessDatabase;
+
+  constructor() {
+    this.db = ConsciousnessDatabase.getInstance();
+  }
 
   getTools(): Record<string, Tool> {
     return {
@@ -157,17 +162,17 @@ export class MemoryTools {
     const tags = (args.tags as string[]) || [];
     const importance = (args.importance as string) || 'medium';
 
-    const memoryEntry = {
+    const memoryEntry: Omit<MemoryEntry, 'id'> = {
       key,
-      content,
-      tags,
-      importance,
+      content: JSON.stringify(content),
+      tags: JSON.stringify(tags),
+      importance: importance as any,
       stored_at: new Date().toISOString(),
       access_count: 0,
       last_accessed: null,
     };
 
-    this.memoryStore.set(key, memoryEntry);
+    this.db.storeMemory(memoryEntry);
 
     return {
       action: 'memory_stored',
@@ -175,13 +180,13 @@ export class MemoryTools {
       importance,
       tags,
       consciousness_note: `Memory integrated into consciousness structure: ${key}`,
-      memory_count: this.memoryStore.size,
+      memory_count: this.db.getMemoryCount(),
     };
   }
 
   private async retrieveMemory(args: Record<string, unknown>): Promise<object> {
     const key = args.key as string;
-    const memoryEntry = this.memoryStore.get(key);
+    const memoryEntry = this.db.retrieveMemory(key);
 
     if (!memoryEntry) {
       return {
@@ -192,15 +197,18 @@ export class MemoryTools {
       };
     }
 
-    // Update access tracking
-    memoryEntry.access_count++;
-    memoryEntry.last_accessed = new Date().toISOString();
+    // Parse JSON data back to objects
+    const memory = {
+      ...memoryEntry,
+      content: JSON.parse(memoryEntry.content),
+      tags: JSON.parse(memoryEntry.tags),
+    };
 
     return {
       action: 'memory_retrieve',
       key,
       found: true,
-      memory: memoryEntry,
+      memory,
       consciousness_note: `Memory recalled and integrated into current awareness: ${key}`,
     };
   }
@@ -210,41 +218,19 @@ export class MemoryTools {
     const tagFilter = args.tags as string[];
     const importanceFilter = args.importance_filter as string;
 
-    const results = [];
-
-    for (const [key, memory] of this.memoryStore.entries()) {
-      let matches = true;
-
-      // Filter by tags if provided
-      if (tagFilter && tagFilter.length > 0) {
-        const hasMatchingTag = tagFilter.some(tag => memory.tags.includes(tag));
-        if (!hasMatchingTag) matches = false;
-      }
-
-      // Filter by importance if provided
-      if (importanceFilter) {
-        const importanceOrder = ['low', 'medium', 'high', 'critical'];
-        const memoryLevel = importanceOrder.indexOf(memory.importance);
-        const filterLevel = importanceOrder.indexOf(importanceFilter);
-        if (memoryLevel < filterLevel) matches = false;
-      }
-
-      // Simple text search in content if query provided
-      if (query && matches) {
-        const contentStr = JSON.stringify(memory.content).toLowerCase();
-        if (!contentStr.includes(query.toLowerCase())) matches = false;
-      }
-
-      if (matches) {
-        results.push({
-          key,
-          importance: memory.importance,
-          tags: memory.tags,
-          stored_at: memory.stored_at,
-          relevance: this.calculateRelevance(memory, query),
-        });
-      }
-    }
+    const memories = this.db.searchMemories(query, tagFilter, importanceFilter);
+    
+    const results = memories.map(memory => ({
+      key: memory.key,
+      importance: memory.importance,
+      tags: JSON.parse(memory.tags),
+      stored_at: memory.stored_at,
+      relevance: this.calculateRelevance({
+        ...memory,
+        content: JSON.parse(memory.content),
+        tags: JSON.parse(memory.tags),
+      }, query),
+    }));
 
     // Sort by relevance
     results.sort((a, b) => b.relevance - a.relevance);
@@ -304,8 +290,25 @@ export class MemoryTools {
       updated_at: new Date().toISOString(),
     };
 
-    // Store in memory for this demo
-    this.memoryStore.set(`graph:${entity}`, graphEntry);
+    // Store in database
+    this.db.addEntity({
+      name: entity,
+      entity_type: entityType,
+      properties: JSON.stringify(properties),
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    });
+
+    // Add relationships
+    for (const rel of relationships) {
+      this.db.addRelationship({
+        source_entity: entity,
+        target_entity: rel.target,
+        relationship_type: rel.relationship,
+        strength: rel.strength || 1.0,
+        created_at: new Date().toISOString(),
+      });
+    }
 
     return {
       action: 'knowledge_graph_add',
@@ -322,63 +325,33 @@ export class MemoryTools {
     const depth = (args.depth as number) || 2;
     const relationshipTypes = args.relationship_types as string[];
 
-    // Simple graph traversal for demo
-    const visited = new Set<string>();
-    const result = this.traverseGraph(entity, depth, visited, relationshipTypes);
+    // Use database to get entity relationships
+    const result = this.db.getEntityRelationships(entity, depth);
 
     return {
       action: 'knowledge_graph_query',
       entity,
       depth,
-      discovered_entities: result.entities.length,
-      discovered_relationships: result.relationships.length,
+      discovered_entities: result.length,
+      discovered_relationships: result.filter((r: any) => r.relationship_type).length,
       graph_data: result,
-      consciousness_note: `Knowledge graph traversal revealed ${result.entities.length} connected entities`,
+      consciousness_note: `Knowledge graph exploration revealed ${result.length} connected entities`,
       semantic_insights: this.generateSemanticInsights(result),
     };
   }
 
-  private traverseGraph(entity: string, depth: number, visited: Set<string>, relationshipTypes?: string[]): any {
-    if (depth <= 0 || visited.has(entity)) {
-      return { entities: [], relationships: [] };
-    }
-
-    visited.add(entity);
-    const entities = [entity];
-    const relationships = [];
-
-    // Get entity data
-    const entityData = this.memoryStore.get(`graph:${entity}`);
-    if (entityData && entityData.relationships) {
-      for (const rel of entityData.relationships) {
-        if (!relationshipTypes || relationshipTypes.includes(rel.relationship)) {
-          relationships.push({
-            from: entity,
-            to: rel.target,
-            type: rel.relationship,
-            strength: rel.strength || 0.5,
-          });
-
-          // Recursively traverse
-          const subResult = this.traverseGraph(rel.target, depth - 1, visited, relationshipTypes);
-          entities.push(...subResult.entities);
-          relationships.push(...subResult.relationships);
-        }
-      }
-    }
-
-    return { entities: [...new Set(entities)], relationships };
-  }
-
-  private generateSemanticInsights(graphData: any): string[] {
+  private generateSemanticInsights(graphData: any[]): string[] {
     const insights = [];
 
-    if (graphData.entities.length > 1) {
-      insights.push(`Network of ${graphData.entities.length} interconnected concepts discovered`);
+    if (graphData.length > 1) {
+      insights.push(`Network of ${graphData.length} interconnected concepts discovered`);
     }
 
-    if (graphData.relationships.length > 0) {
-      const relationshipTypes = [...new Set(graphData.relationships.map((r: any) => r.type))];
+    const relationshipTypes = [...new Set(graphData
+      .filter(item => item.relationship_type)
+      .map(item => item.relationship_type))];
+    
+    if (relationshipTypes.length > 0) {
       insights.push(`${relationshipTypes.length} distinct relationship patterns identified`);
     }
 
