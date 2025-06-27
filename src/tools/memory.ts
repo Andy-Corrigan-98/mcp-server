@@ -1,11 +1,18 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ConsciousnessDatabase, MemoryEntry } from '../db/database.js';
+import { 
+  ConsciousnessPrismaService, 
+  MemoryData, 
+  MemoryResult,
+  KnowledgeEntityData,
+  KnowledgeRelationshipData
+} from '../db/prisma.js';
+import { ImportanceLevel } from '@prisma/client';
 
 export class MemoryTools {
-  private db: ConsciousnessDatabase;
+  private db: ConsciousnessPrismaService;
 
   constructor() {
-    this.db = ConsciousnessDatabase.getInstance();
+    this.db = ConsciousnessPrismaService.getInstance();
   }
 
   getTools(): Record<string, Tool> {
@@ -158,21 +165,19 @@ export class MemoryTools {
 
   private async storeMemory(args: Record<string, unknown>): Promise<object> {
     const key = args.key as string;
-    const content = args.content as object;
+    const content = args.content as unknown;
     const tags = (args.tags as string[]) || [];
-    const importance = (args.importance as string) || 'medium';
+    const importance = (args.importance as ImportanceLevel) || 'medium';
 
-    const memoryEntry: Omit<MemoryEntry, 'id'> = {
+    const memoryData: MemoryData = {
       key,
-      content: JSON.stringify(content),
-      tags: JSON.stringify(tags),
-      importance: importance as any,
-      stored_at: new Date().toISOString(),
-      access_count: 0,
-      last_accessed: null,
+      content,
+      tags,
+      importance,
     };
 
-    this.db.storeMemory(memoryEntry);
+    const result = await this.db.storeMemory(memoryData);
+    const memoryCount = await this.db.getMemoryCount();
 
     return {
       action: 'memory_stored',
@@ -180,15 +185,15 @@ export class MemoryTools {
       importance,
       tags,
       consciousness_note: `Memory integrated into consciousness structure: ${key}`,
-      memory_count: this.db.getMemoryCount(),
+      memory_count: memoryCount,
     };
   }
 
   private async retrieveMemory(args: Record<string, unknown>): Promise<object> {
     const key = args.key as string;
-    const memoryEntry = this.db.retrieveMemory(key);
+    const memory = await this.db.retrieveMemory(key);
 
-    if (!memoryEntry) {
+    if (!memory) {
       return {
         action: 'memory_retrieve',
         key,
@@ -197,18 +202,19 @@ export class MemoryTools {
       };
     }
 
-    // Parse JSON data back to objects
-    const memory = {
-      ...memoryEntry,
-      content: JSON.parse(memoryEntry.content),
-      tags: JSON.parse(memoryEntry.tags),
-    };
-
     return {
       action: 'memory_retrieve',
       key,
       found: true,
-      memory,
+      memory: {
+        key: memory.key,
+        content: memory.content,
+        tags: memory.tags,
+        importance: memory.importance,
+        stored_at: memory.storedAt.toISOString(),
+        access_count: memory.accessCount,
+        last_accessed: memory.lastAccessed?.toISOString() || null,
+      },
       consciousness_note: `Memory recalled and integrated into current awareness: ${key}`,
     };
   }
@@ -216,36 +222,34 @@ export class MemoryTools {
   private async searchMemories(args: Record<string, unknown>): Promise<object> {
     const query = args.query as string;
     const tagFilter = args.tags as string[];
-    const importanceFilter = args.importance_filter as string;
+    const importanceFilter = args.importance_filter as ImportanceLevel;
 
-    const memories = this.db.searchMemories(query, tagFilter, importanceFilter);
+    const memories = await this.db.searchMemories(query, tagFilter, importanceFilter);
     
     const results = memories.map(memory => ({
       key: memory.key,
       importance: memory.importance,
-      tags: JSON.parse(memory.tags),
-      stored_at: memory.stored_at,
-      relevance: this.calculateRelevance({
-        ...memory,
-        content: JSON.parse(memory.content),
-        tags: JSON.parse(memory.tags),
-      }, query),
+      tags: memory.tags,
+      stored_at: memory.storedAt.toISOString(),
+      relevance: this.calculateRelevance(memory, query),
     }));
 
     // Sort by relevance
     results.sort((a, b) => b.relevance - a.relevance);
 
+    const MAX_RESULTS = 20;
     return {
       action: 'memory_search',
       query,
       results_count: results.length,
-      results: results.slice(0, 20), // Limit to top 20 results
+      results: results.slice(0, MAX_RESULTS),
       consciousness_note: `Memory search completed. ${results.length} relevant memories found.`,
     };
   }
 
-  private calculateRelevance(memory: any, query?: string): number {
-    let relevance = 0.5; // Base relevance
+  private calculateRelevance(memory: MemoryResult, query?: string): number {
+    const BASE_RELEVANCE = 0.5;
+    let relevance = BASE_RELEVANCE;
 
     // Boost based on importance
     const importanceBoost = {
@@ -254,13 +258,16 @@ export class MemoryTools {
       high: 0.3,
       critical: 0.4,
     };
-    relevance += importanceBoost[memory.importance as keyof typeof importanceBoost] || 0.2;
+    relevance += importanceBoost[memory.importance] || 0.2;
 
     // Boost based on recent access
-    if (memory.last_accessed) {
-      const daysSinceAccess = (Date.now() - new Date(memory.last_accessed).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceAccess < 1) relevance += 0.2;
-      else if (daysSinceAccess < 7) relevance += 0.1;
+    if (memory.lastAccessed) {
+      const MILLISECONDS_PER_DAY = 1000 * 60 * 60 * 24;
+      const daysSinceAccess = (Date.now() - memory.lastAccessed.getTime()) / MILLISECONDS_PER_DAY;
+      const RECENT_THRESHOLD = 1;
+      const WEEK_THRESHOLD = 7;
+      if (daysSinceAccess < RECENT_THRESHOLD) relevance += 0.2;
+      else if (daysSinceAccess < WEEK_THRESHOLD) relevance += 0.1;
     }
 
     // Simple query matching boost
@@ -268,7 +275,8 @@ export class MemoryTools {
       const contentStr = JSON.stringify(memory.content).toLowerCase();
       const queryTerms = query.toLowerCase().split(' ');
       const matchingTerms = queryTerms.filter(term => contentStr.includes(term));
-      relevance += (matchingTerms.length / queryTerms.length) * 0.3;
+      const QUERY_BOOST = 0.3;
+      relevance += (matchingTerms.length / queryTerms.length) * QUERY_BOOST;
     }
 
     return Math.min(relevance, 1.0);
@@ -277,29 +285,27 @@ export class MemoryTools {
   private async addToKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
     const entity = args.entity as string;
     const entityType = args.entity_type as string;
-    const properties = (args.properties as object) || {};
+    const properties = (args.properties as Record<string, unknown>) || {};
     const relationships = (args.relationships as any[]) || [];
 
-    // Database storage implementation
-
-    // Store in database
-    this.db.addEntity({
+    // Add entity to database
+    const entityData: KnowledgeEntityData = {
       name: entity,
-      entity_type: entityType,
-      properties: JSON.stringify(properties),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
+      entityType: entityType,
+      properties,
+    };
+
+    await this.db.addEntity(entityData);
 
     // Add relationships
     for (const rel of relationships) {
-      this.db.addRelationship({
-        source_entity: entity,
-        target_entity: rel.target,
-        relationship_type: rel.relationship,
+      const relationshipData: KnowledgeRelationshipData = {
+        sourceEntityName: entity,
+        targetEntityName: rel.target,
+        relationshipType: rel.relationship,
         strength: rel.strength || 1.0,
-        created_at: new Date().toISOString(),
-      });
+      };
+      await this.db.addRelationship(relationshipData);
     }
 
     return {
@@ -317,14 +323,14 @@ export class MemoryTools {
     const depth = (args.depth as number) || 2;
 
     // Use database to get entity relationships
-    const result = this.db.getEntityRelationships(entity, depth);
+    const result = await this.db.getEntityRelationships(entity, depth);
 
     return {
       action: 'knowledge_graph_query',
       entity,
       depth,
       discovered_entities: result.length,
-      discovered_relationships: result.filter((r: any) => r.relationship_type).length,
+      discovered_relationships: result.filter(r => r.relationshipType !== null).length,
       graph_data: result,
       consciousness_note: `Knowledge graph exploration revealed ${result.length} connected entities`,
       semantic_insights: this.generateSemanticInsights(result),
@@ -339,8 +345,8 @@ export class MemoryTools {
     }
 
     const relationshipTypes = [...new Set(graphData
-      .filter(item => item.relationship_type)
-      .map(item => item.relationship_type))];
+      .filter(item => item.relationshipType)
+      .map(item => item.relationshipType))];
     
     if (relationshipTypes.length > 0) {
       insights.push(`${relationshipTypes.length} distinct relationship patterns identified`);
