@@ -1,7 +1,7 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { MemoryTools } from '../../../src/tools/memory/memory-tools.js';
-import { ConsciousnessPrismaService } from '../../../src/db/prisma-service.js';
-import { MemoryResult, KnowledgeEntityData } from '../../../src/db/types.js';
+import { MemoryTools } from '@/memory';
+import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
+import { MemoryResult, KnowledgeEntityData } from '@/db/types.js';
 import { ImportanceLevel } from '@prisma/client';
 
 // Mock the database service
