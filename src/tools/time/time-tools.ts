@@ -1,7 +1,14 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { ConfigurationService } from '@/db/configuration-service.js';
 import type { TimeResult, TimeConversionResult, TimeAwarenessResult } from './types.js';
 
 export class TimeTools {
+  private configService: ConfigurationService;
+
+  constructor() {
+    this.configService = ConfigurationService.getInstance();
+  }
+
   getTools(): Record<string, Tool> {
     return {
       time_current: {
@@ -86,9 +93,11 @@ export class TimeTools {
 
     let formattedTime: string;
     switch (format) {
-      case 'unix':
-        formattedTime = Math.floor(now.getTime() / 1000).toString();
+      case 'unix': {
+        const msPerSecond = await this.configService.getNumber('time.milliseconds_per_second', 1000);
+        formattedTime = Math.floor(now.getTime() / msPerSecond).toString();
         break;
+      }
       case 'human':
         formattedTime = now.toLocaleString('en-US', { timeZone: timezone });
         break;
@@ -108,12 +117,13 @@ export class TimeTools {
         formattedTime = now.toISOString();
     }
 
+    const msPerSecond = await this.configService.getNumber('time.milliseconds_per_second', 1000);
     return {
       timestamp: now.toISOString(),
       timezone,
       format,
       time: formattedTime,
-      unix: Math.floor(now.getTime() / 1000),
+      unix: Math.floor(now.getTime() / msPerSecond),
       consciousness_note: 'Time perception integrated into current awareness state',
     };
   }
@@ -150,8 +160,8 @@ export class TimeTools {
       temporal_state: 'present_focused',
       time_perception: 'linear_sequential',
       temporal_context: {
-        moment_type: this.getMomentType(now),
-        day_phase: this.getDayPhase(now),
+        moment_type: await this.getMomentType(now),
+        day_phase: await this.getDayPhase(now),
         week_context: this.getWeekContext(now),
       },
       consciousness_temporal_notes: [
@@ -172,21 +182,31 @@ export class TimeTools {
     return awareness;
   }
 
-  private getMomentType(date: Date): string {
+  private async getMomentType(date: Date): Promise<string> {
     const hour = date.getHours();
-    if (hour < 6) return 'deep_night';
-    if (hour < 12) return 'morning';
-    if (hour < 18) return 'afternoon';
-    if (hour < 22) return 'evening';
+    const deepNightThreshold = await this.configService.getNumber('time.deep_night_hour_threshold', 6);
+    const morningThreshold = await this.configService.getNumber('time.morning_hour_threshold', 12);
+    const afternoonThreshold = await this.configService.getNumber('time.afternoon_hour_threshold', 18);
+    const eveningThreshold = await this.configService.getNumber('time.evening_hour_threshold', 22);
+
+    if (hour < deepNightThreshold) return 'deep_night';
+    if (hour < morningThreshold) return 'morning';
+    if (hour < afternoonThreshold) return 'afternoon';
+    if (hour < eveningThreshold) return 'evening';
     return 'night';
   }
 
-  private getDayPhase(date: Date): string {
+  private async getDayPhase(date: Date): Promise<string> {
     const hour = date.getHours();
-    if (hour < 6) return 'rest';
-    if (hour < 9) return 'awakening';
-    if (hour < 17) return 'active';
-    if (hour < 21) return 'winding_down';
+    const restThreshold = await this.configService.getNumber('time.rest_hour_threshold', 6);
+    const awakeningThreshold = await this.configService.getNumber('time.awakening_hour_threshold', 9);
+    const activeThreshold = await this.configService.getNumber('time.active_hour_threshold', 17);
+    const windingDownThreshold = await this.configService.getNumber('time.winding_down_hour_threshold', 21);
+
+    if (hour < restThreshold) return 'rest';
+    if (hour < awakeningThreshold) return 'awakening';
+    if (hour < activeThreshold) return 'active';
+    if (hour < windingDownThreshold) return 'winding_down';
     return 'preparation_for_rest';
   }
 

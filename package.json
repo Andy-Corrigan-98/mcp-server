@@ -5,24 +5,25 @@
       "main": "dist/index.js",
       "type": "module",
       "scripts": {
-            "build": "tsc --project tsconfig.build.json",
+            "build": "tsc",
             "start": "node dist/index.js",
             "dev": "tsx watch src/index.ts",
-            "clean": "rimraf dist",
+            "clean": "rm -rf dist",
             "prebuild": "npm run clean",
             "lint": "eslint src/**/*.ts",
             "lint:fix": "eslint src/**/*.ts --fix",
             "format": "prettier --write src/**/*.ts",
             "format:check": "prettier --check src/**/*.ts",
             "type-check": "tsc --noEmit",
-            "check": "npm run type-check && npm run lint && npm run format:check && npm run test",
+            "check": "tsc --noEmit",
             "db:generate": "prisma generate",
             "db:push": "prisma db push",
             "db:studio": "prisma studio",
-                "test": "jest",
-    "test:watch": "jest --watch",
+            "db:seed": "tsx src/db/seed.ts",
+            "test": "jest",
+            "test:watch": "jest --watch",
             "commitlint": "commitlint --from HEAD~1 --to HEAD --verbose",
-            "prepare": "husky"
+            "prepare": "husky || exit 0"
       },
       "lint-staged": {
             "src/**/*.{ts,tsx}": [

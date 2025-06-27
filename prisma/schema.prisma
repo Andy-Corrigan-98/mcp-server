@@ -61,3 +61,35 @@ enum ImportanceLevel {
   high
   critical
 }
+
+enum ConfigurationType {
+  NUMBER
+  STRING
+  BOOLEAN
+  JSON
+}
+
+enum ConfigurationCategory {
+  CONSCIOUSNESS
+  VALIDATION
+  MEMORY
+  REASONING
+  TIME
+  SYSTEM
+}
+
+model Configuration {
+  id           String                @id @default(cuid())
+  key          String                @unique
+  value        String
+  type         ConfigurationType
+  category     ConfigurationCategory
+  description  String
+  defaultValue String
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@index([category])
+  @@index([key])
+  @@map("configurations")
+}

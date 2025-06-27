@@ -225,4 +225,49 @@ export class ConsciousnessPrismaService {
   async disconnect(): Promise<void> {
     await this.prisma.$disconnect();
   }
+
+  /**
+   * Configuration management methods
+   */
+  async getConfiguration(key: string) {
+    return await this.prisma.configuration.findUnique({
+      where: { key },
+    });
+  }
+
+  async getConfigurationsByCategory(category: any) {
+    return await this.prisma.configuration.findMany({
+      where: { category },
+      orderBy: { key: 'asc' },
+    });
+  }
+
+  async getConfigurationsByKeys(keys: string[]) {
+    return await this.prisma.configuration.findMany({
+      where: {
+        key: { in: keys },
+      },
+    });
+  }
+
+  async upsertConfiguration(config: {
+    key: string;
+    value: string;
+    type: any;
+    category: any;
+    description: string;
+    defaultValue: string;
+  }) {
+    return await this.prisma.configuration.upsert({
+      where: { key: config.key },
+      update: {
+        value: config.value,
+        type: config.type,
+        category: config.category,
+        description: config.description,
+        updatedAt: new Date(),
+      },
+      create: config,
+    });
+  }
 }
