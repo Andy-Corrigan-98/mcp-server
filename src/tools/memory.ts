@@ -8,6 +8,63 @@ import {
 } from '../db/prisma.js';
 import { ImportanceLevel } from '@prisma/client';
 
+// Security: Input validation and sanitization
+class InputValidator {
+  static sanitizeString(input: string, maxLength: number = 1000): string {
+    if (typeof input !== 'string') {
+      throw new Error('Input must be a string');
+    }
+    
+    // Trim and limit length to prevent DoS attacks
+    const sanitized = input.trim().substring(0, maxLength);
+    
+    // Basic XSS prevention for stored content
+    return sanitized
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+      .replace(/javascript:/gi, '');
+  }
+
+  static validateKey(key: string): string {
+    const sanitized = this.sanitizeString(key, 255);
+    
+    // Keys should be alphanumeric, dashes, underscores only
+    if (!/^[a-zA-Z0-9_-]+$/.test(sanitized)) {
+      throw new Error('Memory key must contain only alphanumeric characters, dashes, and underscores');
+    }
+    
+    return sanitized;
+  }
+
+  static validateImportanceLevel(importance: string): ImportanceLevel {
+    const validLevels: ImportanceLevel[] = ['low', 'medium', 'high', 'critical'];
+    if (!validLevels.includes(importance as ImportanceLevel)) {
+      throw new Error(`Invalid importance level. Must be one of: ${validLevels.join(', ')}`);
+    }
+    return importance as ImportanceLevel;
+  }
+
+  static sanitizeSearchQuery(query: string): string {
+    // Prevent potential ReDoS attacks with complex regex
+    const sanitized = this.sanitizeString(query, 500);
+    
+    // Remove potential SQL-like patterns (defense in depth)
+    return sanitized
+      .replace(/['"`;\\]/g, '') // Remove quotes, semicolons, backslashes
+      .replace(/\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\b/gi, ''); // Remove SQL keywords
+  }
+
+  static validateEntityName(name: string): string {
+    const sanitized = this.sanitizeString(name, 255);
+    
+    // Entity names should be reasonable
+    if (sanitized.length < 1) {
+      throw new Error('Entity name cannot be empty');
+    }
+    
+    return sanitized;
+  }
+}
+
 export class MemoryTools {
   private db: ConsciousnessPrismaService;
 
@@ -164,10 +221,13 @@ export class MemoryTools {
   }
 
   private async storeMemory(args: Record<string, unknown>): Promise<object> {
-    const key = args.key as string;
+    // Security: Validate and sanitize inputs
+    const key = InputValidator.validateKey(args.key as string);
     const content = args.content as unknown;
     const tags = (args.tags as string[]) || [];
-    const importance = (args.importance as ImportanceLevel) || 'medium';
+    const importance = args.importance 
+      ? InputValidator.validateImportanceLevel(args.importance as string)
+      : 'medium' as ImportanceLevel;
 
     const memoryData: MemoryData = {
       key,
@@ -190,7 +250,8 @@ export class MemoryTools {
   }
 
   private async retrieveMemory(args: Record<string, unknown>): Promise<object> {
-    const key = args.key as string;
+    // Security: Validate key input
+    const key = InputValidator.validateKey(args.key as string);
     const memory = await this.db.retrieveMemory(key);
 
     if (!memory) {
@@ -220,9 +281,12 @@ export class MemoryTools {
   }
 
   private async searchMemories(args: Record<string, unknown>): Promise<object> {
-    const query = args.query as string;
+    // Security: Sanitize search inputs
+    const query = args.query ? InputValidator.sanitizeSearchQuery(args.query as string) : undefined;
     const tagFilter = args.tags as string[];
-    const importanceFilter = args.importance_filter as ImportanceLevel;
+    const importanceFilter = args.importance_filter 
+      ? InputValidator.validateImportanceLevel(args.importance_filter as string)
+      : undefined;
 
     const memories = await this.db.searchMemories(query, tagFilter, importanceFilter);
     
@@ -283,8 +347,9 @@ export class MemoryTools {
   }
 
   private async addToKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
-    const entity = args.entity as string;
-    const entityType = args.entity_type as string;
+    // Security: Validate entity inputs
+    const entity = InputValidator.validateEntityName(args.entity as string);
+    const entityType = InputValidator.sanitizeString(args.entity_type as string, 100);
     const properties = (args.properties as Record<string, unknown>) || {};
     const relationships = (args.relationships as any[]) || [];
 
@@ -319,7 +384,8 @@ export class MemoryTools {
   }
 
   private async queryKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
-    const entity = args.entity as string;
+    // Security: Validate entity name
+    const entity = InputValidator.validateEntityName(args.entity as string);
     const depth = (args.depth as number) || 2;
 
     // Use database to get entity relationships
