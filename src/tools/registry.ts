@@ -28,7 +28,10 @@ export class ConsciousnessToolsRegistry {
     this.registerToolCategory(memoryTools);
   }
 
-  private registerToolCategory(toolCategory: any): void {
+  private registerToolCategory(toolCategory: {
+    getTools(): Record<string, Tool>;
+    execute(name: string, args: Record<string, unknown>): Promise<unknown>;
+  }): void {
     const tools = toolCategory.getTools();
 
     for (const [name, definition] of Object.entries(tools)) {

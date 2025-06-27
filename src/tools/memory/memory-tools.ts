@@ -1,14 +1,22 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ImportanceLevel } from '@prisma/client';
-import { 
-  ConsciousnessPrismaService, 
-  MemoryData, 
+import {
+  ConsciousnessPrismaService,
+  MemoryData,
   MemoryResult,
   KnowledgeEntityData,
-  KnowledgeRelationshipData
+  KnowledgeRelationshipData,
 } from '../../db/index.js';
 import { InputValidator } from '../../validation/index.js';
 import { MEMORY_TOOLS, RelevanceConfig } from './types.js';
+
+// Constants to avoid magic numbers
+const MAX_TAG_LENGTH = 100;
+const MAX_ENTITY_TYPE_LENGTH = 100;
+const MAX_RELATIONSHIP_TYPE_LENGTH = 100;
+const MAX_ACCESS_COUNT_NORMALIZATION = 10;
+const MIN_GRAPH_DEPTH = 1;
+const MAX_GRAPH_DEPTH = 5;
+const DECIMAL_PRECISION = 100;
 
 /**
  * Memory Tools implementation for consciousness MCP server
@@ -59,12 +67,10 @@ export class MemoryTools {
     const key = InputValidator.validateKey(args.key as string);
     const content = args.content;
     const tags = (args.tags as string[]) || [];
-    const importance = InputValidator.validateImportanceLevel(
-      (args.importance as string) || 'medium'
-    );
+    const importance = InputValidator.validateImportanceLevel((args.importance as string) || 'medium');
 
     // Sanitize tags
-    const sanitizedTags = tags.map(tag => InputValidator.sanitizeString(tag, 100));
+    const sanitizedTags = tags.map(tag => InputValidator.sanitizeString(tag, MAX_TAG_LENGTH));
 
     const memoryData: MemoryData = {
       key,
@@ -111,8 +117,12 @@ export class MemoryTools {
 
   private async searchMemories(args: Record<string, unknown>): Promise<object> {
     const query = args.query ? InputValidator.sanitizeSearchQuery(args.query as string) : undefined;
-    const tags = args.tags ? (args.tags as string[]).map(tag => InputValidator.sanitizeString(tag, 100)) : undefined;
-    const importanceFilter = args.importance_filter ? InputValidator.validateImportanceLevel(args.importance_filter as string) : undefined;
+    const tags = args.tags
+      ? (args.tags as string[]).map(tag => InputValidator.sanitizeString(tag, MAX_TAG_LENGTH))
+      : undefined;
+    const importanceFilter = args.importance_filter
+      ? InputValidator.validateImportanceLevel(args.importance_filter as string)
+      : undefined;
 
     const memories = await this.db.searchMemories(query, tags, importanceFilter);
 
@@ -146,7 +156,7 @@ export class MemoryTools {
     if (query) {
       const contentStr = JSON.stringify(memory.content).toLowerCase();
       const queryLower = query.toLowerCase();
-      
+
       if (contentStr.includes(queryLower)) {
         score += this.relevanceConfig.contentWeight;
       }
@@ -155,9 +165,7 @@ export class MemoryTools {
     // Tag relevance (simplified)
     if (query) {
       const queryLower = query.toLowerCase();
-      const tagMatches = memory.tags.filter(tag => 
-        tag.toLowerCase().includes(queryLower)
-      ).length;
+      const tagMatches = memory.tags.filter(tag => tag.toLowerCase().includes(queryLower)).length;
       score += (tagMatches / Math.max(memory.tags.length, 1)) * this.relevanceConfig.tagWeight;
     }
 
@@ -166,17 +174,17 @@ export class MemoryTools {
     score += importanceScores[memory.importance] * this.relevanceConfig.importanceWeight;
 
     // Access frequency (normalized)
-    const accessScore = Math.min(memory.accessCount / 10, 1.0);
+    const accessScore = Math.min(memory.accessCount / MAX_ACCESS_COUNT_NORMALIZATION, 1.0);
     score += accessScore * this.relevanceConfig.accessWeight;
 
-    return Math.round(score * 100) / 100; // Round to 2 decimal places
+    return Math.round(score * DECIMAL_PRECISION) / DECIMAL_PRECISION; // Round to 2 decimal places
   }
 
   private async addToKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
     const entityName = InputValidator.validateEntityName(args.entity as string);
-    const entityType = InputValidator.sanitizeString(args.entity_type as string, 100);
+    const entityType = InputValidator.sanitizeString(args.entity_type as string, MAX_ENTITY_TYPE_LENGTH);
     const properties = (args.properties as Record<string, unknown>) || {};
-    const relationships = (args.relationships as any[]) || [];
+    const relationships = (args.relationships as unknown[]) || [];
 
     // Add the entity
     const entityData: KnowledgeEntityData = {
@@ -189,10 +197,11 @@ export class MemoryTools {
 
     // Add relationships
     for (const rel of relationships) {
-      const targetName = InputValidator.validateEntityName(rel.target);
-      const relationshipType = InputValidator.sanitizeString(rel.relationship, 100);
-      const strength = typeof rel.strength === 'number' ? 
-        Math.max(0, Math.min(1, rel.strength)) : 1.0;
+      const relationship = rel as { target: string; relationship: string; strength?: number };
+      const targetName = InputValidator.validateEntityName(relationship.target);
+      const relationshipType = InputValidator.sanitizeString(relationship.relationship, MAX_RELATIONSHIP_TYPE_LENGTH);
+      const strength =
+        typeof relationship.strength === 'number' ? Math.max(0, Math.min(1, relationship.strength)) : 1.0;
 
       const relationshipData: KnowledgeRelationshipData = {
         sourceEntityName: entityName,
@@ -214,7 +223,7 @@ export class MemoryTools {
 
   private async queryKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
     const entityName = InputValidator.validateEntityName(args.entity as string);
-    const depth = Math.max(1, Math.min(5, (args.depth as number) || 2));
+    const depth = Math.max(MIN_GRAPH_DEPTH, Math.min(MAX_GRAPH_DEPTH, (args.depth as number) || 2));
 
     const graphData = await this.db.getEntityRelationships(entityName, depth);
 
@@ -237,19 +246,27 @@ export class MemoryTools {
     };
   }
 
-  private generateSemanticInsights(graphData: any[]): string[] {
+  private generateSemanticInsights(graphData: unknown[]): string[] {
     const insights: string[] = [];
-    
+
     // Simple insight generation
-    const entityTypes = [...new Set(graphData.map(e => e.entityType))];
+    const entities = graphData as Array<{
+      entityType: string;
+      sourceRelationships?: Array<{ relationshipType: string }>;
+      targetRelationships?: Array<{ relationshipType: string }>;
+    }>;
+
+    const entityTypes = [...new Set(entities.map(e => e.entityType))];
     if (entityTypes.length > 1) {
-      insights.push(`Cross-domain connections found across ${entityTypes.length} entity types: ${entityTypes.join(', ')}`);
+      insights.push(
+        `Cross-domain connections found across ${entityTypes.length} entity types: ${entityTypes.join(', ')}`
+      );
     }
 
     const relationshipTypes = new Set();
-    graphData.forEach(entity => {
-      entity.sourceRelationships?.forEach((rel: any) => relationshipTypes.add(rel.relationshipType));
-      entity.targetRelationships?.forEach((rel: any) => relationshipTypes.add(rel.relationshipType));
+    entities.forEach(entity => {
+      entity.sourceRelationships?.forEach(rel => relationshipTypes.add(rel.relationshipType));
+      entity.targetRelationships?.forEach(rel => relationshipTypes.add(rel.relationshipType));
     });
 
     if (relationshipTypes.size > 0) {
@@ -258,4 +275,4 @@ export class MemoryTools {
 
     return insights;
   }
-} 
+}
