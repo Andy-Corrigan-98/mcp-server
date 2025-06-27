@@ -2,6 +2,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ConsciousnessTools } from './consciousness.js';
 import { TimeTools } from './time.js';
 import { MemoryTools } from './memory/index.js';
+import { ReasoningTools } from './reasoning/index.js';
 
 export interface ToolExecutor {
   execute(args: Record<string, unknown>): Promise<unknown>;
@@ -26,6 +27,10 @@ export class ConsciousnessToolsRegistry {
     // Register memory tools
     const memoryTools = new MemoryTools();
     this.registerToolCategory(memoryTools);
+
+    // Register reasoning tools
+    const reasoningTools = new ReasoningTools();
+    this.registerToolCategory(reasoningTools);
   }
 
   private registerToolCategory(toolCategory: {
