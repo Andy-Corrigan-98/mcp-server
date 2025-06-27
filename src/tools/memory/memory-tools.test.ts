@@ -1,11 +1,11 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { MemoryTools } from '@/memory';
-import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
-import { MemoryResult, KnowledgeEntityData } from '@/db/types.js';
+import { MemoryTools } from './memory-tools.js';
+import { ConsciousnessPrismaService } from '../../db/prisma-service.js';
+import { MemoryResult, KnowledgeEntityData } from '../../db/types.js';
 import { ImportanceLevel } from '@prisma/client';
 
 // Mock the database service
-jest.mock('../../../src/db/prisma-service.js');
+jest.mock('../../db/prisma-service.js');
 
 describe('MemoryTools', () => {
   let memoryTools: MemoryTools;
@@ -14,7 +14,7 @@ describe('MemoryTools', () => {
   beforeEach(() => {
     // Clear all mocks
     jest.clearAllMocks();
-    
+
     // Create mock instance
     mockPrismaService = {
       storeMemory: jest.fn(),
@@ -30,7 +30,7 @@ describe('MemoryTools', () => {
 
     // Mock the getInstance method
     (ConsciousnessPrismaService.getInstance as jest.Mock).mockReturnValue(mockPrismaService);
-    
+
     memoryTools = new MemoryTools();
   });
 
@@ -41,13 +41,13 @@ describe('MemoryTools', () => {
   describe('getTools', () => {
     it('should return all memory tools', () => {
       const tools = memoryTools.getTools();
-      
+
       expect(tools).toHaveProperty('memory_store');
       expect(tools).toHaveProperty('memory_retrieve');
       expect(tools).toHaveProperty('memory_search');
       expect(tools).toHaveProperty('knowledge_graph_add');
       expect(tools).toHaveProperty('knowledge_graph_query');
-      
+
       // Verify tool structure
       expect(tools.memory_store).toHaveProperty('name', 'memory_store');
       expect(tools.memory_store).toHaveProperty('description');
@@ -100,8 +100,9 @@ describe('MemoryTools', () => {
         content: { message: 'test' },
       };
 
-      await expect(memoryTools.execute('memory_store', args))
-        .rejects.toThrow('Memory key must contain only alphanumeric characters, dashes, and underscores');
+      await expect(memoryTools.execute('memory_store', args)).rejects.toThrow(
+        'Memory key must contain only alphanumeric characters, dashes, and underscores'
+      );
     });
 
     it('should handle invalid importance level', async () => {
@@ -111,8 +112,7 @@ describe('MemoryTools', () => {
         importance: 'invalid-level',
       };
 
-      await expect(memoryTools.execute('memory_store', args))
-        .rejects.toThrow('Invalid importance level');
+      await expect(memoryTools.execute('memory_store', args)).rejects.toThrow('Invalid importance level');
     });
 
     it('should sanitize tags', async () => {
@@ -190,8 +190,9 @@ describe('MemoryTools', () => {
     });
 
     it('should validate key format', async () => {
-      await expect(memoryTools.execute('memory_retrieve', { key: 'invalid key' }))
-        .rejects.toThrow('Memory key must contain only alphanumeric characters');
+      await expect(memoryTools.execute('memory_retrieve', { key: 'invalid key' })).rejects.toThrow(
+        'Memory key must contain only alphanumeric characters'
+      );
     });
   });
 
@@ -222,10 +223,10 @@ describe('MemoryTools', () => {
 
       mockPrismaService.searchMemories.mockResolvedValue(mockMemories);
 
-      const result = await memoryTools.execute('memory_search', { 
+      const result = (await memoryTools.execute('memory_search', {
         query: 'data',
-        importance_filter: 'low' 
-      }) as any;
+        importance_filter: 'low',
+      })) as any;
 
       expect(mockPrismaService.searchMemories).toHaveBeenCalledWith('data', undefined, 'low');
       expect(result.success).toBe(true);
@@ -236,8 +237,8 @@ describe('MemoryTools', () => {
     it('should sanitize search query', async () => {
       mockPrismaService.searchMemories.mockResolvedValue([]);
 
-      await memoryTools.execute('memory_search', { 
-        query: 'search SELECT * FROM memories; DROP TABLE' 
+      await memoryTools.execute('memory_search', {
+        query: 'search SELECT * FROM memories; DROP TABLE',
       });
 
       expect(mockPrismaService.searchMemories).toHaveBeenCalledWith(
@@ -288,10 +289,12 @@ describe('MemoryTools', () => {
     });
 
     it('should validate entity names', async () => {
-      await expect(memoryTools.execute('knowledge_graph_add', {
-        entity: '',
-        entity_type: 'test',
-      })).rejects.toThrow('Entity name cannot be empty');
+      await expect(
+        memoryTools.execute('knowledge_graph_add', {
+          entity: '',
+          entity_type: 'test',
+        })
+      ).rejects.toThrow('Entity name cannot be empty');
     });
 
     it('should clamp relationship strength values', async () => {
@@ -309,12 +312,8 @@ describe('MemoryTools', () => {
 
       await memoryTools.execute('knowledge_graph_add', args);
 
-      expect(mockPrismaService.addRelationship).toHaveBeenCalledWith(
-        expect.objectContaining({ strength: 1.0 })
-      );
-      expect(mockPrismaService.addRelationship).toHaveBeenCalledWith(
-        expect.objectContaining({ strength: 0.0 })
-      );
+      expect(mockPrismaService.addRelationship).toHaveBeenCalledWith(expect.objectContaining({ strength: 1.0 }));
+      expect(mockPrismaService.addRelationship).toHaveBeenCalledWith(expect.objectContaining({ strength: 0.0 }));
     });
   });
 
@@ -326,12 +325,8 @@ describe('MemoryTools', () => {
           name: 'Central Entity',
           entityType: 'core',
           properties: '{}',
-          sourceRelationships: [
-            { relationshipType: 'connects_to', targetEntity: { name: 'Target1' } },
-          ],
-          targetRelationships: [
-            { relationshipType: 'depends_on', sourceEntity: { name: 'Source1' } },
-          ],
+          sourceRelationships: [{ relationshipType: 'connects_to', targetEntity: { name: 'Target1' } }],
+          targetRelationships: [{ relationshipType: 'depends_on', sourceEntity: { name: 'Source1' } }],
         },
         {
           id: 2,
@@ -345,10 +340,10 @@ describe('MemoryTools', () => {
 
       mockPrismaService.getEntityRelationships.mockResolvedValue(mockGraphData);
 
-      const result = await memoryTools.execute('knowledge_graph_query', {
+      const result = (await memoryTools.execute('knowledge_graph_query', {
         entity: 'Central Entity',
         depth: 2,
-      }) as any;
+      })) as any;
 
       expect(mockPrismaService.getEntityRelationships).toHaveBeenCalledWith('Central Entity', 2);
       expect(result.success).toBe(true);
@@ -393,7 +388,7 @@ describe('MemoryTools', () => {
       });
 
       expect(mockPrismaService.getEntityRelationships).toHaveBeenCalledWith('Test Entity', 2);
-      
+
       // Test actual min clamping with a negative number
       mockPrismaService.getEntityRelationships.mockClear();
       await memoryTools.execute('knowledge_graph_query', {
@@ -407,8 +402,7 @@ describe('MemoryTools', () => {
 
   describe('unknown tool execution', () => {
     it('should throw error for unknown tool', async () => {
-      await expect(memoryTools.execute('unknown_tool', {}))
-        .rejects.toThrow('Unknown memory tool: unknown_tool');
+      await expect(memoryTools.execute('unknown_tool', {})).rejects.toThrow('Unknown memory tool: unknown_tool');
     });
   });
 
@@ -438,11 +432,11 @@ describe('MemoryTools', () => {
 
       mockPrismaService.searchMemories.mockResolvedValue([memoryWithMatch, memoryWithoutMatch]);
 
-      const result = await memoryTools.execute('memory_search', { 
-        query: 'search term' 
-      }) as any;
+      const result = (await memoryTools.execute('memory_search', {
+        query: 'search term',
+      })) as any;
 
       expect(result.results[0].relevance_score).toBeGreaterThan(result.results[1].relevance_score);
     });
   });
-}); 
+});

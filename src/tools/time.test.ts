@@ -1,5 +1,5 @@
-import { describe, it, expect } from '@jest/globals';
-import { TimeTools } from '../src/tools/time';
+import { describe, it, expect, beforeEach } from '@jest/globals';
+import { TimeTools } from './time.js';
 
 describe('TimeTools', () => {
   let timeTools: TimeTools;
@@ -11,7 +11,7 @@ describe('TimeTools', () => {
   describe('getTools', () => {
     it('should return all time tools', () => {
       const tools = timeTools.getTools();
-      
+
       expect(tools).toHaveProperty('time_current');
       expect(tools).toHaveProperty('time_convert');
       expect(tools).toHaveProperty('time_awareness');
@@ -19,7 +19,7 @@ describe('TimeTools', () => {
 
     it('should return valid tool schemas', () => {
       const tools = timeTools.getTools();
-      
+
       expect(tools.time_current.name).toBe('time_current');
       expect(tools.time_current.description).toBeDefined();
       expect(tools.time_current.inputSchema).toBeDefined();
@@ -38,7 +38,7 @@ describe('TimeTools', () => {
 
     it('should get current time with specified timezone', async () => {
       const result = await timeTools.execute('time_current', {
-        timezone: 'America/New_York'
+        timezone: 'America/New_York',
       });
 
       expect(result).toHaveProperty('timestamp');
@@ -51,7 +51,7 @@ describe('TimeTools', () => {
       const result = await timeTools.execute('time_convert', {
         time: '2023-01-01T12:00:00Z',
         from_timezone: 'UTC',
-        to_timezone: 'America/New_York'
+        to_timezone: 'America/New_York',
       });
 
       expect(result).toHaveProperty('original');
@@ -68,8 +68,7 @@ describe('TimeTools', () => {
     });
 
     it('should throw error for unknown tool', async () => {
-      await expect(timeTools.execute('unknown_tool', {}))
-        .rejects.toThrow('Unknown time tool: unknown_tool');
+      await expect(timeTools.execute('unknown_tool', {})).rejects.toThrow('Unknown time tool: unknown_tool');
     });
   });
-}); 
+});

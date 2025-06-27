@@ -15,10 +15,11 @@ export default tseslint.config(
   },
   {
     files: ['src/**/*.ts'],
+    ignores: ['src/**/*.test.ts'],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
-        project: true,
+        project: './tsconfig.build.json',
         tsconfigRootDir: import.meta.dirname,
       },
     },
@@ -46,6 +47,26 @@ export default tseslint.config(
       // Consciousness-specific rules for all agents
       'no-magic-numbers': ['warn', { ignore: [-1, 0, 1, 2] }],
       'max-len': ['warn', { code: 120, ignoreStrings: true, ignoreComments: true }],
+    },
+  },
+  {
+    files: ['src/**/*.test.ts'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tseslint.plugin,
+    },
+    rules: {
+      // Relaxed rules for test files
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      'no-magic-numbers': 'off',
+      'max-len': ['warn', { code: 140, ignoreStrings: true, ignoreComments: true }],
     },
   }
 ); 

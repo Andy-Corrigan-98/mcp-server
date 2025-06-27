@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { InputValidator } from '../../src/validation/input-validator';
+import { InputValidator } from './input-validator.js';
 import { ImportanceLevel } from '@prisma/client';
 
 describe('InputValidator', () => {
@@ -43,7 +43,7 @@ describe('InputValidator', () => {
   describe('validateKey', () => {
     it('should accept valid alphanumeric keys', () => {
       const validKeys = ['test123', 'my-key', 'user_data', 'ABC-123_test'];
-      
+
       validKeys.forEach(key => {
         expect(InputValidator.validateKey(key)).toBe(key);
       });
@@ -51,7 +51,7 @@ describe('InputValidator', () => {
 
     it('should reject keys with invalid characters', () => {
       const invalidKeys = ['test@key', 'key with spaces', 'key/path', 'key.ext'];
-      
+
       invalidKeys.forEach(key => {
         expect(() => {
           InputValidator.validateKey(key);
@@ -74,7 +74,7 @@ describe('InputValidator', () => {
   describe('validateImportanceLevel', () => {
     it('should accept valid importance levels', () => {
       const validLevels: ImportanceLevel[] = ['low', 'medium', 'high', 'critical'];
-      
+
       validLevels.forEach(level => {
         expect(InputValidator.validateImportanceLevel(level)).toBe(level);
       });
@@ -82,7 +82,7 @@ describe('InputValidator', () => {
 
     it('should reject invalid importance levels', () => {
       const invalidLevels = ['urgent', 'normal', 'extreme', ''];
-      
+
       invalidLevels.forEach(level => {
         expect(() => {
           InputValidator.validateImportanceLevel(level);
@@ -94,7 +94,7 @@ describe('InputValidator', () => {
       expect(() => {
         InputValidator.validateImportanceLevel('LOW');
       }).toThrow('Invalid importance level');
-      
+
       expect(() => {
         InputValidator.validateImportanceLevel('Medium');
       }).toThrow('Invalid importance level');
@@ -136,7 +136,7 @@ describe('InputValidator', () => {
   describe('validateEntityName', () => {
     it('should accept valid entity names', () => {
       const validNames = ['User Entity', 'Product-123', 'data_point', 'System Component'];
-      
+
       validNames.forEach(name => {
         expect(InputValidator.validateEntityName(name)).toBe(name);
       });
@@ -146,7 +146,7 @@ describe('InputValidator', () => {
       expect(() => {
         InputValidator.validateEntityName('');
       }).toThrow('Entity name cannot be empty');
-      
+
       expect(() => {
         InputValidator.validateEntityName('   ');
       }).toThrow('Entity name cannot be empty');
@@ -176,7 +176,7 @@ describe('InputValidator', () => {
       expect(() => {
         InputValidator.sanitizeString(null as any);
       }).toThrow('Input must be a string');
-      
+
       expect(() => {
         InputValidator.sanitizeString(undefined as any);
       }).toThrow('Input must be a string');
@@ -198,11 +198,11 @@ describe('InputValidator', () => {
     it('should handle very long inputs without performance issues', () => {
       const veryLongString = 'a'.repeat(10000);
       const start = Date.now();
-      const result = InputValidator.sanitizeString(veryLongString, 100);
+      const result = InputValidator.sanitizeString(veryLongString);
       const end = Date.now();
-      
-      expect(result.length).toBe(100);
-      expect(end - start).toBeLessThan(100); // Should complete quickly
+
+      expect(end - start).toBeLessThan(100); // Should complete in under 100ms
+      expect(result.length).toBe(1000); // Should be limited to max length
     });
   });
-}); 
+});
