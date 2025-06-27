@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ConsciousnessTools } from './consciousness.js';
 import { TimeTools } from './time.js';
-import { MemoryTools } from './memory.js';
+import { MemoryTools } from './memory/index.js';
 
 export interface ToolExecutor {
   execute(args: Record<string, unknown>): Promise<unknown>;
