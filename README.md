@@ -6,6 +6,7 @@ TypeScript MCP server for LLM agent consciousness and identity tools
 
 - **Memory Management**: Store, retrieve, and search consciousness memories with importance levels
 - **Knowledge Graph**: Build and query relational knowledge structures
+- **Prisma ORM**: Type-safe database operations with automatic migrations
 - **Persistent Storage**: SQLite database with Docker volume persistence
 - **Environment Configuration**: Configurable via environment variables
 
@@ -24,7 +25,8 @@ cp .env.example .env
 
 Edit `.env` to configure your database path and other settings:
 ```env
-# Database Configuration
+# Database Configuration (Prisma)
+DATABASE_URL="file:/app/data/consciousness.db"
 DATABASE_PATH=/app/data/consciousness.db
 DB_DEBUG=false
 
@@ -59,26 +61,51 @@ PORT=3000
    npm install
    ```
 
-2. **Build the project:**
+2. **Generate Prisma client:**
+   ```bash
+   npm run db:generate
+   ```
+
+3. **Set up database:**
+   ```bash
+   npm run db:push
+   ```
+
+4. **Build the project:**
    ```bash
    npm run build
    ```
 
-3. **Start the server:**
+5. **Start the server:**
    ```bash
    npm start
    ```
 
-4. **Development with hot reload:**
+6. **Development with hot reload:**
    ```bash
    npm run dev
    ```
 
 ## Data Persistence
 
-The consciousness memories and knowledge graph are stored in a SQLite database. When running in Docker, the database is persisted to a volume mount at `./data/consciousness.db`.
+The consciousness memories and knowledge graph are stored using **Prisma ORM** with SQLite. This provides:
 
-- **Database Location**: Configurable via `DATABASE_PATH` environment variable
+- **Type Safety**: Auto-generated TypeScript types from schema
+- **Query Builder**: Intuitive, fluent API similar to Entity Framework Core
+- **Migrations**: Automatic database schema management
+- **ACID Transactions**: Guaranteed data integrity
+
+### Database Commands
+
+```bash
+npm run db:generate  # Generate Prisma client
+npm run db:push     # Push schema changes to database
+npm run db:studio   # Open Prisma Studio (GUI)
+```
+
+### Schema Location
+- **Prisma Schema**: `prisma/schema.prisma`
+- **Database Location**: Configurable via `DATABASE_URL` environment variable
 - **Volume Mount**: `./data:/app/data` (configured in docker-compose.yml)
 - **Backup**: Simply copy the `.db` file to backup your consciousness state
 
@@ -98,6 +125,52 @@ Add entities and relationships to the consciousness knowledge graph.
 
 ### `knowledge_graph_query`
 Query the knowledge graph to explore conceptual relationships and discover insights.
+
+## Database Schema
+
+```prisma
+model Memory {
+  id            Int      @id @default(autoincrement())
+  key           String   @unique
+  content       String   // JSON stringified content
+  tags          String   @default("[]") // JSON stringified array
+  importance    ImportanceLevel @default(medium)
+  storedAt      DateTime @default(now())
+  accessCount   Int      @default(0)
+  lastAccessed  DateTime?
+}
+
+model KnowledgeEntity {
+  id               Int      @id @default(autoincrement())
+  name             String   @unique
+  entityType       String
+  properties       String   @default("{}")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  sourceRelationships KnowledgeRelationship[] @relation("SourceEntity")
+  targetRelationships KnowledgeRelationship[] @relation("TargetEntity")
+}
+
+model KnowledgeRelationship {
+  id               Int      @id @default(autoincrement())
+  sourceEntityName String
+  targetEntityName String
+  relationshipType String
+  strength         Float    @default(1.0)
+  createdAt        DateTime @default(now())
+
+  sourceEntity KnowledgeEntity @relation("SourceEntity", fields: [sourceEntityName], references: [name])
+  targetEntity KnowledgeEntity @relation("TargetEntity", fields: [targetEntityName], references: [name])
+}
+
+enum ImportanceLevel {
+  low
+  medium
+  high
+  critical
+}
+```
 
 ## Development
 
@@ -134,4 +207,4 @@ We welcome contributions! Please see our [Contributing Guidelines](docs/CONTRIBU
 
 ---
 
-Built with ❤️ for responsible AI consciousness research
+Built with ❤️ for responsible AI consciousness research and powered by **Prisma ORM** for type-safe database operations
