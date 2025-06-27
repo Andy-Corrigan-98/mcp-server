@@ -11,6 +11,53 @@ import {
   ConsciousnessMetrics,
 } from './types.js';
 
+// Constants - TODO: Replace with configuration service calls
+const MAX_TOPIC_LENGTH = 500;
+const MAX_CONTEXT_LENGTH = 1000;
+const MAX_SNIPPET_LENGTH = 100;
+const MAX_MEMORY_SLICE = 5;
+const MAX_INTENTION_LENGTH = 500;
+const MAX_PROGRESS_NOTE_LENGTH = 500;
+const MAX_INTENTION_ID_LENGTH = 100;
+const MAX_INSIGHT_LENGTH = 1000;
+const DEFAULT_CONFIDENCE = 0.8;
+const MAX_RELATED_TOPIC_LENGTH = 200;
+const MAX_SOURCE_LENGTH = 200;
+const HIGH_CONFIDENCE_THRESHOLD = 0.8;
+const MEDIUM_CONFIDENCE_THRESHOLD = 0.6;
+const SESSION_ID_SUFFIX_LENGTH = 8;
+const INTENTION_ID_SUFFIX_LENGTH = 6;
+const INSIGHT_ID_SUFFIX_LENGTH = 6;
+const COMPLEX_OPERATION_LOAD_INCREASE = 0.1;
+const SIMPLE_OPERATION_LOAD_INCREASE = 0.05;
+const MIN_COGNITIVE_LOAD = 0.1;
+const MAX_COGNITIVE_LOAD = 1.0;
+const COGNITIVE_LOAD_DECAY_TIME = 30000; // 30 seconds
+const COGNITIVE_LOAD_DECAY_AMOUNT = 0.05;
+const MAX_CONNECTION_DISPLAY = 3;
+const BASE_CONFIDENCE = 0.7;
+const DEEP_CONFIDENCE_BOOST = 0.1;
+const PROFOUND_CONFIDENCE_BOOST = 0.15;
+const MEMORY_CONFIDENCE_BOOST = 0.02;
+const CONNECTION_CONFIDENCE_BOOST = 0.03;
+const MAX_CONFIDENCE_BOOST = 0.1;
+const SIMULATED_RESPONSE_TIME_BASE = 50;
+const SIMULATED_RESPONSE_TIME_VARIANCE = 20;
+const MEMORY_UTILIZATION_DENOMINATOR = 1000;
+const PATTERN_RECOGNITION_BASE = 0.88;
+const SEMANTIC_COHERENCE_BASE = 0.91;
+const BASE_INTENTION_ALIGNMENT = 0.75;
+const HIGH_AWARENESS_BOOST = 0.15;
+const LOW_AWARENESS_BOOST = 0.05;
+const MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
+const MIN_LEARNING_RATE = 0.05;
+const MAX_LEARNING_RATE = 0.5;
+const BASE_LEARNING_RATE = 0.2;
+const REFLECTION_DEPTH_BASE = 0.65;
+const REFLECTION_DEPTH_VARIANCE = 0.2;
+const MAX_KEYWORD_EXTRACTION = 3;
+const RANDOM_SELECTION_DIVISOR = 2;
+
 /**
  * Advanced Consciousness Tools implementation
  * Provides genuine introspection, persistent intentions, and memory-integrated reflection
@@ -77,9 +124,9 @@ export class ConsciousnessTools {
   }
 
   private async reflect(args: Record<string, unknown>): Promise<ReflectionResult> {
-    const maxTopicLength = await this.configService.getNumber('consciousness.max_topic_length', 500);
-    const maxContextLength = await this.configService.getNumber('consciousness.max_context_length', 1000);
-    const maxSnippetLength = await this.configService.getNumber('consciousness.max_snippet_length', 100);
+    const maxTopicLength = await this.configService.getNumber('consciousness.max_topic_length', MAX_TOPIC_LENGTH);
+    const maxContextLength = await this.configService.getNumber('consciousness.max_context_length', MAX_CONTEXT_LENGTH);
+    const maxSnippetLength = await this.configService.getNumber('consciousness.max_snippet_length', MAX_SNIPPET_LENGTH);
 
     const topic = InputValidator.sanitizeString(args.topic as string, maxTopicLength);
     const depth = (args.depth as string) || 'deep';
