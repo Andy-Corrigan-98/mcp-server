@@ -141,4 +141,4 @@ export interface RelevanceConfig {
   tagWeight: number;
   importanceWeight: number;
   accessWeight: number;
-} 
+}

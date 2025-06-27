@@ -8,4 +8,4 @@ export { MemoryTools } from './memory-tools.js';
 
 // Type definitions and tool schemas
 export { MEMORY_TOOLS } from './types.js';
-export type { RelevanceConfig } from './types.js'; 
+export type { RelevanceConfig } from './types.js';
