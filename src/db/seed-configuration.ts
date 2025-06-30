@@ -625,16 +625,30 @@ export async function seedConfiguration(): Promise<void> {
 
   console.log('Seeding configuration values...');
 
+  let seededCount = 0;
+  let skippedCount = 0;
+
   for (const seed of CONFIGURATION_SEEDS) {
     try {
-      await configService.setValue(seed.key, seed.value, seed.type, seed.category, seed.description);
-      console.log(`✓ Seeded: ${seed.key} = ${seed.value}`);
+      // Check if configuration already exists
+      const existing = await configService.getConfigurationByKey(seed.key);
+
+      if (existing) {
+        console.log(`⚪ Skipped: ${seed.key} (already exists with value: ${existing.value})`);
+        skippedCount++;
+      } else {
+        await configService.setValue(seed.key, seed.value, seed.type, seed.category, seed.description);
+        console.log(`✓ Seeded: ${seed.key} = ${seed.value}`);
+        seededCount++;
+      }
     } catch (error) {
-      console.error(`✗ Failed to seed ${seed.key}:`, error);
+      console.error(`✗ Failed to process ${seed.key}:`, error);
     }
   }
 
-  console.log(`Configuration seeding complete. Seeded ${CONFIGURATION_SEEDS.length} values.`);
+  console.log(
+    `Configuration seeding complete. Seeded ${seededCount} new values, skipped ${skippedCount} existing values.`
+  );
 }
 
 export { CONFIGURATION_SEEDS };

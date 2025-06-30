@@ -20,6 +20,10 @@ else
     npm run db:push
 fi
 
+# Seed configuration defaults (only sets values that don't already exist)
+echo "🌱 Seeding configuration defaults..."
+npm run db:seed
+
 # Database is ready, but don't start MCP server yet
 # Cursor will start it via docker exec when needed
 echo "✅ Database ready, container ready for MCP connections..."
