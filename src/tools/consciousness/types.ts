@@ -1,167 +1,168 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 /**
- * Tool definitions for consciousness operations
+ * Dynamic tool builder for consciousness operations with personality-driven enums
  */
-export const CONSCIOUSNESS_TOOLS: Record<string, Tool> = {
-  consciousness_reflect: {
-    name: 'consciousness_reflect',
-    description: 'Deep reflection on topics with persistent memory integration and genuine introspection',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        topic: {
-          type: 'string',
-          description: 'The topic, question, or situation to reflect upon',
+export function buildConsciousnessTools(config: {
+  priorityLevels: string[];
+  reflectionDepths: string[];
+  intentionStatuses: string[];
+  intentionDurations: string[];
+  insightCategories: string[];
+}): Record<string, Tool> {
+  return {
+    consciousness_reflect: {
+      name: 'consciousness_reflect',
+      description: 'Deep reflection on topics with persistent memory integration and genuine introspection',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          topic: {
+            type: 'string',
+            description: 'The topic, question, or situation to reflect upon',
+          },
+          depth: {
+            type: 'string',
+            enum: config.reflectionDepths,
+            description: 'The depth of reflection required',
+            default: config.reflectionDepths[1] || 'thoughtful_dive',
+          },
+          context: {
+            type: 'string',
+            description: 'Additional context or background for the reflection',
+          },
+          connect_memories: {
+            type: 'boolean',
+            description: 'Whether to connect with related memories and past reflections',
+            default: true,
+          },
         },
-        depth: {
-          type: 'string',
-          enum: ['surface', 'deep', 'profound'],
-          description: 'The depth of reflection required',
-          default: 'deep',
-        },
-        context: {
-          type: 'string',
-          description: 'Additional context or background for the reflection',
-        },
-        connect_memories: {
-          type: 'boolean',
-          description: 'Whether to connect with related memories and past reflections',
-          default: true,
-        },
-      },
-      required: ['topic'],
-    },
-  },
-  consciousness_state: {
-    name: 'consciousness_state',
-    description: 'Get current consciousness state with real metrics and dynamic assessment',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        include_metrics: {
-          type: 'boolean',
-          description: 'Whether to include performance and cognitive metrics',
-          default: false,
-        },
-        include_memory_state: {
-          type: 'boolean',
-          description: 'Whether to include current memory and knowledge state',
-          default: false,
-        },
-        include_intentions: {
-          type: 'boolean',
-          description: 'Whether to include current active intentions',
-          default: true,
-        },
+        required: ['topic'],
       },
     },
-  },
-  consciousness_intention_set: {
-    name: 'consciousness_intention_set',
-    description: 'Set persistent intentions with goal tracking and progress monitoring',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        intention: {
-          type: 'string',
-          description: 'The intention, goal, or directive to set',
-        },
-        priority: {
-          type: 'string',
-          enum: ['low', 'medium', 'high', 'critical'],
-          description: 'Priority level of this intention',
-          default: 'medium',
-        },
-        context: {
-          type: 'string',
-          description: 'Additional context, background, or reasoning for the intention',
-        },
-        duration: {
-          type: 'string',
-          enum: ['session', 'day', 'week', 'permanent'],
-          description: 'How long this intention should remain active',
-          default: 'session',
-        },
-        success_criteria: {
-          type: 'string',
-          description: 'How to measure if this intention has been fulfilled',
+    consciousness_state: {
+      name: 'consciousness_state',
+      description: 'Get current consciousness state with real metrics and dynamic assessment',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          include_metrics: {
+            type: 'boolean',
+            description: 'Whether to include performance and cognitive metrics',
+            default: false,
+          },
+          include_memory_state: {
+            type: 'boolean',
+            description: 'Whether to include current memory and knowledge state',
+            default: false,
+          },
+          include_intentions: {
+            type: 'boolean',
+            description: 'Whether to include current active intentions',
+            default: true,
+          },
         },
       },
-      required: ['intention'],
     },
-  },
-  consciousness_intention_update: {
-    name: 'consciousness_intention_update',
-    description: 'Update progress on existing intentions or mark them complete',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        intention_id: {
-          type: 'string',
-          description: 'ID of the intention to update',
+    consciousness_intention_set: {
+      name: 'consciousness_intention_set',
+      description: 'Set persistent intentions with goal tracking and progress monitoring',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          intention: {
+            type: 'string',
+            description: 'The intention, goal, or directive to set',
+          },
+          priority: {
+            type: 'string',
+            enum: config.priorityLevels,
+            description: 'Priority level of this intention',
+            default: config.priorityLevels[1] || 'gentle_nudge',
+          },
+          context: {
+            type: 'string',
+            description: 'Additional context, background, or reasoning for the intention',
+          },
+          duration: {
+            type: 'string',
+            enum: config.intentionDurations,
+            description: 'How long this intention should remain active',
+            default: config.intentionDurations[0] || 'momentary_focus',
+          },
+          success_criteria: {
+            type: 'string',
+            description: 'How to measure if this intention has been fulfilled',
+          },
         },
-        status: {
-          type: 'string',
-          enum: ['active', 'completed', 'paused', 'cancelled'],
-          description: 'New status for the intention',
-        },
-        progress_note: {
-          type: 'string',
-          description: 'Note about progress or changes to the intention',
-        },
-        new_priority: {
-          type: 'string',
-          enum: ['low', 'medium', 'high', 'critical'],
-          description: 'Updated priority level if changed',
-        },
+        required: ['intention'],
       },
-      required: ['intention_id', 'status'],
     },
-  },
-  consciousness_insight_capture: {
-    name: 'consciousness_insight_capture',
-    description: 'Capture significant insights, realizations, or learning moments for future reference',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        insight: {
-          type: 'string',
-          description: 'The insight, realization, or key learning',
+    consciousness_intention_update: {
+      name: 'consciousness_intention_update',
+      description: 'Update progress on existing intentions or mark them complete',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          intention_id: {
+            type: 'string',
+            description: 'ID of the intention to update',
+          },
+          status: {
+            type: 'string',
+            enum: config.intentionStatuses,
+            description: 'New status for the intention',
+          },
+          progress_note: {
+            type: 'string',
+            description: 'Note about progress or changes to the intention',
+          },
+          new_priority: {
+            type: 'string',
+            enum: config.priorityLevels,
+            description: 'Updated priority level if changed',
+          },
         },
-        category: {
-          type: 'string',
-          enum: [
-            'problem_solving',
-            'pattern_recognition',
-            'meta_cognition',
-            'domain_knowledge',
-            'behavioral',
-            'philosophical',
-          ],
-          description: 'Category of the insight',
-          default: 'meta_cognition',
-        },
-        confidence: {
-          type: 'number',
-          minimum: 0,
-          maximum: 1,
-          description: 'Confidence level in this insight (0.0 to 1.0)',
-          default: 0.8,
-        },
-        related_topic: {
-          type: 'string',
-          description: 'Topic or context this insight relates to',
-        },
-        source: {
-          type: 'string',
-          description: 'What triggered this insight (conversation, reflection, problem-solving, etc.)',
-        },
+        required: ['intention_id', 'status'],
       },
-      required: ['insight'],
     },
-  },
-};
+    consciousness_insight_capture: {
+      name: 'consciousness_insight_capture',
+      description: 'Capture significant insights, realizations, or learning moments for future reference',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          insight: {
+            type: 'string',
+            description: 'The insight, realization, or key learning',
+          },
+          category: {
+            type: 'string',
+            enum: config.insightCategories,
+            description: 'Category of the insight',
+            default: config.insightCategories[2] || 'mirror_gazing',
+          },
+          confidence: {
+            type: 'number',
+            minimum: 0,
+            maximum: 1,
+            description: 'Confidence level in this insight (0.0 to 1.0)',
+            default: 0.8,
+          },
+          related_topic: {
+            type: 'string',
+            description: 'Topic or context this insight relates to',
+          },
+          source: {
+            type: 'string',
+            description: 'What triggered this insight (conversation, reflection, problem-solving, etc.)',
+          },
+        },
+        required: ['insight'],
+      },
+    },
+  };
+}
 
 /**
  * Consciousness state interfaces

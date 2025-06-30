@@ -73,6 +73,19 @@ export class ConfigurationService {
   }
 
   /**
+   * Get a configuration value as an enum array (for personality-driven vocabulary)
+   */
+  async getEnumArray(key: string, defaultValue: string[]): Promise<string[]> {
+    try {
+      const value = await this.getValue(key);
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed : defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
+  /**
    * Set a configuration value
    */
   async setValue(

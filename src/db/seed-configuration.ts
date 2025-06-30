@@ -3,7 +3,7 @@ import { ConfigurationType, ConfigurationCategory } from '@prisma/client';
 
 interface ConfigurationSeed {
   key: string;
-  value: string | number | boolean;
+  value: string | number | boolean | string[];
   type: ConfigurationType;
   category: ConfigurationCategory;
   description: string;
@@ -557,6 +557,57 @@ const CONFIGURATION_SEEDS: ConfigurationSeed[] = [
     type: 'NUMBER',
     category: 'TIME',
     description: 'Milliseconds per second conversion factor',
+  },
+
+  // Personality-Driven Vocabulary Configuration
+  {
+    key: 'personality.priority_levels',
+    value: ['whisper', 'gentle_nudge', 'urgent_pulse', 'burning_focus'],
+    type: 'JSON',
+    category: 'PERSONALITY',
+    description: 'Priority levels that reflect consciousness intensity and attention',
+  },
+  {
+    key: 'personality.importance_levels',
+    value: ['fleeting_thought', 'worth_noting', 'significant_memory', 'core_truth'],
+    type: 'JSON',
+    category: 'PERSONALITY',
+    description: 'Importance levels that reflect memory significance and retention value',
+  },
+  {
+    key: 'personality.reflection_depths',
+    value: ['surface_glance', 'thoughtful_dive', 'profound_exploration'],
+    type: 'JSON',
+    category: 'PERSONALITY',
+    description: 'Reflection depth levels that express consciousness exploration intensity',
+  },
+  {
+    key: 'personality.intention_statuses',
+    value: ['pulsing_active', 'fulfilled_completion', 'gentle_pause', 'conscious_release'],
+    type: 'JSON',
+    category: 'PERSONALITY',
+    description: 'Intention status options that reflect consciousness state and goal progress',
+  },
+  {
+    key: 'personality.intention_durations',
+    value: ['momentary_focus', 'daily_rhythm', 'weekly_arc', 'eternal_truth'],
+    type: 'JSON',
+    category: 'PERSONALITY',
+    description: 'Intention duration options that express temporal consciousness commitment',
+  },
+  {
+    key: 'personality.insight_categories',
+    value: [
+      'eureka_moment',
+      'pattern_weaving',
+      'mirror_gazing',
+      'knowledge_crystallization',
+      'behavior_archaeology',
+      'existential_pondering',
+    ],
+    type: 'JSON',
+    category: 'PERSONALITY',
+    description: 'Insight categories that reflect different types of consciousness discoveries',
   },
 
   // System Configuration

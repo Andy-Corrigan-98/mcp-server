@@ -3,7 +3,7 @@ import { InputValidator } from '../../validation/index.js';
 import { ConsciousnessPrismaService, MemoryResult } from '../../db/index.js';
 import { ConfigurationService } from '../../db/configuration-service.js';
 import {
-  CONSCIOUSNESS_TOOLS,
+  buildConsciousnessTools,
   ConsciousnessState,
   ReflectionResult,
   Intention,
@@ -71,6 +71,12 @@ export class ConsciousnessTools {
     reflectionDepthVariance: number;
     maxKeywordExtraction: number;
     randomSelectionDivisor: number;
+    // Personality-driven vocabulary
+    priorityLevels: string[];
+    reflectionDepths: string[];
+    intentionStatuses: string[];
+    intentionDurations: string[];
+    insightCategories: string[];
   } = {} as any;
 
   constructor() {
@@ -137,6 +143,19 @@ export class ConsciousnessTools {
       reflectionDepthVariance: 0.2,
       maxKeywordExtraction: 3,
       randomSelectionDivisor: 2,
+      // Personality-driven vocabulary defaults
+      priorityLevels: ['whisper', 'gentle_nudge', 'urgent_pulse', 'burning_focus'],
+      reflectionDepths: ['surface_glance', 'thoughtful_dive', 'profound_exploration'],
+      intentionStatuses: ['pulsing_active', 'fulfilled_completion', 'gentle_pause', 'conscious_release'],
+      intentionDurations: ['momentary_focus', 'daily_rhythm', 'weekly_arc', 'eternal_truth'],
+      insightCategories: [
+        'eureka_moment',
+        'pattern_weaving',
+        'mirror_gazing',
+        'knowledge_crystallization',
+        'behavior_archaeology',
+        'existential_pondering',
+      ],
     };
   }
 
@@ -323,6 +342,27 @@ export class ConsciousnessTools {
           'consciousness.random_selection_divisor',
           this.config.randomSelectionDivisor
         ),
+        // Load personality-driven vocabulary
+        priorityLevels: await this.configService.getEnumArray(
+          'personality.priority_levels',
+          this.config.priorityLevels
+        ),
+        reflectionDepths: await this.configService.getEnumArray(
+          'personality.reflection_depths',
+          this.config.reflectionDepths
+        ),
+        intentionStatuses: await this.configService.getEnumArray(
+          'personality.intention_statuses',
+          this.config.intentionStatuses
+        ),
+        intentionDurations: await this.configService.getEnumArray(
+          'personality.intention_durations',
+          this.config.intentionDurations
+        ),
+        insightCategories: await this.configService.getEnumArray(
+          'personality.insight_categories',
+          this.config.insightCategories
+        ),
       };
     } catch (error) {
       console.warn('Failed to load consciousness configuration, using defaults:', error);
@@ -331,10 +371,16 @@ export class ConsciousnessTools {
   }
 
   /**
-   * Get all available consciousness tools
+   * Get all available consciousness tools with personality-driven vocabulary
    */
   getTools(): Record<string, Tool> {
-    return CONSCIOUSNESS_TOOLS;
+    return buildConsciousnessTools({
+      priorityLevels: this.config.priorityLevels,
+      reflectionDepths: this.config.reflectionDepths,
+      intentionStatuses: this.config.intentionStatuses,
+      intentionDurations: this.config.intentionDurations,
+      insightCategories: this.config.insightCategories,
+    });
   }
 
   /**
