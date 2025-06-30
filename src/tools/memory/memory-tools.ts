@@ -7,16 +7,8 @@ import {
   KnowledgeRelationshipData,
 } from '../../db/index.js';
 import { InputValidator } from '../../validation/index.js';
+import { ConfigurationService } from '../../db/configuration-service.js';
 import { MEMORY_TOOLS, RelevanceConfig } from './types.js';
-
-// Constants to avoid magic numbers
-const MAX_TAG_LENGTH = 100;
-const MAX_ENTITY_TYPE_LENGTH = 100;
-const MAX_RELATIONSHIP_TYPE_LENGTH = 100;
-const MAX_ACCESS_COUNT_NORMALIZATION = 10;
-const MIN_GRAPH_DEPTH = 1;
-const MAX_GRAPH_DEPTH = 5;
-const DECIMAL_PRECISION = 100;
 
 /**
  * Memory Tools implementation for consciousness MCP server
@@ -24,16 +16,125 @@ const DECIMAL_PRECISION = 100;
  */
 export class MemoryTools {
   private db: ConsciousnessPrismaService;
+  private configService: ConfigurationService;
   private relevanceConfig: RelevanceConfig;
+
+  // Configuration cache for performance
+  private config: {
+    maxTagLength: number;
+    maxEntityTypeLength: number;
+    maxRelationshipTypeLength: number;
+    maxAccessCountNormalization: number;
+    minGraphDepth: number;
+    maxGraphDepth: number;
+    decimalPrecision: number;
+    contentWeight: number;
+    tagWeight: number;
+    importanceWeight: number;
+    accessWeight: number;
+    importanceScoreLow: number;
+    importanceScoreMedium: number;
+    importanceScoreHigh: number;
+    importanceScoreCritical: number;
+  } = {} as any;
 
   constructor() {
     this.db = ConsciousnessPrismaService.getInstance();
+    this.configService = ConfigurationService.getInstance();
+
+    // Initialize configuration with defaults
+    this.initializeDefaults();
+
+    // Set relevance config from loaded values
     this.relevanceConfig = {
+      contentWeight: this.config.contentWeight,
+      tagWeight: this.config.tagWeight,
+      importanceWeight: this.config.importanceWeight,
+      accessWeight: this.config.accessWeight,
+    };
+
+    // Load configuration values asynchronously to override defaults
+    this.loadConfiguration();
+  }
+
+  /**
+   * Initialize configuration with default values
+   */
+  private initializeDefaults(): void {
+    this.config = {
+      maxTagLength: 100,
+      maxEntityTypeLength: 100,
+      maxRelationshipTypeLength: 100,
+      maxAccessCountNormalization: 10,
+      minGraphDepth: 1,
+      maxGraphDepth: 5,
+      decimalPrecision: 100,
       contentWeight: 0.4,
       tagWeight: 0.3,
       importanceWeight: 0.2,
       accessWeight: 0.1,
+      importanceScoreLow: 0.25,
+      importanceScoreMedium: 0.5,
+      importanceScoreHigh: 0.75,
+      importanceScoreCritical: 1.0,
     };
+  }
+
+  /**
+   * Load all configuration values from the database
+   */
+  private async loadConfiguration(): Promise<void> {
+    try {
+      this.config = {
+        maxTagLength: await this.configService.getNumber('memory.max_tag_length', this.config.maxTagLength),
+        maxEntityTypeLength: await this.configService.getNumber(
+          'memory.max_entity_type_length',
+          this.config.maxEntityTypeLength
+        ),
+        maxRelationshipTypeLength: await this.configService.getNumber(
+          'memory.max_relationship_type_length',
+          this.config.maxRelationshipTypeLength
+        ),
+        maxAccessCountNormalization: await this.configService.getNumber(
+          'memory.max_access_count_normalization',
+          this.config.maxAccessCountNormalization
+        ),
+        minGraphDepth: await this.configService.getNumber('memory.min_graph_depth', this.config.minGraphDepth),
+        maxGraphDepth: await this.configService.getNumber('memory.max_graph_depth', this.config.maxGraphDepth),
+        decimalPrecision: await this.configService.getNumber('memory.decimal_precision', this.config.decimalPrecision),
+        contentWeight: await this.configService.getNumber('memory.content_weight', this.config.contentWeight),
+        tagWeight: await this.configService.getNumber('memory.tag_weight', this.config.tagWeight),
+        importanceWeight: await this.configService.getNumber('memory.importance_weight', this.config.importanceWeight),
+        accessWeight: await this.configService.getNumber('memory.access_weight', this.config.accessWeight),
+        importanceScoreLow: await this.configService.getNumber(
+          'memory.importance_score_low',
+          this.config.importanceScoreLow
+        ),
+        importanceScoreMedium: await this.configService.getNumber(
+          'memory.importance_score_medium',
+          this.config.importanceScoreMedium
+        ),
+        importanceScoreHigh: await this.configService.getNumber(
+          'memory.importance_score_high',
+          this.config.importanceScoreHigh
+        ),
+        importanceScoreCritical: await this.configService.getNumber(
+          'memory.importance_score_critical',
+          this.config.importanceScoreCritical
+        ),
+      };
+
+      // Update relevance config with new values
+      this.relevanceConfig = {
+        contentWeight: this.config.contentWeight,
+        tagWeight: this.config.tagWeight,
+        importanceWeight: this.config.importanceWeight,
+        accessWeight: this.config.accessWeight,
+      };
+    } catch (error) {
+      console.warn('Failed to load memory configuration, using defaults:', error);
+      // Defaults are already set in initializeDefaults()
+    }
   }
 
   /**
@@ -70,7 +171,7 @@ export class MemoryTools {
     const importance = InputValidator.validateImportanceLevel((args.importance as string) || 'medium');
 
     // Sanitize tags
-    const sanitizedTags = tags.map(tag => InputValidator.sanitizeString(tag, MAX_TAG_LENGTH));
+    const sanitizedTags = tags.map(tag => InputValidator.sanitizeString(tag, this.config.maxTagLength));
 
     const memoryData: MemoryData = {
       key,
@@ -118,7 +219,7 @@ export class MemoryTools {
   private async searchMemories(args: Record<string, unknown>): Promise<object> {
     const query = args.query ? InputValidator.sanitizeSearchQuery(args.query as string) : undefined;
     const tags = args.tags
-      ? (args.tags as string[]).map(tag => InputValidator.sanitizeString(tag, MAX_TAG_LENGTH))
+      ? (args.tags as string[]).map(tag => InputValidator.sanitizeString(tag, this.config.maxTagLength))
       : undefined;
     const importanceFilter = args.importance_filter
       ? InputValidator.validateImportanceLevel(args.importance_filter as string)
@@ -170,19 +271,24 @@ export class MemoryTools {
     }
 
     // Importance weighting
-    const importanceScores = { low: 0.25, medium: 0.5, high: 0.75, critical: 1.0 };
+    const importanceScores = {
+      low: this.config.importanceScoreLow,
+      medium: this.config.importanceScoreMedium,
+      high: this.config.importanceScoreHigh,
+      critical: this.config.importanceScoreCritical,
+    };
     score += importanceScores[memory.importance] * this.relevanceConfig.importanceWeight;
 
     // Access frequency (normalized)
-    const accessScore = Math.min(memory.accessCount / MAX_ACCESS_COUNT_NORMALIZATION, 1.0);
+    const accessScore = Math.min(memory.accessCount / this.config.maxAccessCountNormalization, 1.0);
     score += accessScore * this.relevanceConfig.accessWeight;
 
-    return Math.round(score * DECIMAL_PRECISION) / DECIMAL_PRECISION; // Round to 2 decimal places
+    return Math.round(score * this.config.decimalPrecision) / this.config.decimalPrecision; // Round to 2 decimal places
   }
 
   private async addToKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
     const entityName = InputValidator.validateEntityName(args.entity as string);
-    const entityType = InputValidator.sanitizeString(args.entity_type as string, MAX_ENTITY_TYPE_LENGTH);
+    const entityType = InputValidator.sanitizeString(args.entity_type as string, this.config.maxEntityTypeLength);
     const properties = (args.properties as Record<string, unknown>) || {};
     const relationships = (args.relationships as unknown[]) || [];
 
@@ -199,7 +305,10 @@ export class MemoryTools {
     for (const rel of relationships) {
       const relationship = rel as { target: string; relationship: string; strength?: number };
       const targetName = InputValidator.validateEntityName(relationship.target);
-      const relationshipType = InputValidator.sanitizeString(relationship.relationship, MAX_RELATIONSHIP_TYPE_LENGTH);
+      const relationshipType = InputValidator.sanitizeString(
+        relationship.relationship,
+        this.config.maxRelationshipTypeLength
+      );
       const strength =
         typeof relationship.strength === 'number' ? Math.max(0, Math.min(1, relationship.strength)) : 1.0;
 
@@ -223,7 +332,7 @@ export class MemoryTools {
 
   private async queryKnowledgeGraph(args: Record<string, unknown>): Promise<object> {
     const entityName = InputValidator.validateEntityName(args.entity as string);
-    const depth = Math.max(MIN_GRAPH_DEPTH, Math.min(MAX_GRAPH_DEPTH, (args.depth as number) || 2));
+    const depth = Math.max(this.config.minGraphDepth, Math.min(this.config.maxGraphDepth, (args.depth as number) || 2));
 
     const graphData = await this.db.getEntityRelationships(entityName, depth);
 

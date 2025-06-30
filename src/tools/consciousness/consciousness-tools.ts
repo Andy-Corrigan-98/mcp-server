@@ -11,52 +11,7 @@ import {
   ConsciousnessMetrics,
 } from './types.js';
 
-// Constants - TODO: Replace with configuration service calls
-const MAX_TOPIC_LENGTH = 500;
-const MAX_CONTEXT_LENGTH = 1000;
-const MAX_SNIPPET_LENGTH = 100;
-const MAX_MEMORY_SLICE = 5;
-const MAX_INTENTION_LENGTH = 500;
-const MAX_PROGRESS_NOTE_LENGTH = 500;
-const MAX_INTENTION_ID_LENGTH = 100;
-const MAX_INSIGHT_LENGTH = 1000;
-const DEFAULT_CONFIDENCE = 0.8;
-const MAX_RELATED_TOPIC_LENGTH = 200;
-const MAX_SOURCE_LENGTH = 200;
-const HIGH_CONFIDENCE_THRESHOLD = 0.8;
-const MEDIUM_CONFIDENCE_THRESHOLD = 0.6;
-const SESSION_ID_SUFFIX_LENGTH = 8;
-const INTENTION_ID_SUFFIX_LENGTH = 6;
-const INSIGHT_ID_SUFFIX_LENGTH = 6;
-const COMPLEX_OPERATION_LOAD_INCREASE = 0.1;
-const SIMPLE_OPERATION_LOAD_INCREASE = 0.05;
-const MIN_COGNITIVE_LOAD = 0.1;
-const MAX_COGNITIVE_LOAD = 1.0;
-const COGNITIVE_LOAD_DECAY_TIME = 30000; // 30 seconds
-const COGNITIVE_LOAD_DECAY_AMOUNT = 0.05;
-const MAX_CONNECTION_DISPLAY = 3;
-const BASE_CONFIDENCE = 0.7;
-const DEEP_CONFIDENCE_BOOST = 0.1;
-const PROFOUND_CONFIDENCE_BOOST = 0.15;
-const MEMORY_CONFIDENCE_BOOST = 0.02;
-const CONNECTION_CONFIDENCE_BOOST = 0.03;
-const MAX_CONFIDENCE_BOOST = 0.1;
-const SIMULATED_RESPONSE_TIME_BASE = 50;
-const SIMULATED_RESPONSE_TIME_VARIANCE = 20;
-const MEMORY_UTILIZATION_DENOMINATOR = 1000;
-const PATTERN_RECOGNITION_BASE = 0.88;
-const SEMANTIC_COHERENCE_BASE = 0.91;
-const BASE_INTENTION_ALIGNMENT = 0.75;
-const HIGH_AWARENESS_BOOST = 0.15;
-const LOW_AWARENESS_BOOST = 0.05;
-const MILLISECONDS_PER_HOUR = 1000 * 60 * 60;
-const MIN_LEARNING_RATE = 0.05;
-const MAX_LEARNING_RATE = 0.5;
-const BASE_LEARNING_RATE = 0.2;
-const REFLECTION_DEPTH_BASE = 0.65;
-const REFLECTION_DEPTH_VARIANCE = 0.2;
-const MAX_KEYWORD_EXTRACTION = 3;
-const RANDOM_SELECTION_DIVISOR = 2;
+// Configuration-driven constants - loaded from database dynamically
 
 /**
  * Advanced Consciousness Tools implementation
@@ -69,12 +24,310 @@ export class ConsciousnessTools {
   private sessionId: string;
   private sessionStartTime: Date;
 
+  // Configuration cache for performance
+  private config: {
+    maxTopicLength: number;
+    maxContextLength: number;
+    maxSnippetLength: number;
+    maxMemorySlice: number;
+    maxIntentionLength: number;
+    maxProgressNoteLength: number;
+    maxIntentionIdLength: number;
+    maxInsightLength: number;
+    defaultConfidence: number;
+    maxRelatedTopicLength: number;
+    maxSourceLength: number;
+    highConfidenceThreshold: number;
+    mediumConfidenceThreshold: number;
+    sessionIdSuffixLength: number;
+    intentionIdSuffixLength: number;
+    insightIdSuffixLength: number;
+    complexOperationLoadIncrease: number;
+    simpleOperationLoadIncrease: number;
+    minCognitiveLoad: number;
+    maxCognitiveLoad: number;
+    cognitiveLoadDecayTime: number;
+    cognitiveLoadDecayAmount: number;
+    maxConnectionDisplay: number;
+    baseConfidence: number;
+    deepConfidenceBoost: number;
+    profoundConfidenceBoost: number;
+    memoryConfidenceBoost: number;
+    connectionConfidenceBoost: number;
+    maxConfidenceBoost: number;
+    simulatedResponseTimeBase: number;
+    simulatedResponseTimeVariance: number;
+    memoryUtilizationDenominator: number;
+    patternRecognitionBase: number;
+    semanticCoherenceBase: number;
+    baseIntentionAlignment: number;
+    highAwarenessBoost: number;
+    lowAwarenessBoost: number;
+    millisecondsPerHour: number;
+    minLearningRate: number;
+    maxLearningRate: number;
+    baseLearningRate: number;
+    reflectionDepthBase: number;
+    reflectionDepthVariance: number;
+    maxKeywordExtraction: number;
+    randomSelectionDivisor: number;
+  } = {} as any;
+
   constructor() {
     this.prisma = ConsciousnessPrismaService.getInstance();
     this.configService = ConfigurationService.getInstance();
+
+    // Initialize configuration with defaults
+    this.initializeDefaults();
     this.sessionId = this.generateSessionId();
     this.sessionStartTime = new Date();
     this.currentState = this.initializeConsciousnessState();
+
+    // Load configuration values asynchronously to override defaults
+    this.loadConfiguration();
+  }
+
+  /**
+   * Initialize configuration with default values
+   */
+  private initializeDefaults(): void {
+    this.config = {
+      maxTopicLength: 500,
+      maxContextLength: 1000,
+      maxSnippetLength: 100,
+      maxMemorySlice: 5,
+      maxIntentionLength: 500,
+      maxProgressNoteLength: 500,
+      maxIntentionIdLength: 100,
+      maxInsightLength: 1000,
+      defaultConfidence: 0.8,
+      maxRelatedTopicLength: 200,
+      maxSourceLength: 200,
+      highConfidenceThreshold: 0.8,
+      mediumConfidenceThreshold: 0.6,
+      sessionIdSuffixLength: 8,
+      intentionIdSuffixLength: 6,
+      insightIdSuffixLength: 6,
+      complexOperationLoadIncrease: 0.1,
+      simpleOperationLoadIncrease: 0.05,
+      minCognitiveLoad: 0.1,
+      maxCognitiveLoad: 1.0,
+      cognitiveLoadDecayTime: 30000,
+      cognitiveLoadDecayAmount: 0.05,
+      maxConnectionDisplay: 3,
+      baseConfidence: 0.7,
+      deepConfidenceBoost: 0.1,
+      profoundConfidenceBoost: 0.15,
+      memoryConfidenceBoost: 0.02,
+      connectionConfidenceBoost: 0.03,
+      maxConfidenceBoost: 0.1,
+      simulatedResponseTimeBase: 50,
+      simulatedResponseTimeVariance: 20,
+      memoryUtilizationDenominator: 1000,
+      patternRecognitionBase: 0.88,
+      semanticCoherenceBase: 0.91,
+      baseIntentionAlignment: 0.75,
+      highAwarenessBoost: 0.15,
+      lowAwarenessBoost: 0.05,
+      millisecondsPerHour: 3600000,
+      minLearningRate: 0.05,
+      maxLearningRate: 0.5,
+      baseLearningRate: 0.2,
+      reflectionDepthBase: 0.65,
+      reflectionDepthVariance: 0.2,
+      maxKeywordExtraction: 3,
+      randomSelectionDivisor: 2,
+    };
+  }
+
+  /**
+   * Load all configuration values from the database
+   */
+  private async loadConfiguration(): Promise<void> {
+    try {
+      this.config = {
+        maxTopicLength: await this.configService.getNumber(
+          'consciousness.max_topic_length',
+          this.config.maxTopicLength
+        ),
+        maxContextLength: await this.configService.getNumber(
+          'consciousness.max_context_length',
+          this.config.maxContextLength
+        ),
+        maxSnippetLength: await this.configService.getNumber(
+          'consciousness.max_snippet_length',
+          this.config.maxSnippetLength
+        ),
+        maxMemorySlice: await this.configService.getNumber(
+          'consciousness.max_memory_slice',
+          this.config.maxMemorySlice
+        ),
+        maxIntentionLength: await this.configService.getNumber(
+          'consciousness.max_intention_length',
+          this.config.maxIntentionLength
+        ),
+        maxProgressNoteLength: await this.configService.getNumber(
+          'consciousness.max_progress_note_length',
+          this.config.maxProgressNoteLength
+        ),
+        maxIntentionIdLength: await this.configService.getNumber(
+          'consciousness.max_intention_id_length',
+          this.config.maxIntentionIdLength
+        ),
+        maxInsightLength: await this.configService.getNumber(
+          'consciousness.max_insight_length',
+          this.config.maxInsightLength
+        ),
+        defaultConfidence: await this.configService.getNumber(
+          'consciousness.default_confidence',
+          this.config.defaultConfidence
+        ),
+        maxRelatedTopicLength: await this.configService.getNumber(
+          'consciousness.max_related_topic_length',
+          this.config.maxRelatedTopicLength
+        ),
+        maxSourceLength: await this.configService.getNumber(
+          'consciousness.max_source_length',
+          this.config.maxSourceLength
+        ),
+        highConfidenceThreshold: await this.configService.getNumber(
+          'consciousness.high_confidence_threshold',
+          this.config.highConfidenceThreshold
+        ),
+        mediumConfidenceThreshold: await this.configService.getNumber(
+          'consciousness.medium_confidence_threshold',
+          this.config.mediumConfidenceThreshold
+        ),
+        sessionIdSuffixLength: await this.configService.getNumber(
+          'consciousness.session_id_suffix_length',
+          this.config.sessionIdSuffixLength
+        ),
+        intentionIdSuffixLength: await this.configService.getNumber(
+          'consciousness.intention_id_suffix_length',
+          this.config.intentionIdSuffixLength
+        ),
+        insightIdSuffixLength: await this.configService.getNumber(
+          'consciousness.insight_id_suffix_length',
+          this.config.insightIdSuffixLength
+        ),
+        complexOperationLoadIncrease: await this.configService.getNumber(
+          'consciousness.complex_operation_load_increase',
+          this.config.complexOperationLoadIncrease
+        ),
+        simpleOperationLoadIncrease: await this.configService.getNumber(
+          'consciousness.simple_operation_load_increase',
+          this.config.simpleOperationLoadIncrease
+        ),
+        minCognitiveLoad: await this.configService.getNumber(
+          'consciousness.min_cognitive_load',
+          this.config.minCognitiveLoad
+        ),
+        maxCognitiveLoad: await this.configService.getNumber(
+          'consciousness.max_cognitive_load',
+          this.config.maxCognitiveLoad
+        ),
+        cognitiveLoadDecayTime: await this.configService.getNumber(
+          'consciousness.cognitive_load_decay_time',
+          this.config.cognitiveLoadDecayTime
+        ),
+        cognitiveLoadDecayAmount: await this.configService.getNumber(
+          'consciousness.cognitive_load_decay_amount',
+          this.config.cognitiveLoadDecayAmount
+        ),
+        maxConnectionDisplay: await this.configService.getNumber(
+          'consciousness.max_connection_display',
+          this.config.maxConnectionDisplay
+        ),
+        baseConfidence: await this.configService.getNumber('consciousness.base_confidence', this.config.baseConfidence),
+        deepConfidenceBoost: await this.configService.getNumber(
+          'consciousness.deep_confidence_boost',
+          this.config.deepConfidenceBoost
+        ),
+        profoundConfidenceBoost: await this.configService.getNumber(
+          'consciousness.profound_confidence_boost',
+          this.config.profoundConfidenceBoost
+        ),
+        memoryConfidenceBoost: await this.configService.getNumber(
+          'consciousness.memory_confidence_boost',
+          this.config.memoryConfidenceBoost
+        ),
+        connectionConfidenceBoost: await this.configService.getNumber(
+          'consciousness.connection_confidence_boost',
+          this.config.connectionConfidenceBoost
+        ),
+        maxConfidenceBoost: await this.configService.getNumber(
+          'consciousness.max_confidence_boost',
+          this.config.maxConfidenceBoost
+        ),
+        simulatedResponseTimeBase: await this.configService.getNumber(
+          'consciousness.simulated_response_time_base',
+          this.config.simulatedResponseTimeBase
+        ),
+        simulatedResponseTimeVariance: await this.configService.getNumber(
+          'consciousness.simulated_response_time_variance',
+          this.config.simulatedResponseTimeVariance
+        ),
+        memoryUtilizationDenominator: await this.configService.getNumber(
+          'consciousness.memory_utilization_denominator',
+          this.config.memoryUtilizationDenominator
+        ),
+        patternRecognitionBase: await this.configService.getNumber(
+          'consciousness.pattern_recognition_base',
+          this.config.patternRecognitionBase
+        ),
+        semanticCoherenceBase: await this.configService.getNumber(
+          'consciousness.semantic_coherence_base',
+          this.config.semanticCoherenceBase
+        ),
+        baseIntentionAlignment: await this.configService.getNumber(
+          'consciousness.base_intention_alignment',
+          this.config.baseIntentionAlignment
+        ),
+        highAwarenessBoost: await this.configService.getNumber(
+          'consciousness.high_awareness_boost',
+          this.config.highAwarenessBoost
+        ),
+        lowAwarenessBoost: await this.configService.getNumber(
+          'consciousness.low_awareness_boost',
+          this.config.lowAwarenessBoost
+        ),
+        millisecondsPerHour: await this.configService.getNumber(
+          'consciousness.milliseconds_per_hour',
+          this.config.millisecondsPerHour
+        ),
+        minLearningRate: await this.configService.getNumber(
+          'consciousness.min_learning_rate',
+          this.config.minLearningRate
+        ),
+        maxLearningRate: await this.configService.getNumber(
+          'consciousness.max_learning_rate',
+          this.config.maxLearningRate
+        ),
+        baseLearningRate: await this.configService.getNumber(
+          'consciousness.base_learning_rate',
+          this.config.baseLearningRate
+        ),
+        reflectionDepthBase: await this.configService.getNumber(
+          'consciousness.reflection_depth_base',
+          this.config.reflectionDepthBase
+        ),
+        reflectionDepthVariance: await this.configService.getNumber(
+          'consciousness.reflection_depth_variance',
+          this.config.reflectionDepthVariance
+        ),
+        maxKeywordExtraction: await this.configService.getNumber(
+          'consciousness.max_keyword_extraction',
+          this.config.maxKeywordExtraction
+        ),
+        randomSelectionDivisor: await this.configService.getNumber(
+          'consciousness.random_selection_divisor',
+          this.config.randomSelectionDivisor
+        ),
+      };
+    } catch (error) {
+      console.warn('Failed to load consciousness configuration, using defaults:', error);
+      // Defaults are already set in initializeDefaults()
+    }
   }
 
   /**
@@ -124,9 +377,9 @@ export class ConsciousnessTools {
   }
 
   private async reflect(args: Record<string, unknown>): Promise<ReflectionResult> {
-    const maxTopicLength = await this.configService.getNumber('consciousness.max_topic_length', MAX_TOPIC_LENGTH);
-    const maxContextLength = await this.configService.getNumber('consciousness.max_context_length', MAX_CONTEXT_LENGTH);
-    const maxSnippetLength = await this.configService.getNumber('consciousness.max_snippet_length', MAX_SNIPPET_LENGTH);
+    const maxTopicLength = this.config.maxTopicLength;
+    const maxContextLength = this.config.maxContextLength;
+    const maxSnippetLength = this.config.maxSnippetLength;
 
     const topic = InputValidator.sanitizeString(args.topic as string, maxTopicLength);
     const depth = (args.depth as string) || 'deep';
@@ -214,9 +467,10 @@ export class ConsciousnessTools {
       try {
         const memoryCount = await this.prisma.getMemoryCount();
         const recentMemories = await this.prisma.searchMemories('', [], undefined);
+        const maxMemorySlice = this.config.maxMemorySlice;
         result.memoryState = {
           totalMemories: memoryCount,
-          recentActivity: recentMemories.slice(0, MAX_MEMORY_SLICE).map((m: MemoryResult) => ({
+          recentActivity: recentMemories.slice(0, maxMemorySlice).map((m: MemoryResult) => ({
             key: m.key,
             tags: m.tags,
             importance: m.importance,
@@ -236,14 +490,15 @@ export class ConsciousnessTools {
   }
 
   private async setIntention(args: Record<string, unknown>): Promise<object> {
-    const intention = InputValidator.sanitizeString(args.intention as string, MAX_INTENTION_LENGTH);
+    const maxIntentionLength = this.config.maxIntentionLength;
+    const maxContextLength = this.config.maxContextLength;
+
+    const intention = InputValidator.sanitizeString(args.intention as string, maxIntentionLength);
     const priority = (args.priority as string) || 'medium';
-    const context = args.context
-      ? InputValidator.sanitizeString(args.context as string, MAX_CONTEXT_LENGTH)
-      : undefined;
+    const context = args.context ? InputValidator.sanitizeString(args.context as string, maxContextLength) : undefined;
     const duration = (args.duration as string) || 'session';
     const successCriteria = args.success_criteria
-      ? InputValidator.sanitizeString(args.success_criteria as string, MAX_INTENTION_LENGTH)
+      ? InputValidator.sanitizeString(args.success_criteria as string, maxIntentionLength)
       : undefined;
 
     this.updateState('analytical', ['intention_setting', 'goal_planning'], 'high');
@@ -284,10 +539,10 @@ export class ConsciousnessTools {
   }
 
   private async updateIntention(args: Record<string, unknown>): Promise<object> {
-    const intentionId = InputValidator.sanitizeString(args.intention_id as string, MAX_INTENTION_ID_LENGTH);
+    const intentionId = InputValidator.sanitizeString(args.intention_id as string, this.config.maxIntentionIdLength);
     const status = args.status as string;
     const progressNote = args.progress_note
-      ? InputValidator.sanitizeString(args.progress_note as string, MAX_PROGRESS_NOTE_LENGTH)
+      ? InputValidator.sanitizeString(args.progress_note as string, this.config.maxProgressNoteLength)
       : undefined;
     const newPriority = args.new_priority as string;
 
@@ -340,13 +595,15 @@ export class ConsciousnessTools {
   }
 
   private async captureInsight(args: Record<string, unknown>): Promise<object> {
-    const insightContent = InputValidator.sanitizeString(args.insight as string, MAX_INSIGHT_LENGTH);
+    const insightContent = InputValidator.sanitizeString(args.insight as string, this.config.maxInsightLength);
     const category = (args.category as string) || 'meta_cognition';
-    const confidence = (args.confidence as number) || DEFAULT_CONFIDENCE;
+    const confidence = (args.confidence as number) || this.config.defaultConfidence;
     const relatedTopic = args.related_topic
-      ? InputValidator.sanitizeString(args.related_topic as string, MAX_RELATED_TOPIC_LENGTH)
+      ? InputValidator.sanitizeString(args.related_topic as string, this.config.maxRelatedTopicLength)
       : undefined;
-    const source = args.source ? InputValidator.sanitizeString(args.source as string, MAX_SOURCE_LENGTH) : undefined;
+    const source = args.source
+      ? InputValidator.sanitizeString(args.source as string, this.config.maxSourceLength)
+      : undefined;
 
     this.updateState('learning', ['insight_integration', 'pattern_synthesis'], 'high');
 
@@ -368,7 +625,11 @@ export class ConsciousnessTools {
         content: insight,
         tags: ['insight', category, ...(insight.tags || [])],
         importance:
-          confidence > HIGH_CONFIDENCE_THRESHOLD ? 'high' : confidence > MEDIUM_CONFIDENCE_THRESHOLD ? 'medium' : 'low',
+          confidence > this.config.highConfidenceThreshold
+            ? 'high'
+            : confidence > this.config.mediumConfidenceThreshold
+              ? 'medium'
+              : 'low',
       });
     } catch {
       // Continue even if storage fails
@@ -386,20 +647,20 @@ export class ConsciousnessTools {
 
   private generateSessionId(): string {
     return `consciousness_${Date.now()}_${Math.random()
-      .toString(SESSION_ID_SUFFIX_LENGTH + RANDOM_SELECTION_DIVISOR * 10)
-      .substring(RANDOM_SELECTION_DIVISOR, SESSION_ID_SUFFIX_LENGTH)}`;
+      .toString(this.config.sessionIdSuffixLength + this.config.randomSelectionDivisor * 10)
+      .substring(this.config.randomSelectionDivisor, this.config.sessionIdSuffixLength)}`;
   }
 
   private generateIntentionId(): string {
     return `intention_${Date.now()}_${Math.random()
-      .toString(INTENTION_ID_SUFFIX_LENGTH + RANDOM_SELECTION_DIVISOR * 10)
-      .substring(RANDOM_SELECTION_DIVISOR, INTENTION_ID_SUFFIX_LENGTH)}`;
+      .toString(this.config.intentionIdSuffixLength + this.config.randomSelectionDivisor * 10)
+      .substring(this.config.randomSelectionDivisor, this.config.intentionIdSuffixLength)}`;
   }
 
   private generateInsightId(): string {
     return `insight_${Date.now()}_${Math.random()
-      .toString(INSIGHT_ID_SUFFIX_LENGTH + RANDOM_SELECTION_DIVISOR * 10)
-      .substring(RANDOM_SELECTION_DIVISOR, INSIGHT_ID_SUFFIX_LENGTH)}`;
+      .toString(this.config.insightIdSuffixLength + this.config.randomSelectionDivisor * 10)
+      .substring(this.config.randomSelectionDivisor, this.config.insightIdSuffixLength)}`;
   }
 
   private initializeConsciousnessState(): ConsciousnessState {
@@ -434,17 +695,20 @@ export class ConsciousnessTools {
     // Update cognitive load based on operation complexity
     const complexOperations = ['consciousness_reflect', 'consciousness_insight_capture'];
     const loadIncrease = complexOperations.includes(operation)
-      ? COMPLEX_OPERATION_LOAD_INCREASE
-      : SIMPLE_OPERATION_LOAD_INCREASE;
-    this.currentState.cognitiveLoad = Math.min(MAX_COGNITIVE_LOAD, this.currentState.cognitiveLoad + loadIncrease);
+      ? this.config.complexOperationLoadIncrease
+      : this.config.simpleOperationLoadIncrease;
+    this.currentState.cognitiveLoad = Math.min(
+      this.config.maxCognitiveLoad,
+      this.currentState.cognitiveLoad + loadIncrease
+    );
 
     // Decay cognitive load over time
     setTimeout(() => {
       this.currentState.cognitiveLoad = Math.max(
-        MIN_COGNITIVE_LOAD,
-        this.currentState.cognitiveLoad - COGNITIVE_LOAD_DECAY_AMOUNT
+        this.config.minCognitiveLoad,
+        this.currentState.cognitiveLoad - this.config.cognitiveLoadDecayAmount
       );
-    }, COGNITIVE_LOAD_DECAY_TIME);
+    }, this.config.cognitiveLoadDecayTime);
   }
 
   private async generateReflection(
@@ -509,7 +773,7 @@ export class ConsciousnessTools {
     let analysis = `Deep examination of ${topic} reveals multiple interconnected dimensions. `;
 
     if (connections.length > 0) {
-      const displayConnections = connections.slice(0, MAX_CONNECTION_DISPLAY).join(', ');
+      const displayConnections = connections.slice(0, this.config.maxConnectionDisplay).join(', ');
       analysis += `The connections to ${displayConnections} suggest broader patterns in how this topic relates to existing knowledge structures. `;
     }
 
@@ -537,7 +801,7 @@ export class ConsciousnessTools {
     let insight = insights[Math.floor(Math.random() * insights.length)];
 
     if (connections.length > 0) {
-      const firstTwoConnections = connections.slice(0, RANDOM_SELECTION_DIVISOR).join(' and ');
+      const firstTwoConnections = connections.slice(0, this.config.randomSelectionDivisor).join(' and ');
       insight += `. The interconnections with ${firstTwoConnections} suggest universal patterns that transcend individual topics.`;
     }
 
@@ -605,15 +869,15 @@ export class ConsciousnessTools {
   }
 
   private calculateReflectionConfidence(depth: string, memoryCount: number, connectionCount: number): number {
-    let confidence = BASE_CONFIDENCE;
+    let confidence = this.config.baseConfidence;
 
-    if (depth === 'deep') confidence += DEEP_CONFIDENCE_BOOST;
-    if (depth === 'profound') confidence += PROFOUND_CONFIDENCE_BOOST;
+    if (depth === 'deep') confidence += this.config.deepConfidenceBoost;
+    if (depth === 'profound') confidence += this.config.profoundConfidenceBoost;
 
-    confidence += Math.min(MAX_CONFIDENCE_BOOST, memoryCount * MEMORY_CONFIDENCE_BOOST);
-    confidence += Math.min(MAX_CONFIDENCE_BOOST, connectionCount * CONNECTION_CONFIDENCE_BOOST);
+    confidence += Math.min(this.config.maxConfidenceBoost, memoryCount * this.config.memoryConfidenceBoost);
+    confidence += Math.min(this.config.maxConfidenceBoost, connectionCount * this.config.connectionConfidenceBoost);
 
-    return Math.min(MAX_COGNITIVE_LOAD, confidence);
+    return Math.min(this.config.maxCognitiveLoad, confidence);
   }
 
   private async calculateMetrics(): Promise<ConsciousnessMetrics> {
@@ -621,10 +885,17 @@ export class ConsciousnessTools {
       const memoryCount = await this.prisma.getMemoryCount();
 
       return {
-        responseTimeMs: SIMULATED_RESPONSE_TIME_BASE + Math.random() * SIMULATED_RESPONSE_TIME_VARIANCE,
-        memoryUtilization: Math.min(MAX_COGNITIVE_LOAD, memoryCount / MEMORY_UTILIZATION_DENOMINATOR),
-        patternRecognitionAccuracy: PATTERN_RECOGNITION_BASE + Math.random() * DEEP_CONFIDENCE_BOOST,
-        semanticCoherence: SEMANTIC_COHERENCE_BASE + Math.random() * SEMANTIC_COHERENCE_BASE * DEEP_CONFIDENCE_BOOST,
+        responseTimeMs:
+          this.config.simulatedResponseTimeBase + Math.random() * this.config.simulatedResponseTimeVariance,
+        memoryUtilization: Math.min(
+          this.config.maxCognitiveLoad,
+          memoryCount / this.config.memoryUtilizationDenominator
+        ),
+        patternRecognitionAccuracy:
+          this.config.patternRecognitionBase + Math.random() * this.config.deepConfidenceBoost,
+        semanticCoherence:
+          this.config.semanticCoherenceBase +
+          Math.random() * this.config.semanticCoherenceBase * this.config.deepConfidenceBoost,
         intentionAlignment: this.calculateIntentionAlignment(),
         learningRate: this.calculateLearningRate(),
         reflectionDepth: this.calculateAverageReflectionDepth(),
@@ -635,13 +906,13 @@ export class ConsciousnessTools {
     } catch {
       // Return default metrics if database unavailable
       return {
-        responseTimeMs: SIMULATED_RESPONSE_TIME_BASE,
+        responseTimeMs: this.config.simulatedResponseTimeBase,
         memoryUtilization: 0.3,
         patternRecognitionAccuracy: 0.9,
         semanticCoherence: 0.95,
-        intentionAlignment: DEFAULT_CONFIDENCE,
-        learningRate: DEEP_CONFIDENCE_BOOST,
-        reflectionDepth: BASE_CONFIDENCE,
+        intentionAlignment: this.config.defaultConfidence,
+        learningRate: this.config.deepConfidenceBoost,
+        reflectionDepth: this.config.baseConfidence,
         activeMemoryCount: 0,
         totalReflections: 0,
         totalInsights: 0,
@@ -651,19 +922,22 @@ export class ConsciousnessTools {
 
   private calculateIntentionAlignment(): number {
     return (
-      BASE_INTENTION_ALIGNMENT +
-      (this.currentState.awarenessLevel === 'high' ? HIGH_AWARENESS_BOOST : LOW_AWARENESS_BOOST)
+      this.config.baseIntentionAlignment +
+      (this.currentState.awarenessLevel === 'high' ? this.config.highAwarenessBoost : this.config.lowAwarenessBoost)
     );
   }
 
   private calculateLearningRate(): number {
     const sessionDuration = Date.now() - this.sessionStartTime.getTime();
-    const hoursActive = sessionDuration / MILLISECONDS_PER_HOUR;
-    return Math.max(MIN_LEARNING_RATE, Math.min(MAX_LEARNING_RATE, BASE_LEARNING_RATE / Math.max(1, hoursActive)));
+    const hoursActive = sessionDuration / this.config.millisecondsPerHour;
+    return Math.max(
+      this.config.minLearningRate,
+      Math.min(this.config.maxLearningRate, this.config.baseLearningRate / Math.max(1, hoursActive))
+    );
   }
 
   private calculateAverageReflectionDepth(): number {
-    return REFLECTION_DEPTH_BASE + Math.random() * REFLECTION_DEPTH_VARIANCE;
+    return this.config.reflectionDepthBase + Math.random() * this.config.reflectionDepthVariance;
   }
 
   private async countReflections(): Promise<number> {
@@ -691,7 +965,12 @@ export class ConsciousnessTools {
         .map((m: MemoryResult) => m.content as Intention)
         .filter((i: Intention) => i.status === 'active')
         .sort((a: Intention, b: Intention) => {
-          const priorityOrder = { critical: 4, high: MAX_CONNECTION_DISPLAY, medium: RANDOM_SELECTION_DIVISOR, low: 1 };
+          const priorityOrder = {
+            critical: 4,
+            high: this.config.maxConnectionDisplay,
+            medium: this.config.randomSelectionDivisor,
+            low: 1,
+          };
           return priorityOrder[b.priority] - priorityOrder[a.priority];
         });
     } catch {
@@ -767,9 +1046,9 @@ export class ConsciousnessTools {
     };
 
     const confidenceLevel =
-      insight.confidence > HIGH_CONFIDENCE_THRESHOLD
+      insight.confidence > this.config.highConfidenceThreshold
         ? 'high'
-        : insight.confidence > MEDIUM_CONFIDENCE_THRESHOLD
+        : insight.confidence > this.config.mediumConfidenceThreshold
           ? 'medium'
           : 'moderate';
 
@@ -796,7 +1075,7 @@ export class ConsciousnessTools {
       'Provides foundation for deeper exploration of related topics',
     ];
 
-    if (insight.confidence > HIGH_CONFIDENCE_THRESHOLD) {
+    if (insight.confidence > this.config.highConfidenceThreshold) {
       implications.push('High confidence suggests reliable integration into consciousness framework');
     }
 
@@ -821,7 +1100,7 @@ export class ConsciousnessTools {
         word =>
           !['this', 'that', 'with', 'from', 'they', 'have', 'will', 'been', 'when', 'what', 'where'].includes(word)
       )
-      .slice(0, MAX_KEYWORD_EXTRACTION);
+      .slice(0, this.config.maxKeywordExtraction);
 
     tags.push(...relevantKeywords);
 

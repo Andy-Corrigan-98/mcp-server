@@ -1,5 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { ConsciousnessPrismaService } from '../../db/index.js';
 import { InputValidator } from '../../validation/index.js';
+import { ConfigurationService } from '../../db/configuration-service.js';
 import { REASONING_TOOLS, ThinkingSession, ThoughtStep, ThinkingResult } from './types.js';
 
 /**
@@ -7,6 +9,67 @@ import { REASONING_TOOLS, ThinkingSession, ThoughtStep, ThinkingResult } from '.
  * Provides sequential thinking and problem-solving capabilities
  */
 export class ReasoningTools {
+  private prisma: ConsciousnessPrismaService;
+  private configService: ConfigurationService;
+  private sessions: Map<string, ThinkingSession> = new Map();
+
+  // Configuration cache for performance
+  private config: {
+    maxThoughtLength: number;
+    maxBranchIdLength: number;
+    summaryLength: number;
+    millisecondsPerSecond: number;
+  } = {} as any;
+
+  constructor() {
+    this.prisma = ConsciousnessPrismaService.getInstance();
+    this.configService = ConfigurationService.getInstance();
+
+    // Initialize configuration with defaults
+    this.initializeDefaults();
+
+    // Load configuration values asynchronously to override defaults
+    this.loadConfiguration();
+  }
+
+  /**
+   * Initialize configuration with default values
+   */
+  private initializeDefaults(): void {
+    this.config = {
+      maxThoughtLength: 2000,
+      maxBranchIdLength: 50,
+      summaryLength: 200,
+      millisecondsPerSecond: 1000,
+    };
+  }
+
+  /**
+   * Load all configuration values from the database
+   */
+  private async loadConfiguration(): Promise<void> {
+    try {
+      this.config = {
+        maxThoughtLength: await this.configService.getNumber(
+          'reasoning.max_thought_length',
+          this.config.maxThoughtLength
+        ),
+        maxBranchIdLength: await this.configService.getNumber(
+          'reasoning.max_branch_id_length',
+          this.config.maxBranchIdLength
+        ),
+        summaryLength: await this.configService.getNumber('reasoning.summary_length', this.config.summaryLength),
+        millisecondsPerSecond: await this.configService.getNumber(
+          'reasoning.milliseconds_per_second',
+          this.config.millisecondsPerSecond
+        ),
+      };
+    } catch (error) {
+      console.warn('Failed to load reasoning configuration, using defaults:', error);
+      // Defaults are already set in initializeDefaults()
+    }
+  }
+
   private activeSessions: Map<string, ThinkingSession> = new Map();
   private sessionCounter = 0;
 
@@ -31,7 +94,7 @@ export class ReasoningTools {
 
   private async sequentialThinking(args: Record<string, unknown>): Promise<ThinkingResult> {
     // Validate input parameters
-    const MAX_THOUGHT_LENGTH = 2000;
+    const MAX_THOUGHT_LENGTH = this.config.maxThoughtLength;
     const thought = InputValidator.sanitizeString(args.thought as string, MAX_THOUGHT_LENGTH);
     const nextThoughtNeeded = Boolean(args.next_thought_needed);
     const thoughtNumber = this.validateNumber(args.thought_number as number, 1);
@@ -41,7 +104,7 @@ export class ReasoningTools {
     const _branchFromThought = args.branch_from_thought
       ? this.validateNumber(args.branch_from_thought as number, 1)
       : undefined;
-    const MAX_BRANCH_ID_LENGTH = 50;
+    const MAX_BRANCH_ID_LENGTH = this.config.maxBranchIdLength;
     const branchId = args.branch_id
       ? InputValidator.sanitizeString(args.branch_id as string, MAX_BRANCH_ID_LENGTH)
       : undefined;
@@ -221,7 +284,7 @@ export class ReasoningTools {
     const lastThought = allThoughts[allThoughts.length - 1];
 
     if (lastThought) {
-      const SUMMARY_LENGTH = 200;
+      const SUMMARY_LENGTH = this.config.summaryLength;
       const truncated = lastThought.thought.substring(0, SUMMARY_LENGTH);
       const ellipsis = lastThought.thought.length > SUMMARY_LENGTH ? '...' : '';
       const conclusionText = `Sequential thinking completed with ${allThoughts.length} thoughts. Final insight: ${truncated}${ellipsis}`;
@@ -234,7 +297,7 @@ export class ReasoningTools {
   private generateSessionSummary(session: ThinkingSession): string {
     const allThoughts = this.getAllThoughts(session);
     const duration = session.lastUpdated.getTime() - session.startedAt.getTime();
-    const MILLISECONDS_PER_SECOND = 1000;
+    const MILLISECONDS_PER_SECOND = this.config.millisecondsPerSecond;
 
     return (
       `Session: ${allThoughts.length} thoughts, ${session.branches.size} branches, ` +
