@@ -5,10 +5,10 @@
       "main": "dist/index.js",
       "type": "module",
       "scripts": {
-            "build": "tsc",
+            "build": "tsc && tsc-alias",
             "start": "node dist/index.js",
             "dev": "tsx watch src/index.ts",
-            "clean": "rm -rf dist",
+            "clean": "rimraf dist",
             "prebuild": "npm run clean",
             "lint": "eslint src/**/*.ts",
             "lint:fix": "eslint src/**/*.ts --fix",
@@ -68,6 +68,7 @@
             "prisma": "^6.10.1",
             "rimraf": "^6.0.1",
             "ts-jest": "^29.4.0",
+            "tsc-alias": "^1.8.16",
             "tsx": "^4.7.0",
             "typescript": "^5.3.0",
             "typescript-eslint": "^8.35.0"

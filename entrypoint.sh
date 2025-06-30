@@ -20,6 +20,9 @@ else
     npm run db:push
 fi
 
-# Start the main application
-echo "✅ Database ready, starting MCP server..."
-exec npm start 
+# Database is ready, but don't start MCP server yet
+# Cursor will start it via docker exec when needed
+echo "✅ Database ready, container ready for MCP connections..."
+
+# Keep container alive for docker exec commands
+tail -f /dev/null 

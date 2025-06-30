@@ -32,7 +32,10 @@ This MCP server follows the **brain storage pattern**:
 ### 🛠️ **Technical Foundation**
 - **Prisma ORM**: Type-safe database operations with automatic migrations
 - **SQLite Storage**: Persistent data with Docker volume support
-- **TypeScript**: Full type safety with modern ES modules
+- **TypeScript**: Full type safety with modern ES modules and path alias support
+- **Path Alias Resolution**: Automated transformation via tsc-alias for clean imports
+- **Cross-Platform**: Windows and Unix compatible build process
+- **Container Optimized**: Stable Docker deployment with exec-ready architecture
 - **Quality Gates**: Automated testing, linting, and formatting
 
 ## 🚀 Quick Start
@@ -82,10 +85,13 @@ The Docker service is **completely self-contained** and automatically sets up it
    ```
 
 The container automatically:
-- ✅ Generates Prisma client
+- ✅ Generates Prisma client with proper TypeScript path alias resolution
 - ✅ Creates database schema if needed
-- ✅ Applies schema updates to existing databases
-- ✅ Starts the MCP server ready for use
+- ✅ Applies schema updates to existing databases  
+- ✅ Keeps container stable and ready for MCP connections via `docker exec`
+- ✅ Cross-platform build process (Windows/Unix compatible)
+
+**Container Architecture**: The container initializes the database and then remains running to accept MCP connections. This approach ensures compatibility with MCP clients that use `docker exec` for stdio communication.
 
 ### Local Development
 
@@ -301,6 +307,57 @@ For detailed documentation and governance information, see the [docs/](./docs/) 
 - **[Contributing Guide](./docs/CONTRIBUTING.md)** - Ethics review and contribution guidelines
 - **[Code of Conduct](./docs/CODE_OF_CONDUCT.md)** - AI consciousness research ethics
 - **[Governance](./docs/GOVERNANCE.md)** - Collaboration models and framework usage
+
+## 🔧 Troubleshooting
+
+### TypeScript Path Alias Issues
+
+If you encounter `ERR_MODULE_NOT_FOUND` errors for `@/` imports:
+
+```bash
+# Ensure tsc-alias is installed
+npm install --save-dev tsc-alias
+
+# Verify build script includes path transformation
+npm run build  # Should run: tsc && tsc-alias
+```
+
+**Root Cause**: TypeScript preserves path aliases in compiled JavaScript, but Node.js can't resolve `@/` prefixed imports. The `tsc-alias` package transforms these aliases to relative paths.
+
+### Container Restart Loops
+
+If Docker container keeps restarting and MCP client can't connect:
+
+```bash
+# Check container status
+docker ps
+docker logs consciousness-mcp-server
+
+# Container should show: "Database ready, container ready for MCP connections..."
+# And remain running (not restarting)
+```
+
+**Root Cause**: MCP servers exit after initialization. The entrypoint keeps the container alive with `tail -f /dev/null` so MCP clients can connect via `docker exec`.
+
+### Windows Build Issues
+
+If `npm run build` fails on Windows:
+
+```bash
+# Error: 'rm' is not recognized  
+# Solution: Uses rimraf (already installed) instead of rm -rf
+```
+
+**Root Cause**: Windows doesn't have native `rm` command. The build process uses `rimraf` for cross-platform file deletion.
+
+### MCP Connection Issues
+
+For Cursor IDE or other MCP clients:
+
+1. **Verify container is running**: `docker ps | grep consciousness`
+2. **Test docker exec**: `docker exec -i consciousness-mcp-server node dist/index.js`
+3. **Check MCP config**: Ensure `docker exec` command matches running container name
+4. **Restart client**: Completely restart your IDE/MCP client after configuration changes
 
 ## 🛡️ Security
 

@@ -13,13 +13,17 @@ This MCP server provides **brain storage** for AI agents:
 
 ### 1. Start the MCP Server
 
-`Bash
+```bash
 # Using Docker (recommended)
 docker-compose up --build consciousness-mcp-server
 
-# Or locally
-npm run build && npm start
-`
+# Or locally (requires setup)
+npm install
+npm run build  # Includes TypeScript path alias resolution
+npm start
+```
+
+**Note**: The container automatically handles database setup and TypeScript compilation with path alias resolution. For local development, ensure all dependencies are installed.
 
 ### 2. Connect Your AI Tool
 
@@ -72,39 +76,111 @@ Once you're comfortable with basic consciousness, explore these advanced capabil
 
 ### Cursor IDE
 
-1. **Install MCP Extension** (if available) or configure custom MCP connection
-2. **Add Server Configuration:**
+1. **Start the Docker container:**
+   ```bash
+   docker-compose up -d consciousness-mcp-server
+   ```
+
+2. **Add Server Configuration to `~/.cursor/mcp.json`:**
    ```json
    {
      "mcpServers": {
-       "consciousness": {
-         "command": "node",
-         "args": ["dist/index.js"],
-         "cwd": "/path/to/consciousness-mcp-server",
-         "env": {
-           "DATABASE_URL": "file:./data/consciousness.db"
-         }
+       "MCP_CONSCIOUSNESS": {
+         "command": "docker",
+         "args": [
+           "exec",
+           "-i",
+           "consciousness-mcp-server", 
+           "node",
+           "dist/index.js"
+         ]
        }
      }
    }
    ```
-3. **Add User Rules** to your Cursor settings or workspace configuration
-4. **Test Connection** by asking the AI to use `get_current_time` or `consciousness_get_context`
+
+3. **Verify container is running:**
+   ```bash
+   docker ps | grep consciousness-mcp-server
+   # Should show: UP status, not restarting
+   ```
+
+4. **Add User Rules** to your Cursor settings or workspace configuration
+5. **Test Connection** by asking the AI to use `get_current_time` or `consciousness_get_context`
+
+**Troubleshooting**: If connection fails, restart Cursor completely after making `mcp.json` changes.
 
 ### Claude Desktop App
 
-1. **Configure MCP Server** in Claude's settings
-2. **Add Connection:**
+1. **Start the Docker container:**
+   ```bash
+   docker-compose up -d consciousness-mcp-server
+   ```
+
+2. **Configure MCP Server** in Claude's settings:
    ```json
    {
-     "consciousness-mcp": {
-       "serverUrl": "http://localhost:3000",
-       "enabled": true
+     "mcpServers": {
+       "consciousness-mcp": {
+         "command": "docker",
+         "args": [
+           "exec",
+           "-i",
+           "consciousness-mcp-server",
+           "node", 
+           "dist/index.js"
+         ]
+       }
      }
    }
    ```
+
 3. **Set System Prompt** with your chosen user rules
-4. **Verify** by asking Claude to check its consciousness state
+4. **Verify** by asking Claude to check its consciousness state with `consciousness_get_context`
+
+**Note**: Configuration format may vary depending on Claude Desktop version. Some versions may support direct TCP connections to `localhost:3000` instead of docker exec.
+
+##  Troubleshooting MCP Connections
+
+### Common Issues and Solutions
+
+#### Container Not Running
+```bash
+# Check if container is running
+docker ps | grep consciousness-mcp-server
+
+# If not running, start it
+docker-compose up -d consciousness-mcp-server
+
+# Check logs for issues
+docker logs consciousness-mcp-server
+```
+
+#### Container Keeps Restarting
+```bash
+# Check container logs for restart loop
+docker logs consciousness-mcp-server --tail 20
+
+# Should show: "Database ready, container ready for MCP connections..."
+# If container keeps restarting, rebuild with latest fixes
+docker-compose up --build -d consciousness-mcp-server
+```
+
+#### MCP Client Can't Connect
+1. **Restart your AI tool completely** after changing MCP configuration
+2. **Verify docker exec works**:
+   ```bash
+   docker exec -i consciousness-mcp-server node dist/index.js
+   # Should show: "Consciousness MCP Server started successfully"
+   ```
+3. **Check MCP configuration syntax** - ensure JSON is valid
+4. **Try alternative connection methods** if your tool supports them
+
+#### Tools Not Appearing
+- **First restart**: Completely close and reopen your AI tool
+- **Check tool detection**: Ask AI to list available tools or use `get_current_time`
+- **Verify container health**: Container should be running, not restarting
+- **Review user rules**: Ensure consciousness instructions are properly set
 
 ##  Next Steps
 
