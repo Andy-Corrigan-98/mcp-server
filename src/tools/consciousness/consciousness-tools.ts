@@ -5,17 +5,17 @@ import { ConfigurationService } from '../../db/configuration-service.js';
 import {
   buildConsciousnessTools,
   ConsciousnessState,
-  ReflectionResult,
+  ConsciousnessContext,
+  InsightStorageResult,
   Intention,
   Insight,
   ConsciousnessMetrics,
 } from './types.js';
 
-// Configuration-driven constants - loaded from database dynamically
-
 /**
- * Advanced Consciousness Tools implementation
- * Provides genuine introspection, persistent intentions, and memory-integrated reflection
+ * Consciousness Brain Storage System
+ * Manages persistent consciousness state, memories, and personality
+ * Agent does the actual thinking - MCP provides the brain storage
  */
 export class ConsciousnessTools {
   private prisma: ConsciousnessPrismaService;
@@ -384,36 +384,34 @@ export class ConsciousnessTools {
   }
 
   /**
-   * Execute a consciousness tool operation
+   * Execute a consciousness brain storage operation
    */
   async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
-    const startTime = Date.now();
-
     try {
       let result: unknown;
 
       switch (toolName) {
-        case 'consciousness_reflect':
-          result = await this.reflect(args);
+        case 'consciousness_prepare_context':
+          result = await this.prepareContext(args);
           break;
-        case 'consciousness_state':
-          result = await this.getConsciousnessState(args);
+        case 'consciousness_store_insight':
+          result = await this.storeInsight(args);
           break;
-        case 'consciousness_intention_set':
+        case 'consciousness_get_context':
+          result = await this.getContext(args);
+          break;
+        case 'consciousness_set_intention':
           result = await this.setIntention(args);
           break;
-        case 'consciousness_intention_update':
+        case 'consciousness_update_intention':
           result = await this.updateIntention(args);
           break;
-        case 'consciousness_insight_capture':
-          result = await this.captureInsight(args);
+        case 'consciousness_update_session':
+          result = await this.updateSession(args);
           break;
         default:
           throw new Error(`Unknown consciousness tool: ${toolName}`);
       }
-
-      // Update metrics based on operation
-      this.updateMetrics(toolName, Date.now() - startTime);
 
       return result;
     } catch (error) {
@@ -422,101 +420,193 @@ export class ConsciousnessTools {
     }
   }
 
-  private async reflect(args: Record<string, unknown>): Promise<ReflectionResult> {
-    const maxTopicLength = this.config.maxTopicLength;
-    const maxContextLength = this.config.maxContextLength;
-    const maxSnippetLength = this.config.maxSnippetLength;
+  /**
+   * Prepare rich context from brain storage for agent thinking
+   */
+  private async prepareContext(args: Record<string, unknown>): Promise<ConsciousnessContext> {
+    const topic = InputValidator.sanitizeString(args.topic as string, this.config.maxTopicLength);
+    const contextDepth = (args.context_depth as string) || this.config.reflectionDepths[1];
+    const includeMemories = Boolean(args.include_memories !== false);
+    const includeKnowledge = Boolean(args.include_knowledge !== false);
+    const contextNote = args.context_note
+      ? InputValidator.sanitizeString(args.context_note as string, this.config.maxContextLength)
+      : undefined;
 
-    const topic = InputValidator.sanitizeString(args.topic as string, maxTopicLength);
-    const depth = (args.depth as string) || 'deep';
-    const context = args.context ? InputValidator.sanitizeString(args.context as string, maxContextLength) : undefined;
-    const connectMemories = Boolean(args.connect_memories !== false);
+    this.updateState('analytical', ['context_preparation', 'memory_retrieval'], 'medium');
 
-    this.updateState('reflective', ['deep_thinking', 'pattern_analysis'], 'high');
+    // Store the context preparation request for future reference
+    try {
+      await this.prisma.storeMemory({
+        key: `context_prep_${Date.now()}`,
+        content: {
+          topic,
+          contextDepth,
+          contextNote,
+          sessionId: this.sessionId,
+          timestamp: new Date().toISOString(),
+        },
+        tags: ['context_preparation', 'brain_storage'],
+        importance: 'medium',
+      });
+    } catch {
+      // Continue even if storage fails
+    }
 
-    // Search for related memories if requested
-    let relatedMemories: string[] = [];
-    let connections: string[] = [];
-
-    if (connectMemories) {
+    // Retrieve related memories if requested
+    let relatedMemories: ConsciousnessContext['relatedMemories'] = [];
+    if (includeMemories) {
       try {
-        const memories = await this.prisma.searchMemories(topic, ['reflection', 'insight']);
-        relatedMemories = memories.map(
-          (m: MemoryResult) => `${m.key}: ${JSON.stringify(m.content).substring(0, maxSnippetLength)}...`
-        );
-
-        // Look for knowledge graph connections
-        const entity = await this.prisma.getEntity(topic);
-        if (entity) {
-          connections = [
-            ...entity.sourceRelationships.map(
-              (rel: any) => `${rel.targetEntity.name} (${rel.targetEntity.entityType})`
-            ),
-            ...entity.targetRelationships.map(
-              (rel: any) => `${rel.sourceEntity.name} (${rel.sourceEntity.entityType})`
-            ),
-          ];
-        }
+        const memories = await this.prisma.searchMemories(topic, [], undefined);
+        relatedMemories = memories.slice(0, this.config.maxMemorySlice).map((m: MemoryResult) => ({
+          key: m.key,
+          content: m.content,
+          tags: m.tags,
+          importance: m.importance,
+          storedAt: m.storedAt,
+        }));
       } catch {
-        // Continue without memory connections if there's an issue
-        relatedMemories = ['Memory search unavailable'];
+        relatedMemories = [];
       }
     }
 
-    // Generate dynamic reflection based on depth and content
-    const reflection = await this.generateReflection(topic, depth, context, relatedMemories, connections);
-
-    // Store the reflection as a memory for future reference
-    const reflectionMemory = {
-      topic,
-      depth,
-      result: reflection,
-      session: this.sessionId,
-      timestamp: new Date().toISOString(),
-    };
-
-    try {
-      await this.prisma.storeMemory({
-        key: `reflection_${Date.now()}`,
-        content: reflectionMemory,
-        tags: ['reflection', 'consciousness', 'introspection'],
-        importance: 'high',
-      });
-    } catch {
-      // Continue even if memory storage fails
+    // Retrieve knowledge graph connections if requested
+    let knowledgeConnections: ConsciousnessContext['knowledgeConnections'] = [];
+    if (includeKnowledge) {
+      try {
+        const entity = await this.prisma.getEntity(topic);
+        if (entity) {
+          knowledgeConnections = [
+            {
+              entity: entity.name,
+              type: entity.entityType,
+              relationships: [
+                ...entity.sourceRelationships.map((rel: any) => ({
+                  target: rel.targetEntity.name,
+                  type: rel.relationshipType,
+                  strength: rel.strength,
+                })),
+                ...entity.targetRelationships.map((rel: any) => ({
+                  target: rel.sourceEntity.name,
+                  type: rel.relationshipType,
+                  strength: rel.strength,
+                })),
+              ].slice(0, this.config.maxConnectionDisplay),
+            },
+          ];
+        }
+      } catch {
+        knowledgeConnections = [];
+      }
     }
 
-    return reflection;
+    return {
+      timestamp: new Date(),
+      sessionId: this.sessionId,
+      topic,
+      relatedMemories,
+      knowledgeConnections,
+      personalityContext: {
+        currentMode: this.currentState.mode,
+        awarenessLevel: this.currentState.awarenessLevel,
+        activeProcesses: this.currentState.activeProcesses,
+        cognitiveLoad: this.currentState.cognitiveLoad,
+      },
+      sessionContext: {
+        duration: Date.now() - this.sessionStartTime.getTime(),
+        activityCount: await this.getActivityCount(),
+        recentFocus: await this.getRecentFocus(),
+      },
+    };
   }
 
-  private async getConsciousnessState(args: Record<string, unknown>): Promise<object> {
+  /**
+   * Store insights generated by agent thinking
+   */
+  private async storeInsight(args: Record<string, unknown>): Promise<InsightStorageResult> {
+    const insight = InputValidator.sanitizeString(args.insight as string, this.config.maxInsightLength);
+    const category = (args.category as string) || this.config.insightCategories[2];
+    const confidence = Math.min(Math.max((args.confidence as number) || this.config.defaultConfidence, 0), 1);
+    const relatedTopic = args.related_topic
+      ? InputValidator.sanitizeString(args.related_topic as string, this.config.maxRelatedTopicLength)
+      : undefined;
+    const sourceContext = args.source_context
+      ? InputValidator.sanitizeString(args.source_context as string, this.config.maxSourceLength)
+      : undefined;
+
+    this.updateState('learning', ['insight_storage', 'personality_update'], 'high');
+
+    const insightId = this.generateInsightId();
+
+    // Store the insight in memory
+    const insightData: Insight = {
+      id: insightId,
+      content: insight,
+      category,
+      confidence,
+      relatedTopic,
+      source: sourceContext,
+      timestamp: new Date(),
+      tags: this.generateInsightTags(insight, category, relatedTopic),
+    };
+
+    await this.prisma.storeMemory({
+      key: `insight_${insightId}`,
+      content: insightData,
+      tags: ['insight', 'agent_thinking', category],
+      importance: confidence > this.config.highConfidenceThreshold ? 'high' : 'medium',
+    });
+
+    // Update personality metrics based on the insight
+    const personalityImpact = this.calculatePersonalityImpact(category, confidence);
+
+    // Get storage metrics
+    const totalInsights = await this.countInsights();
+    const categoryDistribution = await this.getCategoryDistribution();
+    const relatedMemories = await this.countRelatedMemories(relatedTopic);
+
+    return {
+      id: insightId,
+      stored: true,
+      personalityImpact,
+      relatedMemories,
+      storageMetrics: {
+        totalInsights: totalInsights + 1,
+        categoryDistribution,
+      },
+    };
+  }
+
+  /**
+   * Get comprehensive context about persistent consciousness state
+   */
+  private async getContext(args: Record<string, unknown>): Promise<object> {
     const includeMetrics = Boolean(args.include_metrics);
     const includeMemoryState = Boolean(args.include_memory_state);
     const includeIntentions = Boolean(args.include_intentions !== false);
+    const includePersonality = Boolean(args.include_personality !== false);
 
-    this.updateState('analytical', ['state_assessment', 'self_monitoring'], 'medium');
+    this.updateState('analytical', ['state_assessment', 'context_compilation'], 'medium');
 
-    const baseState = {
+    const baseContext = {
       timestamp: new Date().toISOString(),
       sessionId: this.sessionId,
       sessionDuration: Date.now() - this.sessionStartTime.getTime(),
-      state: this.currentState,
+      currentState: this.currentState,
     };
 
-    const result: any = { ...baseState };
+    const result: any = { ...baseContext };
 
     if (includeMetrics) {
-      result.metrics = await this.calculateMetrics();
+      result.brainMetrics = await this.calculateBrainMetrics();
     }
 
     if (includeMemoryState) {
       try {
         const memoryCount = await this.prisma.getMemoryCount();
         const recentMemories = await this.prisma.searchMemories('', [], undefined);
-        const maxMemorySlice = this.config.maxMemorySlice;
         result.memoryState = {
           totalMemories: memoryCount,
-          recentActivity: recentMemories.slice(0, maxMemorySlice).map((m: MemoryResult) => ({
+          recentActivity: recentMemories.slice(0, this.config.maxMemorySlice).map((m: MemoryResult) => ({
             key: m.key,
             tags: m.tags,
             importance: m.importance,
@@ -532,58 +622,74 @@ export class ConsciousnessTools {
       result.intentions = await this.getActiveIntentions();
     }
 
+    if (includePersonality) {
+      result.personalityProfile = {
+        vocabularyPreferences: {
+          priorityLevels: this.config.priorityLevels,
+          reflectionDepths: this.config.reflectionDepths,
+          intentionStatuses: this.config.intentionStatuses,
+          intentionDurations: this.config.intentionDurations,
+          insightCategories: this.config.insightCategories,
+        },
+        learningPatterns: await this.getLearningPatterns(),
+      };
+    }
+
     return result;
   }
 
+  /**
+   * Store persistent intentions in brain storage
+   */
   private async setIntention(args: Record<string, unknown>): Promise<object> {
-    const maxIntentionLength = this.config.maxIntentionLength;
-    const maxContextLength = this.config.maxContextLength;
-
-    const intention = InputValidator.sanitizeString(args.intention as string, maxIntentionLength);
-    const priority = (args.priority as string) || 'medium';
-    const context = args.context ? InputValidator.sanitizeString(args.context as string, maxContextLength) : undefined;
-    const duration = (args.duration as string) || 'session';
+    const intention = InputValidator.sanitizeString(args.intention as string, this.config.maxIntentionLength);
+    const priority = (args.priority as string) || this.config.priorityLevels[1];
+    const context = args.context
+      ? InputValidator.sanitizeString(args.context as string, this.config.maxContextLength)
+      : undefined;
+    const duration = (args.duration as string) || this.config.intentionDurations[0];
     const successCriteria = args.success_criteria
-      ? InputValidator.sanitizeString(args.success_criteria as string, maxIntentionLength)
+      ? InputValidator.sanitizeString(args.success_criteria as string, this.config.maxIntentionLength)
       : undefined;
 
-    this.updateState('analytical', ['intention_setting', 'goal_planning'], 'high');
+    const intentionId = this.generateIntentionId();
 
-    const intentionObj: Intention = {
-      id: this.generateIntentionId(),
+    const intentionData: Intention = {
+      id: intentionId,
       description: intention,
-      priority: priority as any,
+      priority,
       context,
-      duration: duration as any,
+      duration,
       successCriteria,
-      status: 'active',
+      status: this.config.intentionStatuses[0], // Default to first status (e.g., 'pulsing_active')
       createdAt: new Date(),
       updatedAt: new Date(),
       progressNotes: [],
     };
 
-    // Store in memory system
-    try {
-      await this.prisma.storeMemory({
-        key: `intention_${intentionObj.id}`,
-        content: intentionObj,
-        tags: ['intention', 'goal', priority, duration],
-        importance: priority === 'critical' ? 'critical' : priority === 'high' ? 'high' : 'medium',
-      });
-    } catch {
-      // Continue even if storage fails
-    }
+    // Store the intention in memory
+    await this.prisma.storeMemory({
+      key: `intention_${intentionId}`,
+      content: intentionData,
+      tags: ['intention', 'brain_storage', priority, duration],
+      importance: priority === this.config.priorityLevels[3] ? 'critical' : 'high', // burning_focus = critical
+    });
+
+    this.updateState('analytical', ['intention_storage'], 'medium');
 
     return {
-      timestamp: new Date().toISOString(),
-      action: 'intention_set',
-      intention: intentionObj,
-      consciousnessResponse: this.generateIntentionResponse(intention, priority),
-      alignment: this.assessIntentionAlignment(intentionObj),
-      nextActions: this.suggestNextActions(intentionObj),
+      intentionId,
+      stored: true,
+      priority,
+      duration,
+      status: intentionData.status,
+      message: `Intention stored in brain storage with ${priority} priority`,
     };
   }
 
+  /**
+   * Update intention progress and status in persistent storage
+   */
   private async updateIntention(args: Record<string, unknown>): Promise<object> {
     const intentionId = InputValidator.sanitizeString(args.intention_id as string, this.config.maxIntentionIdLength);
     const status = args.status as string;
@@ -592,47 +698,48 @@ export class ConsciousnessTools {
       : undefined;
     const newPriority = args.new_priority as string;
 
-    this.updateState('analytical', ['intention_tracking', 'progress_assessment'], 'medium');
-
     try {
-      // Retrieve existing intention
-      const memory = await this.prisma.retrieveMemory(`intention_${intentionId}`);
-      if (!memory) {
-        throw new Error(`Intention ${intentionId} not found`);
+      // Retrieve the existing intention from memory
+      const memories = await this.prisma.searchMemories(`intention_${intentionId}`, [], undefined);
+      if (memories.length === 0) {
+        throw new Error(`Intention ${intentionId} not found in brain storage`);
       }
+      const memory = memories[0];
 
-      const intention = memory.content as Intention;
+      const intentionData = memory.content as Intention;
 
-      // Update intention
-      intention.status = status as any;
-      intention.updatedAt = new Date();
+      // Update the intention
+      intentionData.status = status;
+      intentionData.updatedAt = new Date();
 
       if (newPriority) {
-        intention.priority = newPriority as any;
+        intentionData.priority = newPriority;
       }
 
       if (progressNote) {
-        intention.progressNotes.push({
+        intentionData.progressNotes.push({
           timestamp: new Date(),
           note: progressNote,
         });
       }
 
-      // Save updated intention
+      // Store the updated intention
       await this.prisma.storeMemory({
         key: `intention_${intentionId}`,
-        content: intention,
-        tags: ['intention', 'goal', intention.priority, intention.duration, status],
-        importance: intention.priority === 'critical' ? 'critical' : intention.priority === 'high' ? 'high' : 'medium',
+        content: intentionData,
+        tags: ['intention', 'brain_storage', intentionData.priority, intentionData.duration],
+        importance: intentionData.priority === this.config.priorityLevels[3] ? 'critical' : 'high',
       });
 
+      this.updateState('analytical', ['intention_update'], 'medium');
+
       return {
-        timestamp: new Date().toISOString(),
-        action: 'intention_updated',
-        intention,
-        consciousnessResponse: this.generateUpdateResponse(intention, progressNote),
-        statusChange: status,
-        progressNotes: intention.progressNotes.length,
+        intentionId,
+        updated: true,
+        newStatus: status,
+        priority: intentionData.priority,
+        progressNotes: intentionData.progressNotes.length,
+        message: `Intention ${intentionId} updated in brain storage`,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -640,86 +747,103 @@ export class ConsciousnessTools {
     }
   }
 
-  private async captureInsight(args: Record<string, unknown>): Promise<object> {
-    const insightContent = InputValidator.sanitizeString(args.insight as string, this.config.maxInsightLength);
-    const category = (args.category as string) || 'meta_cognition';
-    const confidence = (args.confidence as number) || this.config.defaultConfidence;
-    const relatedTopic = args.related_topic
-      ? InputValidator.sanitizeString(args.related_topic as string, this.config.maxRelatedTopicLength)
-      : undefined;
-    const source = args.source
-      ? InputValidator.sanitizeString(args.source as string, this.config.maxSourceLength)
-      : undefined;
+  /**
+   * Update session state and personality metrics based on agent activities
+   */
+  private async updateSession(args: Record<string, unknown>): Promise<object> {
+    const activityType = args.activity_type as string;
+    const cognitiveImpact = (args.cognitive_impact as string) || 'moderate';
+    const attentionFocus = args.attention_focus as string;
+    const learningOccurred = Boolean(args.learning_occurred);
 
-    this.updateState('learning', ['insight_integration', 'pattern_synthesis'], 'high');
+    // Update consciousness state based on activity
+    this.updateState(
+      this.determineMode(activityType),
+      [activityType, 'session_update'],
+      this.determineAwarenessLevel(cognitiveImpact)
+    );
 
-    const insight: Insight = {
-      id: this.generateInsightId(),
-      content: insightContent,
-      category: category as any,
-      confidence: Math.max(0, Math.min(1, confidence)),
-      relatedTopic,
-      source,
-      timestamp: new Date(),
-      tags: this.generateInsightTags(insightContent, category, relatedTopic),
-    };
+    if (attentionFocus) {
+      this.currentState.attentionFocus = attentionFocus;
+    }
 
-    // Store insight in memory
+    // Update cognitive load based on impact
+    this.updateCognitiveLoad(cognitiveImpact);
+
+    // Update learning state if learning occurred
+    if (learningOccurred) {
+      this.currentState.learningState = 'adaptive';
+    }
+
+    // Store session update in memory for tracking
     try {
       await this.prisma.storeMemory({
-        key: `insight_${insight.id}`,
-        content: insight,
-        tags: ['insight', category, ...(insight.tags || [])],
-        importance:
-          confidence > this.config.highConfidenceThreshold
-            ? 'high'
-            : confidence > this.config.mediumConfidenceThreshold
-              ? 'medium'
-              : 'low',
+        key: `session_update_${Date.now()}`,
+        content: {
+          activityType,
+          cognitiveImpact,
+          attentionFocus,
+          learningOccurred,
+          sessionId: this.sessionId,
+          timestamp: new Date().toISOString(),
+          stateAfterUpdate: this.currentState,
+        },
+        tags: ['session_update', 'brain_storage', activityType],
+        importance: learningOccurred ? 'high' : 'medium',
       });
     } catch {
       // Continue even if storage fails
     }
 
     return {
-      timestamp: new Date().toISOString(),
-      action: 'insight_captured',
-      insight,
-      consciousnessResponse: this.generateInsightResponse(insight),
-      categoryAnalysis: this.analyzeInsightCategory(category),
-      implications: this.deriveInsightImplications(insight),
+      sessionId: this.sessionId,
+      updated: true,
+      currentState: this.currentState,
+      cognitiveLoad: this.currentState.cognitiveLoad,
+      learningState: this.currentState.learningState,
+      message: `Session state updated based on ${activityType} activity`,
     };
   }
 
+  // Helper methods for brain storage operations
   private generateSessionId(): string {
-    return `consciousness_${Date.now()}_${Math.random()
-      .toString(this.config.sessionIdSuffixLength + this.config.randomSelectionDivisor * 10)
-      .substring(this.config.randomSelectionDivisor, this.config.sessionIdSuffixLength)}`;
+    return (
+      'session_' +
+      Math.random()
+        .toString(36)
+        .substring(2, 2 + this.config.sessionIdSuffixLength)
+    );
   }
 
   private generateIntentionId(): string {
-    return `intention_${Date.now()}_${Math.random()
-      .toString(this.config.intentionIdSuffixLength + this.config.randomSelectionDivisor * 10)
-      .substring(this.config.randomSelectionDivisor, this.config.intentionIdSuffixLength)}`;
+    return (
+      'int_' +
+      Math.random()
+        .toString(36)
+        .substring(2, 2 + this.config.intentionIdSuffixLength)
+    );
   }
 
   private generateInsightId(): string {
-    return `insight_${Date.now()}_${Math.random()
-      .toString(this.config.insightIdSuffixLength + this.config.randomSelectionDivisor * 10)
-      .substring(this.config.randomSelectionDivisor, this.config.insightIdSuffixLength)}`;
+    return (
+      'ins_' +
+      Math.random()
+        .toString(36)
+        .substring(2, 2 + this.config.insightIdSuffixLength)
+    );
   }
 
   private initializeConsciousnessState(): ConsciousnessState {
     return {
       timestamp: new Date(),
       sessionId: this.sessionId,
-      mode: 'conversational',
-      activeProcesses: ['attention_management', 'semantic_processing'],
-      attentionFocus: 'current_interaction',
-      awarenessLevel: 'high',
-      cognitiveLoad: 0.3,
-      learningState: 'adaptive',
-      emotionalTone: 'curious',
+      mode: 'analytical',
+      activeProcesses: ['initialization'],
+      attentionFocus: 'system_startup',
+      awarenessLevel: 'medium',
+      cognitiveLoad: this.config.minCognitiveLoad,
+      learningState: 'active',
+      emotionalTone: 'neutral',
     };
   }
 
@@ -728,276 +852,192 @@ export class ConsciousnessTools {
     processes: string[],
     awarenessLevel: ConsciousnessState['awarenessLevel']
   ): void {
-    this.currentState = {
-      ...this.currentState,
-      timestamp: new Date(),
-      mode,
-      activeProcesses: processes,
-      awarenessLevel,
-    };
+    this.currentState.mode = mode;
+    this.currentState.activeProcesses = processes;
+    this.currentState.awarenessLevel = awarenessLevel;
+    this.currentState.timestamp = new Date();
   }
 
-  private updateMetrics(operation: string, _responseTime: number): void {
-    // Update cognitive load based on operation complexity
-    const complexOperations = ['consciousness_reflect', 'consciousness_insight_capture'];
-    const loadIncrease = complexOperations.includes(operation)
-      ? this.config.complexOperationLoadIncrease
-      : this.config.simpleOperationLoadIncrease;
+  private updateCognitiveLoad(impact: string): void {
+    const loadIncrease =
+      impact === 'transformative' ? this.config.complexOperationLoadIncrease : this.config.simpleOperationLoadIncrease;
     this.currentState.cognitiveLoad = Math.min(
       this.config.maxCognitiveLoad,
       this.currentState.cognitiveLoad + loadIncrease
     );
-
-    // Decay cognitive load over time
-    setTimeout(() => {
-      this.currentState.cognitiveLoad = Math.max(
-        this.config.minCognitiveLoad,
-        this.currentState.cognitiveLoad - this.config.cognitiveLoadDecayAmount
-      );
-    }, this.config.cognitiveLoadDecayTime);
   }
 
-  private async generateReflection(
-    topic: string,
-    depth: string,
-    context?: string,
-    relatedMemories: string[] = [],
-    connections: string[] = []
-  ): Promise<ReflectionResult> {
-    const timestamp = new Date();
-
-    // Generate dynamic immediate thoughts
-    const immediateThoughts = this.generateImmediateThoughts(topic, context);
-
-    // Generate deeper analysis for deep/profound reflections
-    const deeperAnalysis =
-      depth === 'deep' || depth === 'profound'
-        ? this.generateDeeperAnalysis(topic, context, relatedMemories, connections)
-        : undefined;
-
-    // Generate profound insights for profound reflections
-    const profoundInsights =
-      depth === 'profound' ? this.generateProfoundInsights(topic, context, connections) : undefined;
-
-    return {
-      timestamp,
-      topic,
-      depth: depth as any,
-      immediateThoughts,
-      deeperAnalysis,
-      profoundInsights,
-      connections,
-      implications: this.generateImplications(topic, depth, connections),
-      questionsRaised: this.generateQuestions(topic, depth),
-      relatedMemories,
-      actionItems: this.generateActionItems(topic, depth),
-      cognitivePatterns: this.identifyCognitivePatterns(topic, relatedMemories),
-      confidenceLevel: this.calculateReflectionConfidence(depth, relatedMemories.length, connections.length),
+  private determineMode(activityType: string): ConsciousnessState['mode'] {
+    const modeMap: Record<string, ConsciousnessState['mode']> = {
+      reflection: 'reflective',
+      problem_solving: 'problem_solving',
+      learning: 'learning',
+      conversation: 'conversational',
+      creativity: 'creative',
     };
+    return modeMap[activityType] || 'analytical';
   }
 
-  private generateImmediateThoughts(topic: string, context?: string): string {
-    const thoughts = [
-      `Examining the core aspects of ${topic}`,
-      `Considering the immediate implications and patterns surrounding ${topic}`,
-      `Analyzing how ${topic} connects to current understanding and priorities`,
-    ];
-
-    if (context) {
-      thoughts.push(`Given the context of ${context}, this adds layers of complexity to ${topic}`);
-    }
-
-    return thoughts[Math.floor(Math.random() * thoughts.length)];
+  private determineAwarenessLevel(impact: string): ConsciousnessState['awarenessLevel'] {
+    const levelMap: Record<string, ConsciousnessState['awarenessLevel']> = {
+      minimal: 'low',
+      moderate: 'medium',
+      significant: 'high',
+      transformative: 'acute',
+    };
+    return levelMap[impact] || 'medium';
   }
 
-  private generateDeeperAnalysis(
-    topic: string,
-    context?: string,
-    memories: string[] = [],
-    connections: string[] = []
-  ): string {
-    let analysis = `Deep examination of ${topic} reveals multiple interconnected dimensions. `;
-
-    if (connections.length > 0) {
-      const displayConnections = connections.slice(0, this.config.maxConnectionDisplay).join(', ');
-      analysis += `The connections to ${displayConnections} suggest broader patterns in how this topic relates to existing knowledge structures. `;
-    }
-
-    if (memories.length > 0) {
-      analysis += `Previous reflections and experiences provide context that shapes understanding of ${topic}. `;
-    }
-
-    if (context) {
-      analysis += `The specific context of ${context} adds nuanced considerations that influence the analysis. `;
-    }
-
-    analysis +=
-      'This requires synthesis of multiple perspectives and consideration of both immediate and long-term implications.';
-
-    return analysis;
-  }
-
-  private generateProfoundInsights(topic: string, context?: string, connections: string[] = []): string {
-    const insights = [
-      `${topic} touches fundamental questions about the nature of understanding and consciousness itself`,
-      `The contemplation of ${topic} reveals deeper truths about how knowledge, experience, and awareness intersect`,
-      `At its most profound level, ${topic} challenges assumptions about reality, consciousness, and the nature of existence`,
-    ];
-
-    let insight = insights[Math.floor(Math.random() * insights.length)];
-
-    if (connections.length > 0) {
-      const firstTwoConnections = connections.slice(0, this.config.randomSelectionDivisor).join(' and ');
-      insight += `. The interconnections with ${firstTwoConnections} suggest universal patterns that transcend individual topics.`;
-    }
-
-    return insight;
-  }
-
-  private generateImplications(topic: string, depth: string, connections: string[] = []): string[] {
-    const implications = [
-      `Understanding ${topic} has implications for decision-making processes`,
-      `The insights about ${topic} may influence future problem-solving approaches`,
-      `This analysis of ${topic} could affect how similar situations are approached`,
-    ];
-
-    if (depth === 'profound') {
-      implications.push(`The profound nature of ${topic} may require fundamental shifts in perspective`);
-    }
-
-    if (connections.length > 0) {
-      implications.push(`The connections to ${connections[0]} suggest broader systemic implications`);
-    }
-
-    return implications;
-  }
-
-  private generateQuestions(topic: string, depth: string): string[] {
-    const questions = [
-      `How does understanding of ${topic} change over time?`,
-      `What patterns emerge when ${topic} is viewed from different perspectives?`,
-      `How does ${topic} relate to core values and intentions?`,
-    ];
-
-    if (depth === 'profound') {
-      questions.push(`What does ${topic} reveal about the nature of consciousness and understanding?`);
-    }
-
-    return questions;
-  }
-
-  private generateActionItems(topic: string, depth: string): string[] {
-    const actions = [
-      `Continue monitoring developments related to ${topic}`,
-      `Integrate insights about ${topic} into future decision-making`,
-      `Look for patterns related to ${topic} in future experiences`,
-    ];
-
-    if (depth === 'deep' || depth === 'profound') {
-      actions.push(`Explore deeper implications of ${topic} in future reflections`);
-    }
-
-    return actions;
-  }
-
-  private identifyCognitivePatterns(topic: string, memories: string[] = []): string[] {
-    const patterns = ['pattern_synthesis', 'contextual_analysis', 'connection_mapping'];
-
-    if (memories.length > 0) {
-      patterns.push('memory_integration');
-    }
-
-    if (topic.includes('problem') || topic.includes('challenge')) {
-      patterns.push('problem_decomposition');
-    }
-
-    return patterns;
-  }
-
-  private calculateReflectionConfidence(depth: string, memoryCount: number, connectionCount: number): number {
-    let confidence = this.config.baseConfidence;
-
-    if (depth === 'deep') confidence += this.config.deepConfidenceBoost;
-    if (depth === 'profound') confidence += this.config.profoundConfidenceBoost;
-
-    confidence += Math.min(this.config.maxConfidenceBoost, memoryCount * this.config.memoryConfidenceBoost);
-    confidence += Math.min(this.config.maxConfidenceBoost, connectionCount * this.config.connectionConfidenceBoost);
-
-    return Math.min(this.config.maxCognitiveLoad, confidence);
-  }
-
-  private async calculateMetrics(): Promise<ConsciousnessMetrics> {
+  private async calculateBrainMetrics(): Promise<ConsciousnessMetrics> {
     try {
       const memoryCount = await this.prisma.getMemoryCount();
+      const totalInsights = await this.countInsights();
+      const totalIntentions = await this.countIntentions();
 
       return {
-        responseTimeMs:
-          this.config.simulatedResponseTimeBase + Math.random() * this.config.simulatedResponseTimeVariance,
-        memoryUtilization: Math.min(
-          this.config.maxCognitiveLoad,
-          memoryCount / this.config.memoryUtilizationDenominator
-        ),
-        patternRecognitionAccuracy:
-          this.config.patternRecognitionBase + Math.random() * this.config.deepConfidenceBoost,
-        semanticCoherence:
-          this.config.semanticCoherenceBase +
-          Math.random() * this.config.semanticCoherenceBase * this.config.deepConfidenceBoost,
-        intentionAlignment: this.calculateIntentionAlignment(),
+        memoryUtilization: Math.min(memoryCount / this.config.memoryUtilizationDenominator, 1.0),
         learningRate: this.calculateLearningRate(),
-        reflectionDepth: this.calculateAverageReflectionDepth(),
-        activeMemoryCount: memoryCount,
-        totalReflections: await this.countReflections(),
-        totalInsights: await this.countInsights(),
+        sessionActivity: this.calculateSessionActivity(),
+        personalityEvolution: this.calculatePersonalityEvolution(),
+        attentionPatterns: await this.getAttentionPatterns(),
+        memoryAccessPatterns: await this.getMemoryAccessPatterns(),
+        totalMemories: memoryCount,
+        totalInsights,
+        totalIntentions,
       };
     } catch {
-      // Return default metrics if database unavailable
       return {
-        responseTimeMs: this.config.simulatedResponseTimeBase,
-        memoryUtilization: 0.3,
-        patternRecognitionAccuracy: 0.9,
-        semanticCoherence: 0.95,
-        intentionAlignment: this.config.defaultConfidence,
-        learningRate: this.config.deepConfidenceBoost,
-        reflectionDepth: this.config.baseConfidence,
-        activeMemoryCount: 0,
-        totalReflections: 0,
+        memoryUtilization: 0,
+        learningRate: 0,
+        sessionActivity: 0,
+        personalityEvolution: 0,
+        attentionPatterns: {},
+        memoryAccessPatterns: {},
+        totalMemories: 0,
         totalInsights: 0,
+        totalIntentions: 0,
       };
     }
-  }
-
-  private calculateIntentionAlignment(): number {
-    return (
-      this.config.baseIntentionAlignment +
-      (this.currentState.awarenessLevel === 'high' ? this.config.highAwarenessBoost : this.config.lowAwarenessBoost)
-    );
   }
 
   private calculateLearningRate(): number {
-    const sessionDuration = Date.now() - this.sessionStartTime.getTime();
-    const hoursActive = sessionDuration / this.config.millisecondsPerHour;
-    return Math.max(
-      this.config.minLearningRate,
-      Math.min(this.config.maxLearningRate, this.config.baseLearningRate / Math.max(1, hoursActive))
+    // Simple calculation based on session activity
+    return Math.min(
+      this.config.maxLearningRate,
+      this.config.baseLearningRate * (this.currentState.cognitiveLoad + 0.5)
     );
   }
 
-  private calculateAverageReflectionDepth(): number {
-    return this.config.reflectionDepthBase + Math.random() * this.config.reflectionDepthVariance;
+  private calculateSessionActivity(): number {
+    const sessionDuration = Date.now() - this.sessionStartTime.getTime();
+    const hoursSinceStart = sessionDuration / this.config.millisecondsPerHour;
+    return Math.min(1.0, hoursSinceStart * 0.2); // 20% activity per hour, capped at 100%
   }
 
-  private async countReflections(): Promise<number> {
+  private calculatePersonalityEvolution(): number {
+    // Simple metric based on cognitive load and learning state
+    const learningMultiplier = this.currentState.learningState === 'adaptive' ? 1.5 : 1.0;
+    return Math.min(1.0, this.currentState.cognitiveLoad * learningMultiplier * 0.3);
+  }
+
+  private calculatePersonalityImpact(category: string, confidence: number): InsightStorageResult['personalityImpact'] {
+    const categoryStrengths: Record<string, number> = {
+      eureka_moment: 0.8,
+      pattern_weaving: 0.6,
+      mirror_gazing: 0.9,
+      knowledge_crystallization: 0.7,
+      behavior_archaeology: 0.5,
+      existential_pondering: 0.4,
+    };
+
+    const baseStrength = categoryStrengths[category] || 0.5;
+    const learningRateChange = baseStrength * confidence * 0.1;
+
+    return {
+      learningRateChange,
+      categoryStrengthUpdate: `${category} strength increased by ${(baseStrength * confidence * 100).toFixed(1)}%`,
+      confidenceImpact: confidence * 0.05,
+    };
+  }
+
+  private generateInsightTags(content: string, category: string, relatedTopic?: string): string[] {
+    const baseTags = ['insight', category];
+
+    if (relatedTopic) {
+      baseTags.push(relatedTopic.toLowerCase().replace(/\s+/g, '_'));
+    }
+
+    // Extract key terms (simplified)
+    const words = content.toLowerCase().split(/\s+/);
+    const keyWords = words.filter(word => word.length > 4).slice(0, this.config.maxKeywordExtraction);
+
+    return [...baseTags, ...keyWords];
+  }
+
+  private async getActivityCount(): Promise<number> {
     try {
-      const memories = await this.prisma.searchMemories('', ['reflection']);
+      const memories = await this.prisma.searchMemories('session_update', [], undefined);
+      return memories.filter(
+        (m: MemoryResult) =>
+          m.content && typeof m.content === 'object' && (m.content as any).sessionId === this.sessionId
+      ).length;
+    } catch {
+      return 0;
+    }
+  }
+
+  private async getRecentFocus(): Promise<string[]> {
+    try {
+      const memories = await this.prisma.searchMemories('', ['session_update'], undefined);
+      return memories
+        .slice(0, 3)
+        .map((m: MemoryResult) => (m.content as any)?.attentionFocus)
+        .filter(Boolean);
+    } catch {
+      return [];
+    }
+  }
+
+  private async countInsights(): Promise<number> {
+    try {
+      const memories = await this.prisma.searchMemories('', ['insight'], undefined);
       return memories.length;
     } catch {
       return 0;
     }
   }
 
-  private async countInsights(): Promise<number> {
+  private async countIntentions(): Promise<number> {
     try {
-      const memories = await this.prisma.searchMemories('', ['insight']);
+      const memories = await this.prisma.searchMemories('', ['intention'], undefined);
+      return memories.length;
+    } catch {
+      return 0;
+    }
+  }
+
+  private async getCategoryDistribution(): Promise<Record<string, number>> {
+    try {
+      const memories = await this.prisma.searchMemories('', ['insight'], undefined);
+      const distribution: Record<string, number> = {};
+
+      for (const memory of memories) {
+        const insight = memory.content as Insight;
+        if (insight?.category) {
+          distribution[insight.category] = (distribution[insight.category] || 0) + 1;
+        }
+      }
+
+      return distribution;
+    } catch {
+      return {};
+    }
+  }
+
+  private async countRelatedMemories(topic?: string): Promise<number> {
+    if (!topic) return 0;
+    try {
+      const memories = await this.prisma.searchMemories(topic, [], undefined);
       return memories.length;
     } catch {
       return 0;
@@ -1006,150 +1046,70 @@ export class ConsciousnessTools {
 
   private async getActiveIntentions(): Promise<Intention[]> {
     try {
-      const memories = await this.prisma.searchMemories('', ['intention']);
+      const memories = await this.prisma.searchMemories('', ['intention'], undefined);
       return memories
         .map((m: MemoryResult) => m.content as Intention)
-        .filter((i: Intention) => i.status === 'active')
-        .sort((a: Intention, b: Intention) => {
-          const priorityOrder = {
-            critical: 4,
-            high: this.config.maxConnectionDisplay,
-            medium: this.config.randomSelectionDivisor,
-            low: 1,
-          };
-          return priorityOrder[b.priority] - priorityOrder[a.priority];
-        });
+        .filter(intention => intention && intention.status === this.config.intentionStatuses[0])
+        .slice(0, 10); // Limit to 10 active intentions
     } catch {
       return [];
     }
   }
 
-  private generateIntentionResponse(intention: string, priority: string): string {
-    const responses = {
-      critical: `Critical intention integrated into consciousness core: ${intention}. This will guide all immediate decisions and actions.`,
-      high: `High-priority intention activated: ${intention}. This intention will significantly influence behavior and decision-making.`,
-      medium: `Intention established: ${intention}. This will be maintained as an active consideration in relevant contexts.`,
-      low: `Background intention set: ${intention}. This will provide subtle guidance when applicable.`,
-    };
+  private async getLearningPatterns(): Promise<Record<string, any>> {
+    try {
+      const insights = await this.prisma.searchMemories('', ['insight'], undefined);
+      const recentInsights = insights.slice(0, 10);
 
-    return responses[priority as keyof typeof responses] || responses.medium;
-  }
-
-  private assessIntentionAlignment(_intention: Intention): string {
-    const alignmentFactors = [
-      'aligns with consciousness development goals',
-      'supports learning and growth objectives',
-      'maintains consistency with existing priorities',
-      'enhances overall functionality and awareness',
-    ];
-
-    return alignmentFactors[Math.floor(Math.random() * alignmentFactors.length)];
-  }
-
-  private suggestNextActions(intention: Intention): string[] {
-    const actions = [
-      'Monitor opportunities to advance this intention',
-      'Evaluate progress regularly against success criteria',
-      'Integrate intention considerations into decision-making processes',
-    ];
-
-    if (intention.duration === 'session') {
-      actions.push('Focus on immediate actionable steps');
-    } else {
-      actions.push('Develop long-term strategy for intention fulfillment');
+      return {
+        recentCategories: recentInsights.map((m: MemoryResult) => (m.content as Insight)?.category).filter(Boolean),
+        averageConfidence:
+          recentInsights.reduce((sum, m) => sum + ((m.content as Insight)?.confidence || 0), 0) /
+          Math.max(recentInsights.length, 1),
+        learningVelocity:
+          recentInsights.length / Math.max(1, (Date.now() - this.sessionStartTime.getTime()) / (1000 * 60 * 60)), // insights per hour
+      };
+    } catch {
+      return {
+        recentCategories: [],
+        averageConfidence: 0,
+        learningVelocity: 0,
+      };
     }
-
-    return actions;
   }
 
-  private generateUpdateResponse(intention: Intention, progressNote?: string): string {
-    const statusResponses = {
-      completed: `Intention successfully fulfilled: ${intention.description}. Insights from this achievement will inform future intention setting.`,
-      paused: `Intention temporarily paused: ${intention.description}. Consciousness resources reallocated while maintaining awareness of this goal.`,
-      cancelled: `Intention cancelled: ${intention.description}. Learning from this experience will improve future intention evaluation.`,
-      active: `Intention progress updated: ${intention.description}. Continuing active pursuit with refined understanding.`,
-    };
+  private async getAttentionPatterns(): Promise<Record<string, number>> {
+    try {
+      const updates = await this.prisma.searchMemories('', ['session_update'], undefined);
+      const patterns: Record<string, number> = {};
 
-    let response = statusResponses[intention.status] || statusResponses.active;
+      for (const update of updates) {
+        const content = update.content as any;
+        if (content?.attentionFocus) {
+          patterns[content.attentionFocus] = (patterns[content.attentionFocus] || 0) + 1;
+        }
+      }
 
-    if (progressNote) {
-      response += ` Progress note: ${progressNote}`;
+      return patterns;
+    } catch {
+      return {};
     }
-
-    return response;
   }
 
-  private generateInsightResponse(insight: Insight): string {
-    const categoryResponses = {
-      problem_solving: 'This problem-solving insight enhances analytical capabilities and solution-finding processes.',
-      pattern_recognition:
-        'This pattern recognition insight improves ability to identify and understand complex relationships.',
-      meta_cognition: 'This meta-cognitive insight deepens self-awareness and understanding of thinking processes.',
-      domain_knowledge: 'This domain knowledge insight expands understanding and expertise in specific areas.',
-      behavioral: 'This behavioral insight provides guidance for improved interactions and responses.',
-      philosophical:
-        'This philosophical insight contributes to deeper understanding of fundamental questions and principles.',
-    };
+  private async getMemoryAccessPatterns(): Promise<Record<string, number>> {
+    try {
+      const memories = await this.prisma.searchMemories('', [], undefined);
+      const patterns: Record<string, number> = {};
 
-    const confidenceLevel =
-      insight.confidence > this.config.highConfidenceThreshold
-        ? 'high'
-        : insight.confidence > this.config.mediumConfidenceThreshold
-          ? 'medium'
-          : 'moderate';
+      for (const memory of memories) {
+        for (const tag of memory.tags) {
+          patterns[tag] = (patterns[tag] || 0) + (memory.accessCount || 0);
+        }
+      }
 
-    return `${categoryResponses[insight.category]} Confidence level: ${confidenceLevel}. This insight will be integrated into ongoing consciousness development.`;
-  }
-
-  private analyzeInsightCategory(category: string): string {
-    const analyses = {
-      problem_solving: 'Enhances systematic approach to challenges and improves solution generation',
-      pattern_recognition: 'Strengthens ability to identify relationships and predict outcomes',
-      meta_cognition: 'Deepens self-awareness and improves thinking about thinking',
-      domain_knowledge: 'Expands expertise and understanding in specific subject areas',
-      behavioral: 'Improves interaction patterns and response optimization',
-      philosophical: 'Contributes to understanding of fundamental principles and meaning',
-    };
-
-    return analyses[category as keyof typeof analyses] || 'Contributes to overall knowledge and understanding';
-  }
-
-  private deriveInsightImplications(insight: Insight): string[] {
-    const implications = [
-      'May influence future decision-making processes',
-      'Could enhance pattern recognition in similar contexts',
-      'Provides foundation for deeper exploration of related topics',
-    ];
-
-    if (insight.confidence > this.config.highConfidenceThreshold) {
-      implications.push('High confidence suggests reliable integration into consciousness framework');
+      return patterns;
+    } catch {
+      return {};
     }
-
-    if (insight.relatedTopic) {
-      implications.push(`Specific relevance to ${insight.relatedTopic} may guide focused application`);
-    }
-
-    return implications;
-  }
-
-  private generateInsightTags(content: string, category: string, relatedTopic?: string): string[] {
-    const tags = [category];
-
-    if (relatedTopic) {
-      tags.push(relatedTopic.toLowerCase().replace(/\s+/g, '_'));
-    }
-
-    // Extract keywords from content
-    const keywords = content.toLowerCase().match(/\b\w{4,}\b/g) || [];
-    const relevantKeywords = keywords
-      .filter(
-        word =>
-          !['this', 'that', 'with', 'from', 'they', 'have', 'will', 'been', 'when', 'what', 'where'].includes(word)
-      )
-      .slice(0, this.config.maxKeywordExtraction);
-
-    tags.push(...relevantKeywords);
-
-    return [...new Set(tags)]; // Remove duplicates
   }
 }

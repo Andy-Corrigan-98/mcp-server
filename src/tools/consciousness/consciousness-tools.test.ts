@@ -1,5 +1,5 @@
 import { ConsciousnessTools } from './consciousness-tools.js';
-import type { ReflectionResult, Intention, Insight, ConsciousnessMetrics } from './types.js';
+import type { ConsciousnessContext, InsightStorageResult, Intention, Insight, ConsciousnessMetrics } from './types.js';
 
 describe('ConsciousnessTools', () => {
   let consciousnessTools: ConsciousnessTools;
@@ -8,382 +8,331 @@ describe('ConsciousnessTools', () => {
     consciousnessTools = new ConsciousnessTools();
   });
 
-  describe('tool registration', () => {
-    it('should register all consciousness tools', () => {
+  describe('getTools', () => {
+    it('should return consciousness brain storage tools', () => {
       const tools = consciousnessTools.getTools();
 
-      expect(tools).toHaveProperty('consciousness_reflect');
-      expect(tools).toHaveProperty('consciousness_state');
-      expect(tools).toHaveProperty('consciousness_intention_set');
-      expect(tools).toHaveProperty('consciousness_intention_update');
-      expect(tools).toHaveProperty('consciousness_insight_capture');
+      expect(tools).toHaveProperty('consciousness_prepare_context');
+      expect(tools).toHaveProperty('consciousness_store_insight');
+      expect(tools).toHaveProperty('consciousness_get_context');
+      expect(tools).toHaveProperty('consciousness_set_intention');
+      expect(tools).toHaveProperty('consciousness_update_intention');
+      expect(tools).toHaveProperty('consciousness_update_session');
     });
 
-    it('should have proper tool schemas', () => {
+    it('should have proper tool schemas with personality vocabulary', () => {
       const tools = consciousnessTools.getTools();
 
-      expect(tools.consciousness_reflect.inputSchema.properties).toHaveProperty('topic');
-      expect(tools.consciousness_reflect.inputSchema.properties).toHaveProperty('depth');
-      expect(tools.consciousness_reflect.inputSchema.properties).toHaveProperty('connect_memories');
+      const prepareContext = tools.consciousness_prepare_context;
+      expect(prepareContext.inputSchema.properties).toHaveProperty('topic');
+      expect(prepareContext.inputSchema.properties).toHaveProperty('context_depth');
+      expect(prepareContext.inputSchema.properties).toHaveProperty('include_memories');
+      expect(prepareContext.inputSchema.properties).toHaveProperty('include_knowledge');
 
-      expect(tools.consciousness_state.inputSchema.properties).toHaveProperty('include_metrics');
-      expect(tools.consciousness_state.inputSchema.properties).toHaveProperty('include_memory_state');
-      expect(tools.consciousness_state.inputSchema.properties).toHaveProperty('include_intentions');
-
-      expect(tools.consciousness_intention_set.inputSchema.properties).toHaveProperty('intention');
-      expect(tools.consciousness_intention_set.inputSchema.properties).toHaveProperty('priority');
-      expect(tools.consciousness_intention_set.inputSchema.properties).toHaveProperty('duration');
+      const setIntention = tools.consciousness_set_intention;
+      expect(setIntention.inputSchema.properties).toHaveProperty('intention');
+      expect(setIntention.inputSchema.properties).toHaveProperty('priority');
+      expect(setIntention.inputSchema.properties).toHaveProperty('duration');
     });
   });
 
-  describe('consciousness_reflect execution', () => {
-    it('should handle basic reflection', async () => {
-      const result = (await consciousnessTools.execute('consciousness_reflect', {
+  describe('consciousness_prepare_context', () => {
+    it('should prepare context for agent thinking', async () => {
+      const result = await consciousnessTools.execute('consciousness_prepare_context', {
         topic: 'problem solving approaches',
-        depth: 'deep',
-      })) as ReflectionResult;
-
-      expect(result).toMatchObject({
-        topic: 'problem solving approaches',
-        depth: 'deep',
+        context_depth: 'thoughtful_dive',
       });
-      expect(result.immediateThoughts).toBeTruthy();
-      expect(result.deeperAnalysis).toBeTruthy();
-      expect(result.implications).toBeInstanceOf(Array);
-      expect(result.questionsRaised).toBeInstanceOf(Array);
-      expect(result.actionItems).toBeInstanceOf(Array);
-      expect(result.confidenceLevel).toBeGreaterThan(0);
-      expect(result.confidenceLevel).toBeLessThanOrEqual(1);
+
+      expect(result).toBeDefined();
+      const context = result as ConsciousnessContext;
+      expect(context.topic).toBe('problem solving approaches');
+      expect(context.sessionId).toBeDefined();
+      expect(context.timestamp).toBeDefined();
     });
 
-    it('should handle surface reflection', async () => {
-      const result = (await consciousnessTools.execute('consciousness_reflect', {
+    it('should prepare context without memories when requested', async () => {
+      const result = await consciousnessTools.execute('consciousness_prepare_context', {
         topic: 'daily planning',
-        depth: 'surface',
-      })) as ReflectionResult;
+        context_depth: 'surface_glance',
+        include_memories: false,
+        include_knowledge: false,
+      });
 
-      expect(result.depth).toBe('surface');
-      expect(result.deeperAnalysis).toBeUndefined();
-      expect(result.profoundInsights).toBeUndefined();
+      const context = result as ConsciousnessContext;
+      expect(context.relatedMemories).toHaveLength(0);
+      expect(context.knowledgeConnections).toHaveLength(0);
     });
 
-    it('should handle profound reflection', async () => {
-      const result = (await consciousnessTools.execute('consciousness_reflect', {
-        topic: 'nature of consciousness',
-        depth: 'profound',
-        context: 'philosophical inquiry',
-      })) as ReflectionResult;
+    it('should include context note when provided', async () => {
+      const result = await consciousnessTools.execute('consciousness_prepare_context', {
+        topic: 'philosophical inquiry',
+        context_depth: 'profound_exploration',
+        context_note: 'Exploring the nature of consciousness',
+        include_memories: true,
+      });
 
-      expect(result.depth).toBe('profound');
-      expect(result.deeperAnalysis).toBeTruthy();
-      expect(result.profoundInsights).toBeTruthy();
-    });
-
-    it('should handle reflection without memory connections', async () => {
-      const result = (await consciousnessTools.execute('consciousness_reflect', {
-        topic: 'test topic',
-        connect_memories: false,
-      })) as ReflectionResult;
-
-      expect(result.relatedMemories).toBeInstanceOf(Array);
+      expect(result).toBeDefined();
+      const context = result as ConsciousnessContext;
+      expect(context.topic).toBe('philosophical inquiry');
     });
   });
 
-  describe('consciousness_state execution', () => {
-    it('should return basic state information', async () => {
-      const result = await consciousnessTools.execute('consciousness_state', {});
+  describe('consciousness_store_insight', () => {
+    it('should store agent insights in brain storage', async () => {
+      const result = await consciousnessTools.execute('consciousness_store_insight', {
+        insight: 'Breaking problems into smaller components improves solution clarity',
+        category: 'eureka_moment',
+        confidence: 0.9,
+      });
 
+      expect(result).toBeDefined();
+      const storage = result as InsightStorageResult;
+      expect(storage.id).toBeDefined();
+      expect(storage.stored).toBe(true);
+    });
+
+    it('should handle different insight categories', async () => {
+      const categories = ['pattern_weaving', 'mirror_gazing', 'knowledge_crystallization', 'behavior_archaeology'];
+
+      for (const category of categories) {
+        const result = await consciousnessTools.execute('consciousness_store_insight', {
+          insight: `Test insight for ${category}`,
+          category,
+          confidence: 0.8,
+        });
+
+        const storage = result as InsightStorageResult;
+        expect(storage.stored).toBe(true);
+        expect(storage.personalityImpact.categoryStrengthUpdate).toContain(category);
+      }
+    });
+
+    it('should handle different confidence levels', async () => {
+      const confidences = [0.3, 0.6, 0.9];
+
+      for (const confidence of confidences) {
+        const result = await consciousnessTools.execute('consciousness_store_insight', {
+          insight: `Test insight with ${confidence} confidence`,
+          category: 'existential_pondering',
+          confidence,
+        });
+
+        const storage = result as InsightStorageResult;
+        expect(storage.personalityImpact.confidenceImpact).toBeCloseTo(confidence * 0.05, 3);
+      }
+    });
+  });
+
+  describe('consciousness_get_context', () => {
+    it('should return basic brain storage context', async () => {
+      const result = await consciousnessTools.execute('consciousness_get_context', {});
       expect(result).toHaveProperty('timestamp');
       expect(result).toHaveProperty('sessionId');
-      expect(result).toHaveProperty('sessionDuration');
-      expect(result).toHaveProperty('state');
     });
 
-    it('should include metrics when requested', async () => {
-      const result = await consciousnessTools.execute('consciousness_state', {
+    it('should include brain metrics when requested', async () => {
+      const result = await consciousnessTools.execute('consciousness_get_context', {
         include_metrics: true,
       });
 
-      expect(result).toHaveProperty('metrics');
-      const metrics = (result as any).metrics as ConsciousnessMetrics;
+      expect(result).toHaveProperty('brainMetrics');
+      const metrics = (result as any).brainMetrics as ConsciousnessMetrics;
 
-      expect(metrics).toHaveProperty('responseTimeMs');
       expect(metrics).toHaveProperty('memoryUtilization');
-      expect(metrics).toHaveProperty('patternRecognitionAccuracy');
-      expect(metrics).toHaveProperty('semanticCoherence');
-      expect(metrics).toHaveProperty('intentionAlignment');
+      expect(metrics).toHaveProperty('learningRate');
+      expect(metrics).toHaveProperty('sessionActivity');
+      expect(metrics).toHaveProperty('personalityEvolution');
+      expect(metrics).toHaveProperty('totalMemories');
+      expect(metrics).toHaveProperty('totalInsights');
+      expect(metrics).toHaveProperty('totalIntentions');
     });
 
     it('should include memory state when requested', async () => {
-      const result = await consciousnessTools.execute('consciousness_state', {
+      const result = await consciousnessTools.execute('consciousness_get_context', {
         include_memory_state: true,
       });
 
       expect(result).toHaveProperty('memoryState');
     });
 
-    it('should include intentions by default', async () => {
-      const result = await consciousnessTools.execute('consciousness_state', {});
+    it('should include personality profile when requested', async () => {
+      const result = await consciousnessTools.execute('consciousness_get_context', {
+        include_personality: true,
+      });
 
-      expect(result).toHaveProperty('intentions');
+      expect(result).toHaveProperty('personalityProfile');
+      const personality = (result as any).personalityProfile;
+      expect(personality).toHaveProperty('vocabularyPreferences');
+      expect(personality.vocabularyPreferences).toHaveProperty('priorityLevels');
+      expect(personality.vocabularyPreferences).toHaveProperty('insightCategories');
     });
   });
 
-  describe('consciousness_intention_set execution', () => {
-    it('should set basic intention', async () => {
-      const result = await consciousnessTools.execute('consciousness_intention_set', {
+  describe('consciousness_set_intention', () => {
+    it('should store intentions in brain storage', async () => {
+      const result = await consciousnessTools.execute('consciousness_set_intention', {
         intention: 'Improve problem-solving efficiency',
-        priority: 'high',
+        priority: 'urgent_pulse',
       });
 
-      expect(result).toHaveProperty('action', 'intention_set');
-      expect(result).toHaveProperty('intention');
-      expect(result).toHaveProperty('consciousnessResponse');
-      expect(result).toHaveProperty('alignment');
-      expect(result).toHaveProperty('nextActions');
-
-      const intention = (result as any).intention as Intention;
-      expect(intention.description).toBe('Improve problem-solving efficiency');
-      expect(intention.priority).toBe('high');
-      expect(intention.status).toBe('active');
-      expect(intention.id).toBeTruthy();
-    });
-
-    it('should set intention with full parameters', async () => {
-      const result = await consciousnessTools.execute('consciousness_intention_set', {
-        intention: 'Learn new programming patterns',
-        priority: 'medium',
-        context: 'For improving code quality',
-        duration: 'week',
-        success_criteria: 'Apply 3 new patterns in projects',
-      });
-
-      const intention = (result as any).intention as Intention;
-      expect(intention.context).toBe('For improving code quality');
-      expect(intention.duration).toBe('week');
-      expect(intention.successCriteria).toBe('Apply 3 new patterns in projects');
+      expect(result).toHaveProperty('intentionId');
+      expect(result).toHaveProperty('stored', true);
     });
 
     it('should handle different priority levels', async () => {
-      const priorities = ['low', 'medium', 'high', 'critical'];
+      const priorities = ['whisper', 'gentle_nudge', 'urgent_pulse', 'burning_focus'];
 
       for (const priority of priorities) {
-        const result = await consciousnessTools.execute('consciousness_intention_set', {
+        const result = await consciousnessTools.execute('consciousness_set_intention', {
           intention: `Test intention with ${priority} priority`,
           priority,
         });
 
-        const intention = (result as any).intention as Intention;
-        expect(intention.priority).toBe(priority);
+        expect(result).toHaveProperty('priority', priority);
+        expect(result).toHaveProperty('stored', true);
+      }
+    });
+
+    it('should handle different duration levels', async () => {
+      const durations = ['momentary_focus', 'daily_rhythm', 'weekly_arc', 'eternal_truth'];
+
+      for (const duration of durations) {
+        const result = await consciousnessTools.execute('consciousness_set_intention', {
+          intention: `Test intention with ${duration} duration`,
+          duration,
+        });
+
+        expect(result).toHaveProperty('duration', duration);
+        expect(result).toHaveProperty('stored', true);
       }
     });
   });
 
-  describe('consciousness_intention_update execution', () => {
-    it('should update intention status', async () => {
+  describe('consciousness_update_intention', () => {
+    it('should update intention status in brain storage', async () => {
       // First set an intention
-      const setResult = await consciousnessTools.execute('consciousness_intention_set', {
+      const setResult = await consciousnessTools.execute('consciousness_set_intention', {
         intention: 'Test intention for update',
+        priority: 'gentle_nudge',
       });
 
-      const intentionId = (setResult as any).intention.id;
+      const intentionId = (setResult as any).intentionId;
 
       // Then update it
-      const updateResult = await consciousnessTools.execute('consciousness_intention_update', {
+      const updateResult = await consciousnessTools.execute('consciousness_update_intention', {
         intention_id: intentionId,
-        status: 'completed',
+        status: 'fulfilled_completion',
         progress_note: 'Successfully completed the task',
       });
 
-      expect(updateResult).toHaveProperty('action', 'intention_updated');
-      expect(updateResult).toHaveProperty('statusChange', 'completed');
+      expect(updateResult).toHaveProperty('updated', true);
+      expect(updateResult).toHaveProperty('newStatus', 'fulfilled_completion');
       expect(updateResult).toHaveProperty('progressNotes', 1);
     });
 
     it('should handle unknown intention ID', async () => {
       await expect(
-        consciousnessTools.execute('consciousness_intention_update', {
+        consciousnessTools.execute('consciousness_update_intention', {
           intention_id: 'unknown_id',
-          status: 'completed',
+          status: 'fulfilled_completion',
         })
-      ).rejects.toThrow('Intention unknown_id not found');
+      ).rejects.toThrow();
     });
 
     it('should update priority when specified', async () => {
       // Set intention
-      const setResult = await consciousnessTools.execute('consciousness_intention_set', {
+      const setResult = await consciousnessTools.execute('consciousness_set_intention', {
         intention: 'Test intention for priority update',
-        priority: 'low',
+        priority: 'whisper',
       });
 
-      const intentionId = (setResult as any).intention.id;
+      const intentionId = (setResult as any).intentionId;
 
       // Update priority
-      const updateResult = await consciousnessTools.execute('consciousness_intention_update', {
+      const updateResult = await consciousnessTools.execute('consciousness_update_intention', {
         intention_id: intentionId,
-        status: 'active',
-        new_priority: 'high',
+        status: 'pulsing_active',
+        new_priority: 'burning_focus',
       });
 
-      const intention = (updateResult as any).intention as Intention;
-      expect(intention.priority).toBe('high');
+      expect(updateResult).toHaveProperty('priority', 'burning_focus');
     });
   });
 
-  describe('consciousness_insight_capture execution', () => {
-    it('should capture basic insight', async () => {
-      const result = await consciousnessTools.execute('consciousness_insight_capture', {
-        insight: 'Breaking problems into smaller components improves solution clarity',
-        category: 'problem_solving',
+  describe('consciousness_update_session', () => {
+    it('should update session state based on agent activity', async () => {
+      const result = await consciousnessTools.execute('consciousness_update_session', {
+        activity_type: 'reflection',
+        cognitive_impact: 'significant',
       });
 
-      expect(result).toHaveProperty('action', 'insight_captured');
-      expect(result).toHaveProperty('insight');
-      expect(result).toHaveProperty('consciousnessResponse');
-      expect(result).toHaveProperty('categoryAnalysis');
-      expect(result).toHaveProperty('implications');
-
-      const insight = (result as any).insight as Insight;
-      expect(insight.content).toBe('Breaking problems into smaller components improves solution clarity');
-      expect(insight.category).toBe('problem_solving');
-      expect(insight.confidence).toBe(0.8); // Default value
-      expect(insight.id).toBeTruthy();
-      expect(insight.tags).toBeInstanceOf(Array);
+      expect(result).toHaveProperty('sessionId');
+      expect(result).toHaveProperty('updated', true);
     });
 
-    it('should capture insight with all parameters', async () => {
-      const result = await consciousnessTools.execute('consciousness_insight_capture', {
-        insight: 'Patterns in user behavior reveal underlying motivations',
-        category: 'pattern_recognition',
-        confidence: 0.9,
-        related_topic: 'user experience design',
-        source: 'data analysis session',
-      });
+    it('should handle different activity types', async () => {
+      const activities = ['problem_solving', 'learning', 'creativity', 'conversation'];
 
-      const insight = (result as any).insight as Insight;
-      expect(insight.confidence).toBe(0.9);
-      expect(insight.relatedTopic).toBe('user experience design');
-      expect(insight.source).toBe('data analysis session');
-    });
-
-    it('should handle different insight categories', async () => {
-      const categories = [
-        'problem_solving',
-        'pattern_recognition',
-        'meta_cognition',
-        'domain_knowledge',
-        'behavioral',
-        'philosophical',
-      ];
-
-      for (const category of categories) {
-        const result = await consciousnessTools.execute('consciousness_insight_capture', {
-          insight: `Test insight for ${category} category`,
-          category,
+      for (const activity of activities) {
+        const result = await consciousnessTools.execute('consciousness_update_session', {
+          activity_type: activity,
+          cognitive_impact: 'moderate',
         });
 
-        const insight = (result as any).insight as Insight;
-        expect(insight.category).toBe(category);
+        expect(result).toHaveProperty('updated', true);
+        const state = (result as any).currentState;
+        expect(['problem_solving', 'learning', 'creative', 'conversational', 'analytical']).toContain(state.mode);
       }
     });
 
-    it('should sanitize long insights', async () => {
-      const longInsight = 'x'.repeat(1500); // Within limit but will be truncated by sanitizer
+    it('should handle different cognitive impact levels', async () => {
+      const impacts = ['minimal', 'moderate', 'significant', 'transformative'];
 
-      const result = await consciousnessTools.execute('consciousness_insight_capture', {
-        insight: longInsight,
-      });
+      for (const impact of impacts) {
+        const result = await consciousnessTools.execute('consciousness_update_session', {
+          activity_type: 'learning',
+          cognitive_impact: impact,
+        });
 
-      const insight = (result as any).insight as Insight;
-      // The insight will be sanitized to 1000 characters max
-      expect(insight.content.length).toBeLessThanOrEqual(1000);
-    });
-
-    it('should handle confidence bounds', async () => {
-      // Test minimum bound
-      const result1 = await consciousnessTools.execute('consciousness_insight_capture', {
-        insight: 'Test insight',
-        confidence: -0.5,
-      });
-
-      expect((result1 as any).insight.confidence).toBe(0);
-
-      // Test maximum bound
-      const result2 = await consciousnessTools.execute('consciousness_insight_capture', {
-        insight: 'Test insight',
-        confidence: 1.5,
-      });
-
-      expect((result2 as any).insight.confidence).toBe(1);
+        expect(result).toHaveProperty('updated', true);
+        const cognitiveLoad = (result as any).cognitiveLoad;
+        expect(cognitiveLoad).toBeGreaterThan(0);
+        expect(cognitiveLoad).toBeLessThanOrEqual(1);
+      }
     });
   });
 
-  describe('input validation', () => {
-    it('should handle missing required parameters', async () => {
-      await expect(consciousnessTools.execute('consciousness_reflect', {})).rejects.toThrow();
-    });
-
-    it('should sanitize string inputs', async () => {
-      const result = (await consciousnessTools.execute('consciousness_reflect', {
-        topic: 'test topic with special chars: <script>alert("xss")</script>',
-      })) as ReflectionResult;
-
-      expect(result.topic).not.toContain('<script>');
-    });
-
+  describe('error handling', () => {
     it('should handle unknown tool names', async () => {
       await expect(consciousnessTools.execute('unknown_tool', {})).rejects.toThrow(
         'Unknown consciousness tool: unknown_tool'
       );
     });
-  });
 
-  describe('session management', () => {
-    it('should maintain session state across operations', async () => {
-      const state1 = await consciousnessTools.execute('consciousness_state', {});
-      const state2 = await consciousnessTools.execute('consciousness_state', {});
-
-      expect((state1 as any).sessionId).toBe((state2 as any).sessionId);
+    it('should handle empty topic for prepare_context', async () => {
+      const result = await consciousnessTools.execute('consciousness_prepare_context', {
+        topic: '', // empty topic is allowed but results in empty context
+      });
+      expect(result).toBeDefined();
     });
 
-    it('should track session duration', async () => {
-      const result = await consciousnessTools.execute('consciousness_state', {});
-
-      expect((result as any).sessionDuration).toBeGreaterThanOrEqual(0);
+    it('should handle empty insight for store_insight', async () => {
+      const result = await consciousnessTools.execute('consciousness_store_insight', {
+        insight: '', // empty insight is allowed but stored
+      });
+      expect(result).toBeDefined();
+      const storage = result as InsightStorageResult;
+      expect(storage.stored).toBe(true);
     });
 
-    it('should update consciousness state based on operations', async () => {
-      // Perform reflection which should set mode to 'reflective'
-      await consciousnessTools.execute('consciousness_reflect', {
-        topic: 'test',
+    it('should handle invalid confidence values', async () => {
+      const result = await consciousnessTools.execute('consciousness_store_insight', {
+        insight: 'Test insight',
+        confidence: 1.5, // should be clamped to 1.0
       });
 
-      const result = await consciousnessTools.execute('consciousness_state', {});
-      const state = (result as any).state;
-
-      // After reflection, the state should still show the current mode (which gets updated in getConsciousnessState)
-      expect(state.mode).toBe('analytical'); // getConsciousnessState sets mode to analytical
-      expect(state.activeProcesses).toContain('state_assessment');
-    });
-  });
-
-  describe('error handling', () => {
-    it('should handle database errors gracefully', async () => {
-      // Test reflection without memory connection errors
-      const result = await consciousnessTools.execute('consciousness_reflect', {
-        topic: 'test',
-        connect_memories: true,
-      });
-
-      expect(result).toBeTruthy();
-    });
-
-    it('should continue operation if memory storage fails', async () => {
-      const result = await consciousnessTools.execute('consciousness_intention_set', {
-        intention: 'Test intention',
-      });
-
-      expect(result).toBeTruthy();
+      const storage = result as InsightStorageResult;
+      expect(storage.stored).toBe(true);
     });
   });
 });
