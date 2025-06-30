@@ -38,7 +38,7 @@ This MCP server follows the **brain storage pattern**:
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
 - Docker and Docker Compose
 
 ### Configuration
