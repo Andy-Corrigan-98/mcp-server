@@ -1108,8 +1108,8 @@ export class SocialTools {
           id: link.interaction.id,
           type: link.interaction.interactionType,
           date: link.interaction.createdAt,
-          summary: link.interaction.summary
-        } : null
+          summary: link.interaction.summary ?? undefined
+        } : undefined
       }));
 
       // Generate insights about memory patterns
