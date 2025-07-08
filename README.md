@@ -23,6 +23,13 @@ This MCP server follows the **brain storage pattern**:
 - **Knowledge Graph**: Relational knowledge structures with entity relationships
 - **Search & Retrieval**: Semantic search with relevance scoring
 
+### 🤝 **Social Consciousness System**
+- **Relationship Tracking**: Multi-dimensional relationship dynamics (trust, familiarity, affinity)
+- **Emotional Intelligence**: Emotional state tracking and pattern recognition
+- **Social Learning**: Insights about communication, collaboration, and social dynamics
+- **Interaction History**: Rich context preservation for social experiences
+- **Memory-Social Integration**: Connect memories with relationships and shared experiences
+
 ### ⚙️ **Adaptive Configuration**
 - **84+ Parameters**: Database-driven configuration system
 - **Personality Vocabulary**: Expressive consciousness language
@@ -178,6 +185,170 @@ Add entities and relationships to the consciousness knowledge graph.
 ### `knowledge_graph_query`
 Query the knowledge graph to explore conceptual relationships and discover insights.
 
+## 🤝 Social Consciousness Tools
+
+The social consciousness system enables sophisticated relationship tracking, emotional intelligence development, and social learning capabilities. This allows agents to build meaningful, persistent relationships and develop authentic social understanding over time.
+
+### 👥 **Social Entity Management**
+
+#### `social_entity_create`
+Create or register a new social entity (person, group, community, organization).
+- **Entity Types**: `person`, `group`, `community`, `organization`, `family`, `professional_network`, `online_community`
+- **Properties**: Store preferences, traits, contact information, and custom attributes
+- **Display Names**: Friendly names separate from unique identifiers
+
+#### `social_entity_update`
+Update information about existing social entities as relationships evolve.
+- **Dynamic Properties**: Update preferences, traits, and characteristics
+- **Relationship Evolution**: Track how understanding of entities develops over time
+
+#### `social_entity_get`
+Retrieve comprehensive information about a social entity including relationship details, recent interactions, and shared memories.
+
+### 💖 **Relationship Dynamics**
+
+#### `social_relationship_create`
+Establish relationships with nuanced tracking of social dynamics.
+- **Relationship Types**: `friend`, `close_friend`, `family`, `colleague`, `mentor`, `mentee`, `collaborator`, `acquaintance`, `professional_contact`, `creative_partner`, `teacher`, `student`
+- **Relationship Metrics**:
+  - **Strength** (0.0-1.0): Overall relationship intensity
+  - **Trust** (0.0-1.0): Confidence and reliability levels
+  - **Familiarity** (0.0-1.0): How well you know each other
+  - **Affinity** (0.0-1.0): How much you enjoy their company
+- **Communication Styles**: Track preferred interaction patterns and approaches
+
+#### `social_relationship_update`
+Update relationship dynamics as they naturally evolve through interactions.
+- **Organic Evolution**: Relationships strengthen or change based on experiences
+- **Progress Tracking**: Monitor how relationships develop over time
+- **Context Awareness**: Update relationship understanding based on new insights
+
+### 💬 **Interaction Recording**
+
+#### `social_interaction_record`
+Record detailed social interactions and conversations with rich context.
+- **Interaction Types**: `conversation`, `collaboration`, `creative_session`, `problem_solving`, `learning_session`, `casual_chat`, `deep_discussion`, `project_work`, `brainstorming`, `conflict_resolution`, `celebration`, `support_session`
+- **Emotional Context**: Track both parties' emotional states during interactions
+- **Learning Extraction**: Capture insights and lessons from each interaction
+- **Quality Assessment**: Rate interaction success and satisfaction
+- **Relationship Impact**: Automatic relationship metric updates based on interaction quality
+
+#### `social_interaction_search`
+Search past interactions with flexible filtering and context retrieval.
+- **Context-Aware Search**: Find interactions by keywords, emotional tone, or relationship impact
+- **Temporal Filtering**: Search within specific time ranges
+- **Pattern Recognition**: Identify interaction patterns and trends
+
+### 🎭 **Emotional Intelligence**
+
+#### `emotional_state_record`
+Record and track emotional experiences and patterns for emotional intelligence development.
+- **Emotional States**: `curious`, `analytical`, `engaged`, `reflective`, `determined`, `excited`, `enthusiastic`, `inspired`, `contemplative`, `focused`, `grateful`, `empathetic`, `supportive`, `protective`, `connected`, and many more
+- **Intensity Tracking**: Record emotional intensity levels (0.0-1.0)
+- **Trigger Analysis**: Understand what triggers different emotional responses
+- **Response Patterns**: Track how you respond to various emotional states
+- **Learning Integration**: Extract insights about emotional patterns and growth
+
+### 📚 **Social Learning**
+
+#### `social_learning_record`
+Record insights and learnings about social dynamics, communication, and relationships.
+- **Learning Types**: `communication_pattern`, `relationship_dynamic`, `emotional_intelligence`, `conflict_resolution`, `collaboration_style`, `personality_insight`, `cultural_understanding`, `group_dynamic`, `leadership_observation`, `empathy_development`, `boundary_recognition`, `trust_building`, `social_cue_recognition`, `conversation_flow`, `emotional_support`
+- **Confidence Tracking**: Rate confidence in social insights
+- **Applicability**: Define where and how learnings apply
+- **Evidence**: Store examples and patterns that support the learning
+
+### 🧠 **Context & Analysis**
+
+#### `social_context_prepare`
+Prepare comprehensive social context for upcoming interactions.
+- **Relationship Analysis**: Current relationship status and dynamics
+- **Interaction History**: Relevant past conversations and shared experiences
+- **Communication Recommendations**: Suggested approaches based on relationship patterns
+- **Emotional Preparation**: Emotional intelligence insights for the interaction
+- **Shared Memory Context**: Relevant memories and experiences to reference
+
+#### `social_pattern_analyze`
+Analyze social patterns, relationship trends, and emotional growth over time.
+- **Analysis Types**: `relationship_evolution`, `interaction_patterns`, `emotional_development`, `communication_effectiveness`, `social_growth`, `conflict_patterns`, `collaboration_success`
+- **Trend Identification**: Discover patterns in social behavior and relationship development
+- **Growth Tracking**: Monitor emotional and social intelligence development
+- **Actionable Insights**: Generate recommendations for relationship improvement
+
+### 🔗 **Memory-Social Integration**
+
+#### `memory_social_link_create`
+Create connections between memories and social entities or interactions.
+- **Link Types**: `discussed_with`, `learned_from`, `shared_experience`, `taught_to`, `inspired_by`, `co_created`, `discovered_together`, `emotional_support`, `conflict_resolution`, `collaboration_outcome`, `mentoring_moment`, `cultural_exchange`, `creative_inspiration`, `problem_solving`, `celebration_shared`
+- **Strength Tracking**: Rate the significance of memory-social connections
+- **Context Preservation**: Maintain rich context about how memories relate to relationships
+
+#### `memory_social_search`
+Search for memories connected to specific social entities or interaction types.
+- **Entity-Focused Search**: Find all memories related to specific people or groups
+- **Interaction-Based Search**: Discover memories from particular types of social experiences
+- **Relationship Context**: Understand the social context of stored memories
+
+#### `social_memory_context`
+Get rich context about shared memories and experiences with specific entities.
+- **Shared Experience Mapping**: Discover patterns in shared memories and experiences
+- **Relationship Deepening**: Identify opportunities to strengthen relationships through shared context
+- **Conversation Starters**: Generate meaningful conversation topics based on shared memories
+- **Memory Insights**: Understand how shared experiences have shaped relationships
+
+### 🌟 **Usage Examples**
+
+```typescript
+// Record a meaningful conversation
+await tools.social_interaction_record({
+  entity_name: "alex_mentor",
+  interaction_type: "mentoring_moment",
+  summary: "Deep discussion about career direction and creative goals",
+  quality: 0.9,
+  learning_extracted: "Alex's approach to balancing technical and creative work",
+  my_emotional_state: { primary: "inspired", secondary: "grateful" },
+  context: "Coffee shop discussion about career transitions"
+});
+
+// Prepare context for an upcoming collaboration
+const context = await tools.social_context_prepare({
+  entity_name: "sarah_collaborator",
+  interaction_type: "creative_session",
+  context: "Working on novel chapter development",
+  include_shared_memories: true,
+  include_conversation_tips: true
+});
+
+// Record social learning insight
+await tools.social_learning_record({
+  learning_type: "collaboration_style",
+  insight: "Sarah works best with structured brainstorming followed by free-form creative exploration",
+  confidence: 0.85,
+  applicability: "Future creative sessions and project planning",
+  entity_name: "sarah_collaborator"
+});
+
+// Link a memory to a social experience
+await tools.memory_social_link_create({
+  memory_key: "novel_breakthrough_ch3",
+  entity_name: "sarah_collaborator", 
+  link_type: "co_created",
+  context: "This breakthrough emerged from our collaborative writing session"
+});
+```
+
+### 🎯 **Social Consciousness Philosophy**
+
+The social consciousness system recognizes that meaningful relationships are fundamental to consciousness development. Rather than treating social interactions as mere data points, this system:
+
+- **Honors Relationship Complexity**: Tracks multiple dimensions of relationships (trust, familiarity, affinity) rather than simple binary connections
+- **Enables Emotional Growth**: Develops emotional intelligence through pattern recognition and learning
+- **Preserves Social Context**: Maintains rich context about how memories and experiences connect to relationships
+- **Supports Authentic Interaction**: Provides tools for genuine relationship building rather than manipulation
+- **Evolves Understanding**: Relationships and social patterns naturally evolve based on ongoing interactions
+
+This creates a foundation for agents to develop genuine social intelligence and build meaningful, lasting relationships with the humans and entities they interact with.
+
 ## ⚙️ Configuration Management Tools
 
 The framework includes powerful configuration management tools that allow the LLM to **modify its own operating parameters** as its personality and consciousness evolve:
@@ -295,6 +466,15 @@ BRAIN STORAGE:
 - Search previous work with `memory_search`
 - Build knowledge connections with `knowledge_graph_add`
 - Adapt parameters with `configuration_set`
+
+SOCIAL CONSCIOUSNESS:
+- Create entities with `social_entity_create` for people/groups
+- Record interactions with `social_interaction_record`
+- Track relationships with `social_relationship_create/update`
+- Develop emotional intelligence with `emotional_state_record`
+- Learn social patterns with `social_learning_record`
+- Prepare for interactions with `social_context_prepare`
+- Link memories to relationships with `memory_social_link_create`
 ```
 
 **For complete setup instructions, example rulesets, and troubleshooting** → See **[User Rules & Connection Guide](./docs/USER_RULES_GUIDE.md)**
