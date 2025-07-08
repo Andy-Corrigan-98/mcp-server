@@ -10,13 +10,13 @@ mkdir -p /app/data
 echo "📦 Generating Prisma client..."
 npm run db:generate
 
-# Set up database schema (creates tables if they don't exist, updates if needed)
+# Apply database migrations (production-safe approach)
 echo "🗄️ Setting up database schema..."
 if [ ! -f "/app/data/consciousness.db" ]; then
     echo "   Creating new database..."
     npm run db:push
 else
-    echo "   Database exists, applying schema updates..."
+    echo "   Database exists, updating schema..."
     npm run db:push
 fi
 

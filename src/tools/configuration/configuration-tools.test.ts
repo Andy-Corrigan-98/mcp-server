@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, beforeAll } from '@jest/globals';
 import { ConfigurationTools } from './configuration-tools.js';
+import { ConfigurationListResult } from './types.js';
 import { seedConfiguration } from '@/db/seed-configuration.js';
 
 describe('ConfigurationTools', () => {
@@ -66,7 +67,7 @@ describe('ConfigurationTools', () => {
       });
 
       expect(Array.isArray(result)).toBe(true);
-      const categories = result as any[];
+      const categories = result as ConfigurationListResult[];
       expect(categories.length).toBeGreaterThan(0);
       expect(categories[0]).toHaveProperty('category', 'CONSCIOUSNESS');
       expect(categories[0]).toHaveProperty('configurations');
@@ -109,13 +110,13 @@ describe('ConfigurationTools', () => {
       });
 
       expect(Array.isArray(result)).toBe(true);
-      const categories = result as any[];
+      const categories = result as ConfigurationListResult[];
 
       // Should find configurations with 'max' in the key or description
       const allConfigs = categories.flatMap(cat => cat.configurations);
       expect(allConfigs.length).toBeGreaterThan(0);
 
-      const hasMaxInKey = allConfigs.some((config: any) => config.key.toLowerCase().includes('max'));
+      const hasMaxInKey = allConfigs.some(config => config.key.toLowerCase().includes('max'));
       expect(hasMaxInKey).toBe(true);
     });
 

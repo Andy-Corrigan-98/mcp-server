@@ -325,8 +325,8 @@ describe('MemoryTools', () => {
           name: 'Central Entity',
           entityType: 'core',
           properties: '{}',
-          sourceRelationships: [{ relationshipType: 'connects_to', targetEntity: { name: 'Target1' } }],
-          targetRelationships: [{ relationshipType: 'depends_on', sourceEntity: { name: 'Source1' } }],
+          sourceRelationships: [{ relationshipType: 'connects_to', targetEntity: { name: 'Target1' }, strength: 1.0, targetEntityName: 'Target1' }],
+          targetRelationships: [{ relationshipType: 'depends_on', sourceEntity: { name: 'Source1' }, strength: 1.0, sourceEntityName: 'Source1' }],
         },
         {
           id: 2,

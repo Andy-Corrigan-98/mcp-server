@@ -5,6 +5,16 @@ import { ConfigurationService } from '../../db/configuration-service.js';
 import { REASONING_TOOLS, ThinkingSession, ThoughtStep, ThinkingResult } from './types.js';
 
 /**
+ * Reasoning configuration interface
+ */
+interface ReasoningConfig {
+  maxThoughtLength: number;
+  maxBranchIdLength: number;
+  summaryLength: number;
+  millisecondsPerSecond: number;
+}
+
+/**
  * Reasoning Tools implementation for consciousness MCP server
  * Provides sequential thinking and problem-solving capabilities
  */
@@ -13,13 +23,7 @@ export class ReasoningTools {
   private configService: ConfigurationService;
   private sessions: Map<string, ThinkingSession> = new Map();
 
-  // Configuration cache for performance
-  private config: {
-    maxThoughtLength: number;
-    maxBranchIdLength: number;
-    summaryLength: number;
-    millisecondsPerSecond: number;
-  } = {} as any;
+  private config: ReasoningConfig = {} as ReasoningConfig;
 
   constructor() {
     this.prisma = ConsciousnessPrismaService.getInstance();

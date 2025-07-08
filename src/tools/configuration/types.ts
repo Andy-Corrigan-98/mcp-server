@@ -11,6 +11,20 @@ export interface ConfigurationResult {
   updatedAt: Date;
 }
 
+/**
+ * Raw configuration object from database/service layer
+ */
+export interface DatabaseConfiguration {
+  key: string;
+  value: string;
+  type: ConfigurationType;
+  category: ConfigurationCategory;
+  description: string;
+  defaultValue: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface ConfigurationUpdateResult {
   key: string;
   oldValue: string;

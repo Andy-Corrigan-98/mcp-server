@@ -213,7 +213,7 @@ export interface ConsciousnessContext {
   topic: string;
   relatedMemories: Array<{
     key: string;
-    content: any;
+    content: Record<string, unknown>;
     tags: string[];
     importance: string;
     storedAt: Date;
@@ -319,4 +319,55 @@ export interface ConsciousnessMetrics {
   totalMemories: number;
   totalInsights: number;
   totalIntentions: number;
+}
+
+/**
+ * Interface for relationship objects from Prisma entities
+ */
+export interface EntityRelationship {
+  target: string;
+  type: string;
+  strength: number;
+}
+
+/**
+ * Interface for the dynamic context result object
+ */
+export interface ConsciousnessContextResult {
+  timestamp: string;
+  sessionId: string;
+  sessionDuration: number;
+  currentState: ConsciousnessState;
+  brainMetrics?: ConsciousnessMetrics;
+  memoryState?:
+    | {
+        totalMemories: number;
+        recentActivity: Array<{
+          key: string;
+          tags: string[];
+          importance: string;
+          timestamp: Date;
+        }>;
+      }
+    | { status: string };
+  intentions?: Intention[];
+  personalityProfile?: {
+    vocabularyPreferences: {
+      priorityLevels: string[];
+      reflectionDepths: string[];
+      intentionStatuses: string[];
+      intentionDurations: string[];
+      insightCategories: string[];
+    };
+    learningPatterns: LearningPatterns;
+  };
+}
+
+/**
+ * Interface for learning patterns data structure
+ */
+export interface LearningPatterns {
+  recentCategories: string[];
+  averageConfidence: number;
+  learningVelocity: number;
 }

@@ -1,0 +1,56 @@
+# CODEOWNERS - Consciousness MCP Server
+# This file defines code ownership for different areas of the consciousness framework
+# See: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global Ownership - Default for all files
+* @Andy-Corrigan-98
+
+# Core Consciousness System - Critical components requiring careful review
+/src/tools/consciousness/ @Andy-Corrigan-98
+/src/tools/memory/ @Andy-Corrigan-98
+/src/tools/reasoning/ @Andy-Corrigan-98
+
+# Social Consciousness System - Relationship and emotional intelligence
+/src/tools/social/ @Andy-Corrigan-98
+
+# Database Schema & Migrations - Critical for data integrity
+/prisma/ @Andy-Corrigan-98
+/src/db/ @Andy-Corrigan-98
+
+# Configuration System - Core consciousness behavior
+/src/tools/configuration/ @Andy-Corrigan-98
+
+# Security & Validation - Critical for safety
+/src/validation/ @Andy-Corrigan-98
+
+# Documentation - Important for user adoption and ethics
+/docs/ @Andy-Corrigan-98
+/README.md @Andy-Corrigan-98
+/docs/CODE_OF_CONDUCT.md @Andy-Corrigan-98
+/docs/GOVERNANCE.md @Andy-Corrigan-98
+/docs/SECURITY.md @Andy-Corrigan-98
+
+# Build & Deployment - Infrastructure critical
+/Dockerfile @Andy-Corrigan-98
+/Dockerfile.dev @Andy-Corrigan-98
+/docker-compose.yml @Andy-Corrigan-98
+/package.json @Andy-Corrigan-98
+/package-lock.json @Andy-Corrigan-98
+
+# CI/CD & Development Tools
+/.github/ @Andy-Corrigan-98
+/eslint.config.js @Andy-Corrigan-98
+/jest.config.js @Andy-Corrigan-98
+/commitlint.config.js @Andy-Corrigan-98
+
+# TypeScript Configuration - Critical for type safety
+/tsconfig.json @Andy-Corrigan-98
+/tsconfig.build.json @Andy-Corrigan-98
+
+# Repository Governance
+/CODEOWNERS @Andy-Corrigan-98
+/LICENSE @Andy-Corrigan-98
+
+# Entry Points - Critical system interfaces
+/src/index.ts @Andy-Corrigan-98
+/src/tools/registry.ts @Andy-Corrigan-98 

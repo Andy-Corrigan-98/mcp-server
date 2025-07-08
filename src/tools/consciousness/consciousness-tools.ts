@@ -10,7 +10,23 @@ import {
   Intention,
   Insight,
   ConsciousnessMetrics,
+  EntityRelationship,
+  ConsciousnessContextResult,
+  LearningPatterns,
 } from './types.js';
+
+/**
+ * Session update memory content structure
+ */
+interface SessionUpdateContent {
+  activityType: string;
+  cognitiveImpact: string;
+  attentionFocus?: string;
+  learningOccurred: boolean;
+  sessionId: string;
+  timestamp: string;
+  stateAfterUpdate: ConsciousnessState;
+}
 
 /**
  * Consciousness Brain Storage System
@@ -457,12 +473,12 @@ export class ConsciousnessTools {
     if (includeMemories) {
       try {
         const memories = await this.prisma.searchMemories(topic, [], undefined);
-        relatedMemories = memories.slice(0, this.config.maxMemorySlice).map((m: MemoryResult) => ({
-          key: m.key,
-          content: m.content,
-          tags: m.tags,
-          importance: m.importance,
-          storedAt: m.storedAt,
+        relatedMemories = memories.slice(0, this.config.maxMemorySlice).map(memory => ({
+          key: memory.key,
+          content: memory.content as Record<string, unknown>,
+          tags: memory.tags,
+          importance: memory.importance,
+          storedAt: memory.storedAt,
         }));
       } catch {
         relatedMemories = [];
@@ -480,16 +496,28 @@ export class ConsciousnessTools {
               entity: entity.name,
               type: entity.entityType,
               relationships: [
-                ...entity.sourceRelationships.map((rel: any) => ({
-                  target: rel.targetEntity.name,
-                  type: rel.relationshipType,
-                  strength: rel.strength,
-                })),
-                ...entity.targetRelationships.map((rel: any) => ({
-                  target: rel.sourceEntity.name,
-                  type: rel.relationshipType,
-                  strength: rel.strength,
-                })),
+                ...entity.sourceRelationships.map(
+                  (rel: {
+                    targetEntity: { name: string };
+                    relationshipType: string;
+                    strength: number;
+                  }): EntityRelationship => ({
+                    target: rel.targetEntity.name,
+                    type: rel.relationshipType,
+                    strength: rel.strength,
+                  })
+                ),
+                ...entity.targetRelationships.map(
+                  (rel: {
+                    sourceEntity: { name: string };
+                    relationshipType: string;
+                    strength: number;
+                  }): EntityRelationship => ({
+                    target: rel.sourceEntity.name,
+                    type: rel.relationshipType,
+                    strength: rel.strength,
+                  })
+                ),
               ].slice(0, this.config.maxConnectionDisplay),
             },
           ];
@@ -579,7 +607,7 @@ export class ConsciousnessTools {
   /**
    * Get comprehensive context about persistent consciousness state
    */
-  private async getContext(args: Record<string, unknown>): Promise<object> {
+  private async getContext(args: Record<string, unknown>): Promise<ConsciousnessContextResult> {
     const includeMetrics = Boolean(args.include_metrics);
     const includeMemoryState = Boolean(args.include_memory_state);
     const includeIntentions = Boolean(args.include_intentions !== false);
@@ -594,7 +622,7 @@ export class ConsciousnessTools {
       currentState: this.currentState,
     };
 
-    const result: any = { ...baseContext };
+    const result: ConsciousnessContextResult = { ...baseContext };
 
     if (includeMetrics) {
       result.brainMetrics = await this.calculateBrainMetrics();
@@ -979,7 +1007,7 @@ export class ConsciousnessTools {
       const memories = await this.prisma.searchMemories('session_update', [], undefined);
       return memories.filter(
         (m: MemoryResult) =>
-          m.content && typeof m.content === 'object' && (m.content as any).sessionId === this.sessionId
+          m.content && typeof m.content === 'object' && (m.content as SessionUpdateContent).sessionId === this.sessionId
       ).length;
     } catch {
       return 0;
@@ -991,8 +1019,8 @@ export class ConsciousnessTools {
       const memories = await this.prisma.searchMemories('', ['session_update'], undefined);
       return memories
         .slice(0, 3)
-        .map((m: MemoryResult) => (m.content as any)?.attentionFocus)
-        .filter(Boolean);
+        .map((m: MemoryResult) => (m.content as SessionUpdateContent)?.attentionFocus)
+        .filter((focus): focus is string => Boolean(focus));
     } catch {
       return [];
     }
@@ -1056,18 +1084,33 @@ export class ConsciousnessTools {
     }
   }
 
-  private async getLearningPatterns(): Promise<Record<string, any>> {
+  private async getLearningPatterns(): Promise<LearningPatterns> {
     try {
       const insights = await this.prisma.searchMemories('', ['insight'], undefined);
-      const recentInsights = insights.slice(0, 10);
+      const recentInsights = insights
+        .slice(0, 10)
+        .map(insight => {
+          const content = insight.content as Insight;
+          return content.category;
+        })
+        .filter(Boolean);
+
+      const confidenceValues = insights.map(insight => {
+        const content = insight.content as Insight;
+        return content.confidence || 0;
+      });
+
+      const averageConfidence =
+        confidenceValues.length > 0
+          ? confidenceValues.reduce((sum, conf) => sum + conf, 0) / confidenceValues.length
+          : 0;
+
+      const learningVelocity = insights.length / Math.max(1, Date.now() - this.sessionStartTime.getTime());
 
       return {
-        recentCategories: recentInsights.map((m: MemoryResult) => (m.content as Insight)?.category).filter(Boolean),
-        averageConfidence:
-          recentInsights.reduce((sum, m) => sum + ((m.content as Insight)?.confidence || 0), 0) /
-          Math.max(recentInsights.length, 1),
-        learningVelocity:
-          recentInsights.length / Math.max(1, (Date.now() - this.sessionStartTime.getTime()) / (1000 * 60 * 60)), // insights per hour
+        recentCategories: recentInsights,
+        averageConfidence,
+        learningVelocity,
       };
     } catch {
       return {
@@ -1084,7 +1127,7 @@ export class ConsciousnessTools {
       const patterns: Record<string, number> = {};
 
       for (const update of updates) {
-        const content = update.content as any;
+        const content = update.content as SessionUpdateContent;
         if (content?.attentionFocus) {
           patterns[content.attentionFocus] = (patterns[content.attentionFocus] || 0) + 1;
         }

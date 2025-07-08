@@ -67,3 +67,6 @@ data/
 *.sqlite3
 prisma/dev.db
 prisma/*.db
+
+# Database backups
+backups/
