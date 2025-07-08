@@ -367,9 +367,41 @@ export class SocialTools {
     // Get emotional patterns if requested
     let emotionalPatterns: SocialContextResult['emotionalPatterns'] = [];
     if (includeEmotionalContext) {
-      // This would be a complex aggregation query in a real implementation
-      // For now, we'll return a placeholder
-      emotionalPatterns = [];
+      const emotionalContexts = await this.db.execute(async (prisma) => {
+        return prisma.emotionalContext.findMany({
+          where: { entityId: entity.id },
+          orderBy: { createdAt: 'desc' },
+          take: 50 // Get recent emotional data
+        });
+      });
+
+      // Analyze emotional patterns
+      const emotionalStateFrequency: Record<string, number> = {};
+      const emotionalTriggers: Record<string, string[]> = {};
+      
+      emotionalContexts.forEach(context => {
+        // Count frequency of emotional states
+        emotionalStateFrequency[context.emotionalState] = 
+          (emotionalStateFrequency[context.emotionalState] || 0) + 1;
+        
+        // Collect triggers for each emotional state
+        if (context.trigger) {
+          if (!emotionalTriggers[context.emotionalState]) {
+            emotionalTriggers[context.emotionalState] = [];
+          }
+          emotionalTriggers[context.emotionalState].push(context.trigger);
+        }
+      });
+
+      // Generate patterns from the analysis
+      emotionalPatterns = Object.entries(emotionalStateFrequency)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, this.config.maxEmotionalPatterns)
+        .map(([state, frequency]) => ({
+          state,
+          frequency: frequency / emotionalContexts.length,
+          triggers: [...new Set(emotionalTriggers[state] || [])].slice(0, 3)
+        }));
     }
 
     // Get social learnings
@@ -921,23 +953,227 @@ export class SocialTools {
    * Analyze social patterns and trends
    */
   private async analyzeSocialPatterns(args: Record<string, unknown>): Promise<SocialPatternAnalysis> {
-    const analysisType = args.analysis_type as string;
+    const analysisType = (args.analysis_type as string) || 'relationship_dynamics';
     const entityName = args.entity_name
       ? InputValidator.sanitizeString(args.entity_name as string, this.config.maxEntityNameLength)
       : undefined;
     const timePeriod = (args.time_period as string) || 'month';
 
-    // This would be a complex analysis in a real implementation
-    // For now, return a placeholder structure
+    // Calculate date filter based on time period
+    const now = new Date();
+    let daysBack = 30; // default month
+    switch (timePeriod) {
+      case 'week': daysBack = 7; break;
+      case 'month': daysBack = 30; break;
+      case 'quarter': daysBack = 90; break;
+      case 'year': daysBack = 365; break;
+    }
+    const startDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+
+    // Get data for analysis
+    const interactions = await this.db.execute(async (prisma) => {
+      const where = entityName ? { 
+        entity: { name: entityName },
+        createdAt: { gte: startDate }
+      } : { createdAt: { gte: startDate } };
+      
+      return prisma.socialInteraction.findMany({
+        where,
+        include: { entity: true },
+        orderBy: { createdAt: 'desc' },
+        take: 200
+      });
+    });
+
+    const relationships = await this.db.execute(async (prisma) => {
+      const where = entityName ? { entity: { name: entityName } } : {};
+      return prisma.socialRelationship.findMany({
+        where,
+        include: { entity: true },
+        orderBy: { updatedAt: 'desc' }
+      });
+    });
+
+    const learnings = await this.db.execute(async (prisma) => {
+      const where = entityName ? { 
+        entity: { name: entityName },
+        createdAt: { gte: startDate }
+      } : { createdAt: { gte: startDate } };
+      
+      return prisma.socialLearning.findMany({
+        where: entityName ? { entity: { name: entityName }, createdAt: { gte: startDate } } : { createdAt: { gte: startDate } },
+        include: { entity: true },
+        orderBy: { createdAt: 'desc' }
+      });
+    });
+
+    // Analyze patterns based on analysis type
+    const patterns = [];
+    const trends = [];
+    const insights = [];
+    const recommendations = [];
+    const metrics: Record<string, number> = {};
+
+    if (analysisType === 'relationship_dynamics') {
+      // Analyze relationship strength trends
+      const avgStrength = relationships.reduce((sum, rel) => sum + rel.strength, 0) / relationships.length;
+      const avgTrust = relationships.reduce((sum, rel) => sum + rel.trust, 0) / relationships.length;
+      const avgFamiliarity = relationships.reduce((sum, rel) => sum + rel.familiarity, 0) / relationships.length;
+
+      metrics.averageRelationshipStrength = avgStrength || 0;
+      metrics.averageTrust = avgTrust || 0;
+      metrics.averageFamiliarity = avgFamiliarity || 0;
+      metrics.totalRelationships = relationships.length;
+
+      if (avgStrength > 0.7) {
+        patterns.push({
+          pattern: 'Strong relationship foundation',
+          confidence: 0.9,
+          examples: relationships.filter(r => r.strength > 0.7).map(r => r.entity.name).slice(0, 3),
+          impact: 'Positive social network quality'
+        });
+      }
+
+      if (avgFamiliarity < 0.4) {
+        insights.push({
+          insight: 'Many relationships are still developing - opportunity for deeper connections',
+          category: 'relationship_growth',
+          actionable: true
+        });
+        recommendations.push('Focus on spending more quality time with existing connections');
+      }
+    }
+
+    if (analysisType === 'interaction_patterns' || analysisType === 'relationship_dynamics') {
+      // Analyze interaction frequency and quality
+      const interactionsByType: Record<string, number> = {};
+      const qualityByType: Record<string, number[]> = {};
+      
+      interactions.forEach(interaction => {
+        interactionsByType[interaction.interactionType] = 
+          (interactionsByType[interaction.interactionType] || 0) + 1;
+        
+        if (interaction.quality !== null) {
+          if (!qualityByType[interaction.interactionType]) {
+            qualityByType[interaction.interactionType] = [];
+          }
+          qualityByType[interaction.interactionType].push(interaction.quality);
+        }
+      });
+
+      metrics.totalInteractions = interactions.length;
+      metrics.averageInteractionQuality = interactions
+        .filter(i => i.quality !== null)
+        .reduce((sum, i) => sum + (i.quality || 0), 0) / interactions.filter(i => i.quality !== null).length || 0;
+
+      // Find dominant interaction types
+      const dominantType = Object.entries(interactionsByType)
+        .sort(([,a], [,b]) => b - a)[0];
+
+      if (dominantType) {
+        patterns.push({
+          pattern: `Primary interaction mode: ${dominantType[0]}`,
+          confidence: 0.8,
+          examples: interactions
+            .filter(i => i.interactionType === dominantType[0])
+            .slice(0, 3)
+            .map(i => `${i.entity.name} - ${i.summary || 'interaction'}`),
+          impact: 'Defines social engagement style'
+        });
+      }
+
+      // Analyze quality trends
+      const recentQuality = interactions.slice(0, 10)
+        .filter(i => i.quality !== null)
+        .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
+      
+      const olderQuality = interactions.slice(10, 20)
+        .filter(i => i.quality !== null)
+        .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
+
+      if (recentQuality > olderQuality + 0.1) {
+        trends.push({
+          trend: 'Interaction quality improving',
+          direction: 'improving' as const,
+          significance: (recentQuality - olderQuality) * 2
+        });
+      } else if (recentQuality < olderQuality - 0.1) {
+        trends.push({
+          trend: 'Interaction quality declining',
+          direction: 'declining' as const,
+          significance: (olderQuality - recentQuality) * 2
+        });
+        recommendations.push('Consider what factors might be affecting interaction quality');
+      }
+    }
+
+    if (analysisType === 'learning_growth' || analysisType === 'relationship_dynamics') {
+      // Analyze social learning accumulation
+      const learningsByType: Record<string, number> = {};
+      learnings.forEach(learning => {
+        learningsByType[learning.learningType] = 
+          (learningsByType[learning.learningType] || 0) + 1;
+      });
+
+      metrics.totalSocialLearnings = learnings.length;
+      metrics.averageLearningConfidence = learnings
+        .reduce((sum, l) => sum + l.confidence, 0) / learnings.length || 0;
+
+      if (learnings.length > 10) {
+        patterns.push({
+          pattern: 'Active social learning and reflection',
+          confidence: 0.85,
+          examples: Object.keys(learningsByType).slice(0, 3),
+          impact: 'Continuous social intelligence development'
+        });
+      }
+
+      // Learning velocity trend
+      const recentWeek = learnings.filter(l => 
+        l.createdAt > new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
+      ).length;
+      const previousWeek = learnings.filter(l => {
+        const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+        const twoWeeksAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+        return l.createdAt > twoWeeksAgo && l.createdAt <= weekAgo;
+      }).length;
+
+      if (recentWeek > previousWeek) {
+        trends.push({
+          trend: 'Accelerating social learning',
+          direction: 'improving' as const,
+          significance: 0.8
+        });
+      }
+    }
+
+    // Generate general insights
+    if (patterns.length === 0) {
+      insights.push({
+        insight: 'Limited recent social activity - consider increasing social engagement',
+        category: 'engagement',
+        actionable: true
+      });
+      recommendations.push('Schedule regular social interactions to build social momentum');
+    }
+
+    if (metrics.totalInteractions > 0 && metrics.averageInteractionQuality > 0.8) {
+      insights.push({
+        insight: 'High-quality social interactions indicate strong social skills',
+        category: 'strength',
+        actionable: false
+      });
+    }
+
     return {
       analysisType,
       timeperiod: timePeriod,
       entityFocus: entityName,
-      patterns: [],
-      trends: [],
-      insights: [],
-      recommendations: [],
-      metrics: {},
+      patterns,
+      trends,
+      insights,
+      recommendations,
+      metrics,
     };
   }
 
@@ -1553,8 +1789,6 @@ export class SocialTools {
         support: [],
         other: []
       };
-
-
 
       for (const link of links) {
         const memoryData = {
