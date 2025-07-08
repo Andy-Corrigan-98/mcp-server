@@ -848,3 +848,115 @@ export interface SocialPatternAnalysis {
   recommendations: string[];
   metrics: Record<string, number>;
 }
+
+/**
+ * Interface for social entity objects from database
+ */
+export interface SocialEntity {
+  id: number;
+  name: string;
+  entityType: string;
+  displayName?: string;
+  description?: string;
+  properties?: string; // JSON string
+  lastInteraction?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Interface for social relationship objects from database
+ */
+export interface SocialRelationship {
+  id: number;
+  entityId: number;
+  relationshipType: string;
+  strength: number;
+  trust: number;
+  familiarity: number;
+  affinity: number;
+  communicationStyle?: string; // JSON string
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Interface for social interaction objects from database
+ */
+export interface SocialInteraction {
+  id: number;
+  entityId: number;
+  interactionType: string;
+  context?: string;
+  summary?: string;
+  duration?: number;
+  quality?: number;
+  learningExtracted?: string;
+  emotionalTone: string;
+  myEmotionalState?: string; // JSON string
+  theirEmotionalState?: string; // JSON string
+  conversationStyle?: string; // JSON string
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Interface for social learning objects from database
+ */
+export interface SocialLearning {
+  id: number;
+  entityId?: number;
+  learningType: string;
+  insight: string;
+  confidence: number;
+  applicability?: string;
+  examples?: string; // JSON string
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Interface for update data objects
+ */
+export interface RelationshipUpdateData {
+  strength?: number;
+  trust?: number;
+  familiarity?: number;
+  affinity?: number;
+  communicationStyle?: string; // JSON string
+  notes?: string;
+  updatedAt: Date;
+}
+
+/**
+ * Interface for memory insight structures
+ */
+export interface MemoryInsight {
+  pattern: string;
+  examples: string[];
+  strength: number;
+}
+
+/**
+ * Interface for memory link objects from database
+ */
+export interface MemorySocialLinkWithRelations {
+  relationshipType: string;
+  strength: number;
+  context?: string;
+  createdAt: Date;
+  memory: {
+    key: string;
+    content: string; // JSON string
+    tags: string; // JSON string
+    importance: string;
+    storedAt: Date;
+  };
+  interaction?: {
+    id: number;
+    interactionType: string;
+    createdAt: Date;
+    summary?: string;
+  } | null;
+}
