@@ -11,13 +11,13 @@ echo "📦 Generating Prisma client..."
 npm run db:generate
 
 # Apply database migrations (production-safe approach)
-echo "🗄️ Applying database migrations..."
+echo "🗄️ Setting up database schema..."
 if [ ! -f "/app/data/consciousness.db" ]; then
-    echo "   Creating new database with migrations..."
-    npm run db:migrate:deploy
+    echo "   Creating new database..."
+    npm run db:push
 else
-    echo "   Database exists, applying pending migrations..."
-    npm run db:migrate:deploy
+    echo "   Database exists, updating schema..."
+    npm run db:push
 fi
 
 # Seed configuration defaults (only sets values that don't already exist)

@@ -2,12 +2,14 @@
 
 ## Migration Strategy
 
-### 🔄 Automatic Migrations
-The production container automatically handles database migrations via `entrypoint.sh`:
+### 🔄 Automatic Schema Management
+The production container automatically handles database schema via `entrypoint.sh`:
 
-- ✅ **New deployments**: Creates database with all migrations applied
-- ✅ **Updates**: Applies only pending migrations safely  
-- ✅ **Production-safe**: Uses `prisma migrate deploy` (not `db:push`)
+- ✅ **New deployments**: Creates database with current schema
+- ✅ **Updates**: Updates schema to match current Prisma schema  
+- ✅ **Development-friendly**: Uses `prisma db push` for rapid iteration
+
+> **Note**: Currently using `prisma db push` for schema management. Migration-based approach (`prisma migrate deploy`) encountered issues during testing and will be implemented in future versions.
 
 ### 🚀 Deployment Options
 
@@ -37,26 +39,26 @@ docker-compose --profile dev up consciousness-mcp-dev
 ./docker-upgrade.sh force-migrate
 ```
 
-### 📦 Migration Commands
+### 📦 Schema Management Commands
 
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
-| `npm run db:migrate:deploy` | Apply pending migrations | Production |
+| `npm run db:push` | Sync schema to database | Current approach |
+| `npm run db:migrate:deploy` | Apply pending migrations | Future implementation |
 | `npm run db:migrate:dev` | Create new migration | Development |
 | `npm run db:migrate:reset` | Reset database | Development only |
-| `npm run db:push` | Force schema sync | Development only |
 
 ### 🛡️ Production Safety
 
 #### ✅ What's Safe:
-- `docker-compose up -d` - Applies migrations automatically
+- `docker-compose up -d` - Applies schema updates automatically
 - `./docker-upgrade.sh` - Full upgrade with backup
-- `prisma migrate deploy` - Production migration command
+- `prisma db push` - Current schema sync method
 
 #### ⚠️ What's Dangerous:
-- `prisma db push` - Bypasses migration history, can lose data
 - `prisma migrate reset` - Destroys all data
-- Manual schema editing - Can cause migration conflicts
+- Manual schema editing - Can cause conflicts
+- Stopping container during schema updates
 
 ### 🗄️ Database Persistence
 
@@ -70,13 +72,13 @@ Your database file: `./data/consciousness.db`
 
 ### 🔧 Troubleshooting
 
-#### Migration Conflicts
+#### Schema Issues
 ```bash
-# Check migration status
-docker exec consciousness-mcp-server npx prisma migrate status
+# Check current schema status
+docker exec consciousness-mcp-server npx prisma db push --preview-feature
 
-# Reset and reapply (DESTRUCTIVE - dev only)
-docker exec consciousness-mcp-server npm run db:migrate:reset
+# Force schema sync
+docker exec consciousness-mcp-server npm run db:push
 ```
 
 #### Container Issues
@@ -103,6 +105,12 @@ Or simply: `./docker-upgrade.sh` (does all of the above)
 
 - **Always backup** before major updates
 - **Use the upgrade script** for production changes
-- **Test migrations** in development first
+- **Test schema changes** in development first
 - **Monitor logs** after deployments
-- **Keep migration files** in version control 
+- **Keep schema in version control** via Prisma files
+
+### 🚧 Future Improvements
+
+- **Migration-based deployment**: Will implement `prisma migrate deploy` once container environment issues are resolved
+- **Automated rollback**: Enhanced upgrade script with automatic rollback on failure
+- **Health checks**: More comprehensive container health monitoring 
