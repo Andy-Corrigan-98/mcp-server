@@ -270,4 +270,12 @@ export class ConsciousnessPrismaService {
       create: config,
     });
   }
+
+  /**
+   * Provides access to the raw Prisma client for advanced operations
+   * Used by social consciousness tools and other modules that need direct access
+   */
+  async execute<T>(operation: (prisma: PrismaClient) => Promise<T>): Promise<T> {
+    return operation(this.prisma);
+  }
 }
