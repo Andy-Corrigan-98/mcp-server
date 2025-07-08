@@ -1,17 +1,40 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { InputValidator } from '../../validation/index.js';
-import { ConsciousnessPrismaService } from '../../db/index.js';
-import { ConfigurationService } from '../../db/configuration-service.js';
+import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
+import { ConfigurationService } from '@/db/configuration-service.js';
+import { InputValidator } from '@/validation/input-validator.js';
 import {
   SOCIAL_TOOLS,
-  SocialEntityData,
-  SocialRelationshipData,
-  SocialInteractionData,
-  EmotionalContextData,
-  SocialLearningData,
   SocialContextResult,
   SocialPatternAnalysis,
+  SharedMemory,
+  RelationshipUpdateData,
 } from './types.js';
+
+/**
+ * Social tools configuration interface
+ */
+interface SocialConfig {
+  maxEntityNameLength: number;
+  maxDisplayNameLength: number;
+  maxDescriptionLength: number;
+  maxNotesLength: number;
+  maxContextLength: number;
+  maxSummaryLength: number;
+  maxLearningLength: number;
+  maxInsightLength: number;
+  maxApplicabilityLength: number;
+  maxTriggerLength: number;
+  maxResponseLength: number;
+  maxRecommendationLength: number;
+  defaultConfidence: number;
+  maxRecentInteractions: number;
+  maxSocialLearnings: number;
+  maxEmotionalPatterns: number;
+  maxRecommendations: number;
+  relationshipDecayTime: number;
+  emotionalIntensityDefault: number;
+  qualityDefault: number;
+}
 
 /**
  * Social Consciousness Tools implementation
@@ -21,29 +44,7 @@ export class SocialTools {
   private db: ConsciousnessPrismaService;
   private configService: ConfigurationService;
 
-  // Configuration cache for performance
-  private config: {
-    maxEntityNameLength: number;
-    maxDisplayNameLength: number;
-    maxDescriptionLength: number;
-    maxNotesLength: number;
-    maxContextLength: number;
-    maxSummaryLength: number;
-    maxLearningLength: number;
-    maxInsightLength: number;
-    maxApplicabilityLength: number;
-    maxTriggerLength: number;
-    maxResponseLength: number;
-    maxRecommendationLength: number;
-    defaultConfidence: number;
-    maxRecentInteractions: number;
-    maxSocialLearnings: number;
-    maxEmotionalPatterns: number;
-    maxRecommendations: number;
-    relationshipDecayTime: number;
-    emotionalIntensityDefault: number;
-    qualityDefault: number;
-  } = {} as any;
+  private config: SocialConfig = {} as SocialConfig;
 
   constructor() {
     this.db = ConsciousnessPrismaService.getInstance();
@@ -237,7 +238,7 @@ export class SocialTools {
     }
 
     // Create the entity using the database service
-    const entity = await this.db.execute(async (prisma) => {
+    const newEntity = await this.db.execute(async (prisma) => {
       return prisma.socialEntity.create({
         data: {
           name,
@@ -254,6 +255,7 @@ export class SocialTools {
       entity: name,
       entity_type: entityType,
       display_name: displayName,
+      entity_id: newEntity.id,
       message: `Social entity '${displayName || name}' created successfully`,
     };
   }
@@ -388,8 +390,12 @@ export class SocialTools {
 
     // Generate recommendations based on the data
     // Enhanced: Get shared memories if requested
-    let sharedMemories: any[] = [];
-    let memoryInsights: any[] = [];
+    let sharedMemories: SharedMemory[] = [];
+    let memoryInsights: Array<{
+      pattern: string;
+      examples: string[];
+      strength: number;
+    }> = [];
 
     if (args.include_shared_memories !== false) {
       const memoryData = await this.getSharedMemoriesForEntity(entity.id);
@@ -502,7 +508,7 @@ export class SocialTools {
     }
 
     // Prepare update data
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: RelationshipUpdateData = { updatedAt: new Date() };
     const updatedFields: string[] = [];
 
     if (args.strength !== undefined) {
@@ -530,7 +536,7 @@ export class SocialTools {
     if (args.notes !== undefined) {
       updateData.notes = args.notes
         ? InputValidator.sanitizeString(args.notes as string, this.config.maxNotesLength)
-        : null;
+        : undefined;
       updatedFields.push('notes');
     }
 
@@ -658,7 +664,7 @@ export class SocialTools {
             strength: 0.8,
             context: `Discussed during ${interactionType} interaction`
           }) as any;
-          
+
           if (result.success) {
             memoriesLinked++;
           } else {
@@ -920,7 +926,6 @@ export class SocialTools {
       ? InputValidator.sanitizeString(args.entity_name as string, this.config.maxEntityNameLength)
       : undefined;
     const timePeriod = (args.time_period as string) || 'month';
-    const includeRecommendations = Boolean(args.include_recommendations !== false);
 
     // This would be a complex analysis in a real implementation
     // For now, return a placeholder structure
@@ -965,7 +970,7 @@ export class SocialTools {
 
     if (!relationship) return;
 
-    const updateData: any = {};
+    const updateData: RelationshipUpdateData = { updatedAt: new Date() };
     let hasUpdates = false;
 
     // Simple relationship impact logic
@@ -989,7 +994,7 @@ export class SocialTools {
       await this.db.execute(async (prisma) => {
         return prisma.socialRelationship.update({
           where: { id: relationship.id },
-          data: { ...updateData, updatedAt: new Date() },
+          data: updateData,
         });
       });
     }
@@ -1003,7 +1008,7 @@ export class SocialTools {
     relationship: any,
     recentInteractions: any[],
     socialLearnings: any[],
-    sharedMemories: any[] = []
+    sharedMemories: SharedMemory[] = []
   ): SocialContextResult['recommendations'] {
     const communicationTips: string[] = [];
     const emotionalPrep: string[] = [];
@@ -1056,7 +1061,7 @@ export class SocialTools {
     interactionType: string,
     context: string,
     baseResult: SocialContextResult,
-    options: { includeEmotionalPrep: boolean; includeConversationTips: boolean; includeRelationshipAnalysis: boolean }
+    _options: { includeEmotionalPrep: boolean; includeConversationTips: boolean; includeRelationshipAnalysis: boolean }
   ): Promise<SocialContextResult['recommendations']> {
     // This would include more sophisticated logic based on the interaction type and context
     return baseResult.recommendations;
@@ -1067,7 +1072,11 @@ export class SocialTools {
   /**
    * Get shared memories for a specific social entity
    */
-  private async getSharedMemoriesForEntity(entityId: number): Promise<{memories: any[], insights: any[]}> {
+  private async getSharedMemoriesForEntity(entityId: number): Promise<{memories: SharedMemory[], insights: Array<{
+    pattern: string;
+    examples: string[];
+    strength: number;
+  }>}> {
     try {
       // Get all memory links for this entity
       const links = await this.db.execute(async (prisma) => {
@@ -1116,10 +1125,18 @@ export class SocialTools {
   /**
    * Generate insights about memory patterns with this entity
    */
-  private generateMemoryInsights(links: any[]): any[] {
+  private generateMemoryInsights(links: any[]): Array<{
+    pattern: string;
+    examples: string[];
+    strength: number;
+  }> {
     if (links.length === 0) return [];
 
-    const insights: any[] = [];
+    const insights: Array<{
+      pattern: string;
+      examples: string[];
+      strength: number;
+    }> = [];
 
     // Analyze link type distribution
     const linkTypeDistribution: Record<string, number> = {};
@@ -1177,13 +1194,13 @@ export class SocialTools {
   /**
    * Enhanced: Generate memory reminders from shared memories array
    */
-  private generateMemoryReminders(sharedMemories: any[]): string[] {
+  private generateMemoryReminders(sharedMemories: SharedMemory[]): string[] {
     if (!sharedMemories || sharedMemories.length === 0) return [];
 
     const reminders: string[] = [];
 
     // Group by link type for meaningful reminders
-    const linkGroups: Record<string, any[]> = {};
+    const linkGroups: Record<string, SharedMemory[]> = {};
     sharedMemories.forEach(memory => {
       if (!linkGroups[memory.linkType]) {
         linkGroups[memory.linkType] = [];
@@ -1225,13 +1242,13 @@ export class SocialTools {
   /**
    * Enhanced: Generate conversation starters from shared memories array
    */
-  private generateConversationStarters(sharedMemories: any[]): string[] {
+  private generateConversationStarters(sharedMemories: SharedMemory[]): string[] {
     if (!sharedMemories || sharedMemories.length === 0) return [];
 
     const starters: string[] = [];
 
     // Group by link type
-    const linkGroups: Record<string, any[]> = {};
+    const linkGroups: Record<string, SharedMemory[]> = {};
     sharedMemories.forEach(memory => {
       if (!linkGroups[memory.linkType]) {
         linkGroups[memory.linkType] = [];
@@ -1347,10 +1364,11 @@ export class SocialTools {
         message: `Memory '${memoryKey}' successfully linked to '${entityName}' as '${linkType}'`
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         message: 'Failed to create memory-social link'
       };
     }
@@ -1462,10 +1480,11 @@ export class SocialTools {
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         message: 'Failed to search memory-social links'
       };
     }
@@ -1535,11 +1554,7 @@ export class SocialTools {
         other: []
       };
 
-      const memoryInsights: any = {
-        patterns: [],
-        themes: [],
-        evolution: []
-      };
+
 
       for (const link of links) {
         const memoryData = {
@@ -1664,10 +1679,11 @@ export class SocialTools {
         }
       };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
-        error: error.message,
+        error: errorMessage,
         message: 'Failed to get social memory context'
       };
     }
