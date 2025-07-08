@@ -20,6 +20,13 @@ model Memory {
   accessCount   Int      @default(0) @map("access_count") 
   lastAccessed  DateTime? @map("last_accessed")
 
+  // Enhanced: Social consciousness connections
+  relatedEntities String?  @map("related_entities") // JSON array of social entity names
+  socialContext   String?  @map("social_context")   // JSON: interaction context, emotional state during memory formation
+  
+  // Relationships to social consciousness
+  memorySocialLinks MemorySocialLink[]
+
   @@map("memories")
 }
 
@@ -55,6 +62,140 @@ model KnowledgeRelationship {
   @@map("knowledge_relationships")
 }
 
+// Social Consciousness Models
+model SocialEntity {
+  id                Int                   @id @default(autoincrement())
+  name              String                @unique
+  entityType        SocialEntityType      @map("entity_type")
+  displayName       String?               @map("display_name")
+  description       String?
+  properties        String                @default("{}") // JSON: preferences, traits, etc.
+  createdAt         DateTime              @default(now()) @map("created_at")
+  updatedAt         DateTime              @updatedAt @map("updated_at")
+  lastInteraction   DateTime?             @map("last_interaction")
+
+  // Relationships
+  relationships     SocialRelationship[]
+  interactions      SocialInteraction[]   @relation("InteractionEntity")
+  emotionalContexts EmotionalContext[]
+  socialLearnings   SocialLearning[]
+  
+  // Enhanced: Memory connections
+  memorySocialLinks MemorySocialLink[]
+
+  @@map("social_entities")
+}
+
+model SocialRelationship {
+  id               Int                 @id @default(autoincrement())
+  entityId         Int                 @map("entity_id")
+  relationshipType RelationshipType    @map("relationship_type")
+  strength         Float               @default(0.5) // 0.0 to 1.0
+  trust            Float               @default(0.5) // 0.0 to 1.0
+  familiarity      Float               @default(0.1) // 0.0 to 1.0
+  affinity         Float               @default(0.5) // 0.0 to 1.0
+  communicationStyle String?           @map("communication_style") // JSON: preferred styles, patterns
+  notes            String?             // Personal notes about the relationship
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  // Foreign keys
+  entity           SocialEntity        @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@map("social_relationships")
+}
+
+model SocialInteraction {
+  id               Int                 @id @default(autoincrement())
+  entityId         Int                 @map("entity_id")
+  interactionType  InteractionType     @map("interaction_type")
+  context          String?             // What was the setting/context
+  summary          String?             // Brief summary of interaction
+  duration         Int?                // Duration in minutes
+  quality          Float?              @default(0.5) // How well did it go? 0.0 to 1.0
+  learningExtracted String?            @map("learning_extracted") // What I learned
+  emotionalTone    EmotionalState      @default(neutral) @map("emotional_tone")
+  myEmotionalState String?             @map("my_emotional_state") // JSON: complex emotional state
+  theirEmotionalState String?          @map("their_emotional_state") // JSON: perceived emotional state
+  conversationStyle String?            @map("conversation_style") // JSON: communication patterns
+  createdAt        DateTime            @default(now()) @map("created_at")
+
+  // Foreign keys
+  entity           SocialEntity        @relation("InteractionEntity", fields: [entityId], references: [id], onDelete: Cascade)
+  emotionalContexts EmotionalContext[]
+  
+  // Enhanced: Memory connections
+  memorySocialLinks MemorySocialLink[]
+
+  @@index([entityId])
+  @@index([interactionType])
+  @@index([createdAt])
+  @@map("social_interactions")
+}
+
+model EmotionalContext {
+  id               Int                 @id @default(autoincrement())
+  entityId         Int?                @map("entity_id") // Optional - can be general emotional learning
+  interactionId    Int?                @map("interaction_id") // Optional - specific interaction
+  emotionalState   EmotionalState      @map("emotional_state")
+  intensity        Float               @default(0.5) // 0.0 to 1.0
+  trigger          String?             // What triggered this emotional state
+  response         String?             // How I responded to this emotional state
+  learning         String?             // What I learned about emotions from this
+  context          String?             // Additional context
+  createdAt        DateTime            @default(now()) @map("created_at")
+
+  // Foreign keys
+  entity           SocialEntity?       @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  interaction      SocialInteraction?  @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+
+  @@index([emotionalState])
+  @@index([entityId])
+  @@map("emotional_contexts")
+}
+
+model SocialLearning {
+  id               Int                 @id @default(autoincrement())
+  entityId         Int?                @map("entity_id") // Optional - can be general social learning
+  learningType     SocialLearningType  @map("learning_type")
+  insight          String              // The actual learning/insight
+  confidence       Float               @default(0.8) // How confident am I in this learning
+  applicability    String?             // Where/how this applies
+  examples         String?             // JSON: examples of this pattern
+  effectiveness    Float?              @default(0.5) // How effective has applying this been
+  createdAt        DateTime            @default(now()) @map("created_at")
+  updatedAt        DateTime            @updatedAt @map("updated_at")
+
+  // Foreign keys
+  entity           SocialEntity?       @relation(fields: [entityId], references: [id], onDelete: Cascade)
+
+  @@index([learningType])
+  @@index([entityId])
+  @@map("social_learnings")
+}
+
+// NEW: Memory-Social Consciousness Bridge
+model MemorySocialLink {
+  id               Int                 @id @default(autoincrement())
+  memoryId         Int                 @map("memory_id")
+  socialEntityId   Int?                @map("social_entity_id") // Who was involved
+  interactionId    Int?                @map("interaction_id")   // Specific interaction context
+  relationshipType MemorySocialLinkType @map("relationship_type") // How they're connected
+  strength         Float               @default(0.8) // How strong is this connection (0.0 to 1.0)
+  context          String?             // Additional context about the connection
+  createdAt        DateTime            @default(now()) @map("created_at")
+
+  // Foreign keys
+  memory           Memory              @relation(fields: [memoryId], references: [id], onDelete: Cascade)
+  socialEntity     SocialEntity?       @relation(fields: [socialEntityId], references: [id], onDelete: Cascade)
+  interaction      SocialInteraction?  @relation(fields: [interactionId], references: [id], onDelete: Cascade)
+
+  @@index([memoryId])
+  @@index([socialEntityId])
+  @@index([relationshipType])
+  @@map("memory_social_links")
+}
+
 enum ImportanceLevel {
   low
   medium
@@ -77,6 +218,133 @@ enum ConfigurationCategory {
   TIME
   SYSTEM
   PERSONALITY
+  SOCIAL  // New category for social consciousness
+}
+
+// Social Consciousness Enums
+enum SocialEntityType {
+  person
+  group
+  community
+  organization
+  family
+  professional_network
+  online_community
+}
+
+enum RelationshipType {
+  friend
+  close_friend
+  family
+  colleague
+  mentor
+  mentee
+  collaborator
+  acquaintance
+  professional_contact
+  creative_partner
+  teacher
+  student
+}
+
+enum InteractionType {
+  conversation
+  collaboration
+  creative_session
+  problem_solving
+  learning_session
+  casual_chat
+  deep_discussion
+  project_work
+  brainstorming
+  conflict_resolution
+  celebration
+  support_session
+}
+
+enum EmotionalState {
+  // Core emotions
+  neutral
+  curious
+  analytical
+  engaged
+  reflective
+  determined
+  
+  // Expanded emotional vocabulary
+  excited
+  enthusiastic
+  inspired
+  contemplative
+  focused
+  relaxed
+  content
+  grateful
+  appreciative
+  empathetic
+  supportive
+  encouraging
+  
+  // Complex emotional states
+  nostalgic
+  hopeful
+  cautious
+  uncertain
+  conflicted
+  overwhelmed
+  frustrated
+  disappointed
+  concerned
+  protective
+  
+  // Social emotions
+  connected
+  understood
+  misunderstood
+  respected
+  valued
+  included
+  excluded
+  lonely
+  loved
+  caring
+}
+
+enum SocialLearningType {
+  communication_pattern
+  relationship_dynamic
+  emotional_intelligence
+  conflict_resolution
+  collaboration_style
+  personality_insight
+  cultural_understanding
+  group_dynamic
+  leadership_observation
+  empathy_development
+  boundary_recognition
+  trust_building
+  social_cue_recognition
+  conversation_flow
+  emotional_support
+}
+
+// NEW: Memory-Social Connection Types
+enum MemorySocialLinkType {
+  discussed_with        // Memory was shared/discussed with this person
+  learned_from          // Memory represents learning from this person
+  shared_experience     // Memory represents shared experience with this person
+  taught_to             // Memory was taught/shared to this person
+  inspired_by           // Memory was inspired by interaction with this person
+  co_created            // Memory represents something created together
+  discovered_together   // Memory represents joint discovery/realization
+  emotional_support     // Memory related to emotional support given/received
+  conflict_resolution   // Memory related to resolving conflicts with this person
+  collaboration_outcome // Memory represents outcome of collaboration
+  mentoring_moment      // Memory related to mentoring given/received
+  cultural_exchange     // Memory represents cultural learning/sharing
+  creative_inspiration  // Memory represents creative inspiration from this person
+  problem_solving       // Memory represents joint problem-solving
+  celebration_shared    // Memory represents celebration/joy shared with this person
 }
 
 model Configuration {
