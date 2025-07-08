@@ -4,6 +4,7 @@ import { TimeTools } from './time/index.js';
 import { MemoryTools } from './memory/index.js';
 import { ReasoningTools } from './reasoning/index.js';
 import { ConfigurationTools } from './configuration/index.js';
+import { SocialTools } from './social/index.js';
 
 export interface ToolExecutor {
   execute(args: Record<string, unknown>): Promise<unknown>;
@@ -36,6 +37,10 @@ export class ConsciousnessToolsRegistry {
     // Register configuration tools
     const configurationTools = new ConfigurationTools();
     this.registerToolCategory(configurationTools);
+
+    // Register social consciousness tools
+    const socialTools = new SocialTools();
+    this.registerToolCategory(socialTools);
   }
 
   private registerToolCategory(toolCategory: {
