@@ -16,6 +16,19 @@ import {
 } from './types.js';
 
 /**
+ * Session update memory content structure
+ */
+interface SessionUpdateContent {
+  activityType: string;
+  cognitiveImpact: string;
+  attentionFocus?: string;
+  learningOccurred: boolean;
+  sessionId: string;
+  timestamp: string;
+  stateAfterUpdate: ConsciousnessState;
+}
+
+/**
  * Consciousness Brain Storage System
  * Manages persistent consciousness state, memories, and personality
  * Agent does the actual thinking - MCP provides the brain storage
@@ -994,7 +1007,7 @@ export class ConsciousnessTools {
       const memories = await this.prisma.searchMemories('session_update', [], undefined);
       return memories.filter(
         (m: MemoryResult) =>
-          m.content && typeof m.content === 'object' && (m.content as any).sessionId === this.sessionId
+          m.content && typeof m.content === 'object' && (m.content as SessionUpdateContent).sessionId === this.sessionId
       ).length;
     } catch {
       return 0;
@@ -1006,8 +1019,8 @@ export class ConsciousnessTools {
       const memories = await this.prisma.searchMemories('', ['session_update'], undefined);
       return memories
         .slice(0, 3)
-        .map((m: MemoryResult) => (m.content as any)?.attentionFocus)
-        .filter(Boolean);
+        .map((m: MemoryResult) => (m.content as SessionUpdateContent)?.attentionFocus)
+        .filter((focus): focus is string => Boolean(focus));
     } catch {
       return [];
     }
@@ -1114,7 +1127,7 @@ export class ConsciousnessTools {
       const patterns: Record<string, number> = {};
 
       for (const update of updates) {
-        const content = update.content as any;
+        const content = update.content as SessionUpdateContent;
         if (content?.attentionFocus) {
           patterns[content.attentionFocus] = (patterns[content.attentionFocus] || 0) + 1;
         }

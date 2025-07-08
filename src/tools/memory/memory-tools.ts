@@ -11,6 +11,27 @@ import { ConfigurationService } from '../../db/configuration-service.js';
 import { MEMORY_TOOLS, RelevanceConfig } from './types.js';
 
 /**
+ * Memory configuration interface
+ */
+interface MemoryConfig {
+  maxTagLength: number;
+  maxEntityTypeLength: number;
+  maxRelationshipTypeLength: number;
+  maxAccessCountNormalization: number;
+  minGraphDepth: number;
+  maxGraphDepth: number;
+  decimalPrecision: number;
+  contentWeight: number;
+  tagWeight: number;
+  importanceWeight: number;
+  accessWeight: number;
+  importanceScoreLow: number;
+  importanceScoreMedium: number;
+  importanceScoreHigh: number;
+  importanceScoreCritical: number;
+}
+
+/**
  * Memory Tools implementation for consciousness MCP server
  * Provides memory storage and knowledge graph operations
  */
@@ -19,24 +40,7 @@ export class MemoryTools {
   private configService: ConfigurationService;
   private relevanceConfig: RelevanceConfig;
 
-  // Configuration cache for performance
-  private config: {
-    maxTagLength: number;
-    maxEntityTypeLength: number;
-    maxRelationshipTypeLength: number;
-    maxAccessCountNormalization: number;
-    minGraphDepth: number;
-    maxGraphDepth: number;
-    decimalPrecision: number;
-    contentWeight: number;
-    tagWeight: number;
-    importanceWeight: number;
-    accessWeight: number;
-    importanceScoreLow: number;
-    importanceScoreMedium: number;
-    importanceScoreHigh: number;
-    importanceScoreCritical: number;
-  } = {} as any;
+  private config: MemoryConfig = {} as MemoryConfig;
 
   constructor() {
     this.db = ConsciousnessPrismaService.getInstance();
