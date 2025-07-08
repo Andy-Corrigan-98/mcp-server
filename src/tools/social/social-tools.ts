@@ -1102,7 +1102,7 @@ export class SocialTools {
         importance: link.memory.importance,
         linkType: link.relationshipType,
         linkStrength: link.strength,
-        linkContext: link.context,
+        linkContext: link.context ?? undefined,
         createdAt: link.memory.storedAt,
         interactionContext: link.interaction ? {
           id: link.interaction.id,
