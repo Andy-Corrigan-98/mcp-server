@@ -2,7 +2,12 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ConfigurationService } from '@/db/configuration-service.js';
 import { ConfigurationType, ConfigurationCategory } from '@prisma/client';
 import { InputValidator } from '@/validation/input-validator.js';
-import type { ConfigurationResult, ConfigurationUpdateResult, ConfigurationListResult } from './types.js';
+import type {
+  ConfigurationResult,
+  ConfigurationUpdateResult,
+  ConfigurationListResult,
+  DatabaseConfiguration,
+} from './types.js';
 
 /**
  * Configuration Management Tools
@@ -368,7 +373,7 @@ export class ConfigurationTools {
     }
   }
 
-  private mapToResult(config: any): ConfigurationResult {
+  private mapToResult(config: DatabaseConfiguration): ConfigurationResult {
     return {
       key: config.key,
       value: config.value,
