@@ -1,8 +1,19 @@
-import { PrismaClient, ImportanceLevel } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { ImportanceLevel, ConfigurationCategory } from '@prisma/client';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
 import dotenv from 'dotenv';
-import { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationshipData, DatabaseConfig } from './types.js';
+import type {
+  MemoryData,
+  MemoryResult,
+  KnowledgeEntityData,
+  KnowledgeRelationshipData,
+  DatabaseConfig,
+  MemoryWhereConditions,
+  PrismaMemoryObject,
+  PrismaKnowledgeEntity,
+  ConfigurationUpsertData,
+} from './types.js';
 
 // Load environment variables
 dotenv.config();
@@ -88,7 +99,7 @@ export class ConsciousnessPrismaService {
   }
 
   async searchMemories(query?: string, tags?: string[], importanceFilter?: ImportanceLevel): Promise<MemoryResult[]> {
-    const whereConditions: any = {};
+    const whereConditions: MemoryWhereConditions = {};
 
     // Add importance filter
     if (importanceFilter) {
@@ -177,7 +188,7 @@ export class ConsciousnessPrismaService {
   async getEntityRelationships(entityName: string, depth: number = 2) {
     // Start with the root entity
     const visited = new Set<string>();
-    const results: any[] = [];
+    const results: PrismaKnowledgeEntity[] = [];
 
     const exploreEntity = async (name: string, currentDepth: number) => {
       if (currentDepth > depth || visited.has(name)) {
@@ -209,7 +220,7 @@ export class ConsciousnessPrismaService {
     return results;
   }
 
-  private mapMemoryToResult(memory: any): MemoryResult {
+  private mapMemoryToResult(memory: PrismaMemoryObject): MemoryResult {
     return {
       id: memory.id,
       key: memory.key,
@@ -235,7 +246,7 @@ export class ConsciousnessPrismaService {
     });
   }
 
-  async getConfigurationsByCategory(category: any) {
+  async getConfigurationsByCategory(category: ConfigurationCategory) {
     return await this.prisma.configuration.findMany({
       where: { category },
       orderBy: { key: 'asc' },
@@ -250,14 +261,7 @@ export class ConsciousnessPrismaService {
     });
   }
 
-  async upsertConfiguration(config: {
-    key: string;
-    value: string;
-    type: any;
-    category: any;
-    description: string;
-    defaultValue: string;
-  }) {
+  async upsertConfiguration(config: ConfigurationUpsertData) {
     return await this.prisma.configuration.upsert({
       where: { key: config.key },
       update: {
