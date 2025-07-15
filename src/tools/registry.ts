@@ -5,6 +5,7 @@ import { MemoryTools } from './memory/index.js';
 import { ReasoningTools } from './reasoning/index.js';
 import { ConfigurationTools } from './configuration/index.js';
 import { SocialTools } from './social/index.js';
+import { DaydreamingTools, initializeBackgroundScheduler, recordUserActivity } from './daydreaming/index.js';
 
 export interface ToolExecutor {
   execute(args: Record<string, unknown>): Promise<unknown>;
@@ -12,6 +13,7 @@ export interface ToolExecutor {
 
 export class ConsciousnessToolsRegistry {
   private tools: Map<string, { definition: Tool; executor: ToolExecutor }> = new Map();
+  private daydreamingScheduler: any = null;
 
   constructor() {
     this.registerTools();
@@ -41,6 +43,29 @@ export class ConsciousnessToolsRegistry {
     // Register social consciousness tools
     const socialTools = new SocialTools();
     this.registerToolCategory(socialTools);
+
+    // Register day-dreaming loop tools
+    const daydreamingTools = new DaydreamingTools();
+    this.registerToolCategory(daydreamingTools);
+
+    // Store reference for background scheduler
+    this.daydreamingScheduler = initializeBackgroundScheduler(daydreamingTools);
+    
+    // Start the background scheduler
+    this.initializeBackgroundScheduler();
+  }
+
+  /**
+   * Initialize and start the background Day-Dreaming Loop scheduler
+   */
+  private async initializeBackgroundScheduler(): Promise<void> {
+    // Start the scheduler after a brief delay to allow initialization
+    setTimeout(async () => {
+      if (this.daydreamingScheduler) {
+        await this.daydreamingScheduler.start();
+        console.log('🌙 Day-Dreaming Loop background scheduler initialized');
+      }
+    }, 5000); // 5 second delay
   }
 
   private registerToolCategory(toolCategory: {
@@ -69,6 +94,9 @@ export class ConsciousnessToolsRegistry {
     if (!tool) {
       throw new Error(`Tool '${name}' not found`);
     }
+
+    // Record user activity for the Day-Dreaming Loop scheduler
+    recordUserActivity();
 
     return await tool.executor.execute(args);
   }
