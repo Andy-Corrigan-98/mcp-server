@@ -565,13 +565,23 @@ export class DaydreamingTools {
   }
 
   private async evaluateConnectionHypothesis(hypothesis: ConnectionHypothesis): Promise<ConnectionEvaluation> {
-    // This would implement the "critic" component from the DDL paper
-    // For now, provide simple heuristic evaluation
+    // ⚠️ CRITICAL LIMITATION: This evaluation is currently PLACEHOLDER with random scores!
+    // 
+    // What a proper implementation would do:
+    // - Novelty: Check semantic similarity against existing knowledge to detect truly new connections
+    // - Plausibility: Analyze logical coherence and domain consistency of the hypothesis  
+    // - Value: Assess practical relevance and potential for actionable insights
+    // - Actionability: Determine if hypothesis suggests concrete next steps
+    //
+    // Current implementation: Random numbers within reasonable ranges
+    // Cost to implement properly: $0.50-$2.00 per evaluation in API calls
+    // 
+    // TODO: Replace with actual content analysis when budget/requirements justify the cost
 
-    const novelty = Math.random() * 0.4 + 0.3; // 0.3-0.7 range
-    const plausibility = Math.random() * 0.4 + 0.4; // 0.4-0.8 range
-    const value = Math.random() * 0.5 + 0.3; // 0.3-0.8 range
-    const actionability = Math.random() * 0.6 + 0.2; // 0.2-0.8 range
+    const novelty = Math.random() * 0.4 + 0.3; // 0.3-0.7 range - RANDOM!
+    const plausibility = Math.random() * 0.4 + 0.4; // 0.4-0.8 range - RANDOM!
+    const value = Math.random() * 0.5 + 0.3; // 0.3-0.8 range - RANDOM!
+    const actionability = Math.random() * 0.6 + 0.2; // 0.2-0.8 range - RANDOM!
 
     const overallScore = (novelty + plausibility + value + actionability) / 4;
 
