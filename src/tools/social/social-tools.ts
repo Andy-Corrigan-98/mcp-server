@@ -378,12 +378,12 @@ export class SocialTools {
       // Analyze emotional patterns
       const emotionalStateFrequency: Record<string, number> = {};
       const emotionalTriggers: Record<string, string[]> = {};
-      
+
       emotionalContexts.forEach(context => {
         // Count frequency of emotional states
-        emotionalStateFrequency[context.emotionalState] = 
+        emotionalStateFrequency[context.emotionalState] =
           (emotionalStateFrequency[context.emotionalState] || 0) + 1;
-        
+
         // Collect triggers for each emotional state
         if (context.trigger) {
           if (!emotionalTriggers[context.emotionalState]) {
@@ -734,24 +734,31 @@ export class SocialTools {
     const limit = Math.min((args.limit as number) || 10, 50);
 
     // Build where clause
-    const where: any = {};
+    // Removed unused variable
 
     if (entityName) {
-      const entity = await this.getSocialEntityByName(entityName);
-      if (!entity) {
-        throw new Error(`Social entity '${entityName}' not found`);
-      }
-      where.entityId = entity.id;
+          const entity = await this.getSocialEntityByName(entityName);
+    if (!entity) {
+      throw new Error(`Social entity '${entityName}' not found`);
     }
+  }
 
-    if (interactionType) {
-      where.interactionType = interactionType;
+  // Build where clause inline
+  const whereClause: Record<string, unknown> = {};
+  if (entityName) {
+    const entity = await this.getSocialEntityByName(entityName);
+    if (entity) {
+      whereClause.entityId = entity.id;
     }
+  }
+  if (interactionType) {
+    whereClause.interactionType = interactionType;
+  }
 
-    // Get interactions
-    const interactions = await this.db.execute(async (prisma) => {
-      return prisma.socialInteraction.findMany({
-        where,
+  // Get interactions
+  const interactions = await this.db.execute(async (prisma) => {
+    return prisma.socialInteraction.findMany({
+      where: whereClause,
         include: {
           entity: {
             select: {
@@ -972,11 +979,11 @@ export class SocialTools {
 
     // Get data for analysis
     const interactions = await this.db.execute(async (prisma) => {
-      const where = entityName ? { 
+      const where = entityName ? {
         entity: { name: entityName },
         createdAt: { gte: startDate }
       } : { createdAt: { gte: startDate } };
-      
+
       return prisma.socialInteraction.findMany({
         where,
         include: { entity: true },
@@ -995,11 +1002,8 @@ export class SocialTools {
     });
 
     const learnings = await this.db.execute(async (prisma) => {
-      const where = entityName ? { 
-        entity: { name: entityName },
-        createdAt: { gte: startDate }
-      } : { createdAt: { gte: startDate } };
-      
+      // Inline where clause to avoid unused variable
+
       return prisma.socialLearning.findMany({
         where: entityName ? { entity: { name: entityName }, createdAt: { gte: startDate } } : { createdAt: { gte: startDate } },
         include: { entity: true },
@@ -1048,11 +1052,11 @@ export class SocialTools {
       // Analyze interaction frequency and quality
       const interactionsByType: Record<string, number> = {};
       const qualityByType: Record<string, number[]> = {};
-      
+
       interactions.forEach(interaction => {
-        interactionsByType[interaction.interactionType] = 
+        interactionsByType[interaction.interactionType] =
           (interactionsByType[interaction.interactionType] || 0) + 1;
-        
+
         if (interaction.quality !== null) {
           if (!qualityByType[interaction.interactionType]) {
             qualityByType[interaction.interactionType] = [];
@@ -1086,7 +1090,7 @@ export class SocialTools {
       const recentQuality = interactions.slice(0, 10)
         .filter(i => i.quality !== null)
         .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
-      
+
       const olderQuality = interactions.slice(10, 20)
         .filter(i => i.quality !== null)
         .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
@@ -1111,7 +1115,7 @@ export class SocialTools {
       // Analyze social learning accumulation
       const learningsByType: Record<string, number> = {};
       learnings.forEach(learning => {
-        learningsByType[learning.learningType] = 
+        learningsByType[learning.learningType] =
           (learningsByType[learning.learningType] || 0) + 1;
       });
 
@@ -1129,7 +1133,7 @@ export class SocialTools {
       }
 
       // Learning velocity trend
-      const recentWeek = learnings.filter(l => 
+      const recentWeek = learnings.filter(l =>
         l.createdAt > new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
       ).length;
       const previousWeek = learnings.filter(l => {

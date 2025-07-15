@@ -50,7 +50,7 @@ export class ConsciousnessToolsRegistry {
 
     // Store reference for background scheduler
     this.daydreamingScheduler = initializeBackgroundScheduler(daydreamingTools);
-    
+
     // Start the background scheduler
     this.initializeBackgroundScheduler();
   }
