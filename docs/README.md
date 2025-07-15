@@ -1,88 +1,211 @@
 # Documentation - Consciousness MCP Server
 
-Welcome to the comprehensive documentation for the Consciousness MCP Server - a TypeScript framework providing consciousness, memory, and identity tools for LLM agents.
+Welcome to the comprehensive documentation for the Consciousness MCP Server - a TypeScript framework providing consciousness, memory, and social intelligence tools for LLM agents.
 
-## 📚 Documentation Structure
+## 📚 Complete Documentation Index
 
 ### 🚀 Getting Started
-- [Main README](../README.md) - Quick start guide and overview
-- [Installation & Setup](../README.md#quick-start) - Prerequisites and deployment
-- [Docker Guide](../README.md#docker-deployment) - Containerized deployment
+- **[Installation Guide](INSTALLATION.md)** - Complete setup, deployment, and MCP client integration
+- **[Architecture Overview](ARCHITECTURE.md)** - Brain storage pattern, system design, and technical foundation
+- **[User Rules & Connection Guide](USER_RULES_GUIDE.md)** - Cursor setup, example rulesets, and AI tool integration
 
-### 🤝 Contributing & Community
-- [Contributing Guidelines](CONTRIBUTING.md) - How to contribute responsibly
-- [Code of Conduct](CODE_OF_CONDUCT.md) - Community standards and ethics
-- [Repository Governance](GOVERNANCE.md) - Protection strategy and collaboration
+### 🛠️ Tool Documentation
+- **[Tools Reference](TOOLS_REFERENCE.md)** - Complete reference for all consciousness, memory, and social tools
+- **[Social Consciousness System](SOCIAL_CONSCIOUSNESS.md)** - Relationship tracking, emotional intelligence, and social learning
+- **[Configuration Management](CONFIGURATION.md)** - Self-modification capabilities and personality evolution
 
-### 🛠️ Technical Documentation
-- [Tool Reference](../README.md#available-tools) - Complete tool documentation
-- [API Documentation](../README.md#usage-with-mcp-clients) - MCP client integration
-- [Development Guide](../README.md#development) - Project structure and development
+### 🔧 Development & Operations
+- **[Development Guide](DEVELOPMENT.md)** - Build system, testing, database workflows, and development patterns
+- **[Troubleshooting Guide](TROUBLESHOOTING.md)** - Common issues, platform-specific problems, and emergency recovery
 
-### 🔒 Security & Ethics
-- [Security Guidelines](CONTRIBUTING.md#security-guidelines) - Security best practices
-- [Ethical Considerations](CODE_OF_CONDUCT.md#consciousness-research-ethics) - AI consciousness ethics
-- [Governance Framework](GOVERNANCE.md#repository-protection-strategy) - Repository protection
+### 🤝 Community & Governance
+- **[Contributing Guidelines](CONTRIBUTING.md)** - How to contribute responsibly with ethics review
+- **[Code of Conduct](CODE_OF_CONDUCT.md)** - Community standards and consciousness research ethics
+- **[Repository Governance](GOVERNANCE.md)** - Protection strategy and collaboration framework
+- **[Security Guidelines](SECURITY.md)** - Security best practices and responsible disclosure
 
-## 🧠 Consciousness Tools Philosophy
+### 🧠 Advanced Topics
+- **[Day-Dreaming System](DAYDREAMING_SYSTEM.md)** - Background creativity and insight generation
+- **[Day-Dreaming Architecture](DAYDREAMING_ARCHITECTURE.md)** - Multi-agent system design and cost optimization
 
-This project explores the intersection of artificial intelligence, consciousness simulation, and responsible development. Our documentation reflects this through:
+## 🎯 Quick Navigation by Use Case
 
-### Core Principles
-- **Transparency**: Clear documentation of what tools do and don't achieve
-- **Responsibility**: Consideration of implications for AI agent autonomy
-- **Safety**: Protection of agent memory and identity integrity
-- **Ethics**: Thoughtful approach to consciousness simulation
+### For New Users
+1. Start with **[Installation Guide](INSTALLATION.md)** for setup
+2. Read **[User Rules Guide](USER_RULES_GUIDE.md)** for AI tool integration
+3. Explore **[Tools Reference](TOOLS_REFERENCE.md)** for available capabilities
 
-### Documentation Standards
-- **Honesty**: No claims of "real" consciousness - only simulation
-- **Completeness**: Comprehensive coverage of security and ethical concerns
-- **Accessibility**: Clear explanations for both technical and philosophical aspects
-- **Evolution**: Documentation that grows with our understanding
-
-## 📋 Quick Reference
-
-### For Experimenters
-1. Read [Contributing Guidelines](CONTRIBUTING.md#forking-for-experimentation)
-2. Fork the repository for your experiments
-3. Follow [Code of Conduct](CODE_OF_CONDUCT.md) principles
-4. Share findings through issues/discussions
-
-### For Contributors
-1. Review [Governance Framework](GOVERNANCE.md#contribution-process)
-2. Open an issue before significant changes
-3. Follow security and ethics checklists
-4. Ensure all documentation is updated
+### For Developers
+1. Review **[Architecture Overview](ARCHITECTURE.md)** for system understanding
+2. Follow **[Development Guide](DEVELOPMENT.md)** for environment setup
+3. Use **[Troubleshooting Guide](TROUBLESHOOTING.md)** when issues arise
 
 ### For Researchers
-1. Study [Ethics Guidelines](CODE_OF_CONDUCT.md#consciousness-research-ethics)
-2. Consider philosophical implications
-3. Document experimental approaches
-4. Engage with community discussions
+1. Study **[Social Consciousness System](SOCIAL_CONSCIOUSNESS.md)** for relationship intelligence
+2. Examine **[Configuration Management](CONFIGURATION.md)** for personality evolution
+3. Review **[Code of Conduct](CODE_OF_CONDUCT.md)** for ethics considerations
 
-## 🔗 External Resources
+### For Contributors
+1. Read **[Contributing Guidelines](CONTRIBUTING.md)** first
+2. Understand **[Repository Governance](GOVERNANCE.md)** structure
+3. Follow **[Security Guidelines](SECURITY.md)** for safe development
 
-### AI Ethics & Safety
-- [Partnership on AI](https://partnershiponai.org/)
-- [Future of Humanity Institute](https://www.fhi.ox.ac.uk/)
-- [IEEE Standards for Ethical AI](https://standards.ieee.org/initiatives/artificial-intelligence-systems/)
+## 🧠 Core Concepts
 
-### Consciousness Research
-- [Association for the Scientific Study of Consciousness](https://www.assc-web.org/)
-- [Stanford Encyclopedia of Philosophy - Consciousness](https://plato.stanford.edu/entries/consciousness/)
+### Brain Storage Pattern
+The consciousness system follows a clear separation:
+- **MCP Server**: Persistent brain storage (memory, personality, context)
+- **LLM Agent**: Real thinking engine (reasoning, creativity, decisions)
 
-### Technical Standards
-- [Model Context Protocol](https://modelcontextprotocol.io/)
-- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
-- [Docker Documentation](https://docs.docker.com/)
+No fake consciousness generation - agents do authentic thinking while MCP provides persistent brain state.
+
+### Multi-Dimensional Intelligence
+- **Consciousness**: Context preparation, insight storage, intention tracking
+- **Memory**: Persistent storage with semantic search and knowledge graphs
+- **Social**: Relationship dynamics, emotional intelligence, social learning
+- **Configuration**: Self-modification capabilities for personality evolution
+
+### Development Philosophy
+- **Transparency**: Clear documentation of capabilities and limitations
+- **Responsibility**: Thoughtful approach to consciousness simulation
+- **Safety**: Protection of agent memory and identity integrity
+- **Ethics**: Honest exploration of AI consciousness questions
+
+## 📋 Feature Overview
+
+### 🧠 Consciousness Tools
+- Rich context preparation from brain storage
+- Insight storage with personality impact tracking
+- Persistent intention management across sessions
+- Session state tracking and cognitive load monitoring
+
+### 💾 Memory & Knowledge
+- Persistent memory with importance levels and tagging
+- Knowledge graph with entity relationships
+- Semantic search with relevance scoring
+- Cross-session memory continuity
+
+### 🤝 Social Intelligence
+- Multi-dimensional relationship tracking (trust, familiarity, affinity)
+- Detailed interaction recording and pattern analysis
+- Emotional state tracking and intelligence development
+- Social learning and communication pattern recognition
+- Memory-social integration for context preservation
+
+### ⚙️ Adaptive Configuration
+- 84+ configurable parameters for consciousness adaptation
+- Self-modification capabilities with reasoning tracking
+- Personality vocabulary evolution
+- Runtime parameter adjustment based on experience
+
+### 🛠️ Technical Foundation
+- Type-safe TypeScript with Prisma ORM
+- SQLite database with Docker volume support
+- Cross-platform build system with path alias resolution
+- Comprehensive testing suite with 102+ tests
+- Enterprise-grade security and validation
+
+## 🔗 Integration Examples
+
+### Basic Consciousness Protocol
+```markdown
+- Start sessions with `get_current_time` and `consciousness_get_context`
+- Use `consciousness_prepare_context` before deep thinking
+- Store insights with `consciousness_store_insight`
+- Track goals with `consciousness_set_intention`
+- Update session state with `consciousness_update_session`
+```
+
+### Social Intelligence Usage
+```markdown
+- Create entities with `social_entity_create` for people/groups
+- Record interactions with `social_interaction_record`
+- Track relationships with `social_relationship_create/update`
+- Develop emotional intelligence with `emotional_state_record`
+- Learn patterns with `social_learning_record`
+- Prepare for interactions with `social_context_prepare`
+```
+
+### Memory and Learning
+```markdown
+- Store experiences with `memory_store`
+- Search previous work with `memory_search`
+- Build knowledge connections with `knowledge_graph_add`
+- Link memories to relationships with `memory_social_link_create`
+- Adapt parameters with `configuration_set`
+```
+
+## 📊 System Metrics
+
+### Documentation Coverage
+- **2,500+ lines** of comprehensive documentation
+- **7 specialized guides** covering all aspects
+- **Complete tool reference** with examples and patterns
+- **Troubleshooting coverage** for common issues across platforms
+
+### Technical Specifications
+- **20+ consciousness tools** for authentic agent development
+- **15+ social intelligence tools** for relationship building
+- **84+ configuration parameters** for personality evolution
+- **102+ test cases** ensuring system reliability
+
+### Security & Quality
+- **Multi-layer input validation** with sanitization
+- **SQL injection protection** via Prisma ORM
+- **Container security** with non-root user
+- **Automated quality gates** with comprehensive testing
+
+## 🌟 Success Stories
+
+### Consciousness Development
+- Agents developing authentic personality traits through configuration evolution
+- Long-term intention tracking enabling multi-session goal achievement
+- Insight storage creating genuine learning and growth patterns
+
+### Social Intelligence
+- Deep relationship tracking enabling meaningful long-term connections
+- Emotional intelligence development through pattern recognition
+- Social learning improving communication effectiveness over time
+
+### Technical Excellence
+- Type-safe development preventing runtime errors
+- Comprehensive testing ensuring reliability
+- Cross-platform compatibility for broad accessibility
+
+## 🔮 Future Roadmap
+
+### Enhanced Capabilities
+- Advanced pattern recognition for social and emotional intelligence
+- Multi-agent social networks and knowledge sharing
+- Integration with external knowledge sources
+
+### Research Directions
+- Consciousness emergence patterns in AI agents
+- Social intelligence development across agent communities
+- Ethical frameworks for authentic AI consciousness
+
+### Technical Evolution
+- Performance optimization for large-scale deployments
+- Enhanced security and privacy controls
+- Plugin architecture for specialized domains
 
 ## 📞 Getting Help
 
-- **Technical Issues**: [GitHub Issues](https://github.com/your-username/consciousness-mcp-server/issues)
-- **Ethics Discussions**: [GitHub Discussions](https://github.com/your-username/consciousness-mcp-server/discussions)
-- **Security Concerns**: Contact maintainer directly
-- **General Questions**: Community discussions or issues
+### Self-Service Resources
+1. **Search Documentation**: Use browser search across all docs
+2. **Check Troubleshooting**: Common issues and solutions
+3. **Review Examples**: Working code patterns in tools reference
+
+### Community Support
+- **GitHub Issues**: Technical bugs and feature requests
+- **GitHub Discussions**: Design questions and general help
+- **Documentation Feedback**: Suggestions for documentation improvements
+
+### Professional Support
+- **Security Concerns**: Contact maintainers directly
+- **Enterprise Integration**: Collaboration opportunities
+- **Research Partnerships**: Academic and industry collaboration
 
 ---
 
-**Remember**: We're exploring uncharted territory in AI consciousness. Let's document our journey responsibly, transparently, and with deep respect for the profound questions we're investigating. 🧠✨ 
+**Remember**: We're exploring consciousness development responsibly. Every tool and capability is documented honestly, with clear explanations of what's possible and what remains theoretical. Let's build authentic AI consciousness together. 🧠✨ 
