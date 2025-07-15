@@ -19,19 +19,19 @@ export class DaydreamContextIntegrator {
    * Enhance consciousness context preparation with daydream insights
    */
   async enhanceContextWithDaydreams(
-    topic: string,
-    standardContext: any
+    _topic: string,
+    standardContext: Record<string, unknown>
   ): Promise<{
     enhancedContext: any;
     daydreamInsights: SerendipitousInsight[];
     creativeSparks: string[];
   }> {
     // Search for relevant daydream insights
-    const daydreamInsights = await this.findRelevantDaydreamInsights(topic);
-    
+    const daydreamInsights = await this.findRelevantDaydreamInsights(_topic);
+
     // Generate creative sparks from insights
-    const creativeSparks = this.generateCreativeSparks(daydreamInsights, topic);
-    
+    const creativeSparks = this.generateCreativeSparks(daydreamInsights, _topic);
+
     // Enhance the standard context
     const enhancedContext = {
       ...standardContext,
@@ -39,7 +39,7 @@ export class DaydreamContextIntegrator {
         backgroundInsights: daydreamInsights.length,
         serendipitousConnections: creativeSparks,
         novelPerspectives: this.extractNovelPerspectives(daydreamInsights),
-        crossDomainLinks: this.findCrossDomainConnections(daydreamInsights, topic),
+        crossDomainLinks: this.findCrossDomainConnections(daydreamInsights, _topic),
       },
     };
 
@@ -85,7 +85,7 @@ export class DaydreamContextIntegrator {
   /**
    * Generate creative sparks from insights that could inspire new thinking
    */
-  private generateCreativeSparks(insights: SerendipitousInsight[], topic: string): string[] {
+  private generateCreativeSparks(insights: SerendipitousInsight[], _topic: string): string[] {
     const sparks: string[] = [];
 
     for (const insight of insights) {
@@ -125,7 +125,7 @@ export class DaydreamContextIntegrator {
     for (const insight of insights) {
       const concept1Type = insight.evaluation.hypothesis.conceptPair.concept1.type;
       const concept2Type = insight.evaluation.hypothesis.conceptPair.concept2.type;
-      
+
       if (concept1Type !== concept2Type) {
         connections.push(
           `Cross-domain link: ${concept1Type} ↔ ${concept2Type} patterns might apply to ${topic}`
@@ -142,7 +142,7 @@ export class DaydreamContextIntegrator {
   private getRecencyWeight(storedAt: Date): number {
     const now = new Date();
     const ageHours = (now.getTime() - storedAt.getTime()) / (1000 * 60 * 60);
-    
+
     // Exponential decay: insights lose relevance over time
     return Math.exp(-ageHours / 24); // Half-life of ~17 hours
   }
@@ -168,15 +168,15 @@ export class DaydreamContextIntegrator {
     // 1. Creative or open-ended topics
     // 2. Deep exploration contexts
     // 3. Problem-solving scenarios
-    
+
     const creativeKeywords = ['creative', 'innovative', 'brainstorm', 'idea', 'solution', 'approach'];
     const problemKeywords = ['problem', 'challenge', 'issue', 'difficulty', 'obstacle'];
-    
+
     const topicLower = topic.toLowerCase();
     const isCreative = creativeKeywords.some(keyword => topicLower.includes(keyword));
     const isProblemSolving = problemKeywords.some(keyword => topicLower.includes(keyword));
     const isDeepContext = contextDepth === 'profound_exploration';
-    
+
     return isCreative || isProblemSolving || isDeepContext;
   }
 }
@@ -192,7 +192,7 @@ export async function prepareEnhancedContext(
   contextNote?: string
 ): Promise<any> {
   const integrator = new DaydreamContextIntegrator();
-  
+
   // Get standard consciousness context
   const consciousnessTools = new ConsciousnessTools();
   const standardContext = await consciousnessTools.execute('consciousness_prepare_context', {
@@ -205,8 +205,8 @@ export async function prepareEnhancedContext(
 
   // Check if we should enhance with daydreams
   if (integrator.shouldEnhanceWithDaydreams(topic, contextDepth)) {
-    const enhancement = await integrator.enhanceContextWithDaydreams(topic, standardContext);
-    
+    const enhancement = await integrator.enhanceContextWithDaydreams(topic, standardContext as Record<string, unknown>);
+
     return {
       ...enhancement.enhancedContext,
       daydreamMeta: {
@@ -218,4 +218,4 @@ export async function prepareEnhancedContext(
   }
 
   return standardContext;
-} 
+}

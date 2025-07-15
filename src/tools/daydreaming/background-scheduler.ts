@@ -1,5 +1,5 @@
 import { DaydreamingTools } from './daydreaming-tools.js';
-import { DaydreamingConfig } from './types.js';
+// Removed unused import: DaydreamingConfig
 import { ConfigurationService } from '../../db/configuration-service.js';
 
 /**
@@ -12,7 +12,7 @@ export class DaydreamingBackgroundScheduler {
   private isRunning: boolean = false;
   private intervalId: NodeJS.Timeout | null = null;
   private lastActivityTime: Date = new Date();
-  
+
   // Activity tracking
   private activityListeners: Set<() => void> = new Set();
   private isIdleTime: boolean = false;
@@ -32,7 +32,7 @@ export class DaydreamingBackgroundScheduler {
 
     this.isRunning = true;
     this.lastActivityTime = new Date();
-    
+
     // Check for daydreaming opportunities every minute
     this.intervalId = setInterval(async () => {
       await this.checkForDaydreamingOpportunity();
@@ -50,7 +50,7 @@ export class DaydreamingBackgroundScheduler {
     }
 
     this.isRunning = false;
-    
+
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
@@ -65,7 +65,7 @@ export class DaydreamingBackgroundScheduler {
   recordActivity(): void {
     this.lastActivityTime = new Date();
     this.isIdleTime = false;
-    
+
     // Notify any listeners
     this.activityListeners.forEach(listener => listener());
   }
@@ -98,7 +98,7 @@ export class DaydreamingBackgroundScheduler {
       const now = new Date();
       const timeSinceLastActivity = now.getTime() - this.lastActivityTime.getTime();
       const minIdleTime = await this.configService.getNumber('daydreaming.min_idle_time_ms', 30000);
-      
+
       // Check if we've been idle long enough
       if (timeSinceLastActivity < minIdleTime) {
         this.isIdleTime = false;
@@ -109,7 +109,7 @@ export class DaydreamingBackgroundScheduler {
 
       // Check cognitive load constraints
       const maxCognitiveLoad = await this.configService.getNumber('daydreaming.max_cognitive_load', 0.7);
-      
+
       // Get current consciousness context to check cognitive load
       const context = await this.getCurrentContext();
       if (context.cognitiveLoad > maxCognitiveLoad) {
@@ -120,7 +120,7 @@ export class DaydreamingBackgroundScheduler {
       // Check if enough time has passed since last daydreaming cycle
       const samplingInterval = await this.configService.getNumber('daydreaming.sampling_interval_ms', 300000);
       const lastCycleTime = await this.getLastCycleTime();
-      
+
       if (lastCycleTime && (now.getTime() - lastCycleTime.getTime()) < samplingInterval) {
         return;
       }
@@ -139,9 +139,9 @@ export class DaydreamingBackgroundScheduler {
   private async triggerDaydreamingCycle(): Promise<void> {
     try {
       console.log('🌙 Starting autonomous Day-Dreaming Loop cycle...');
-      
+
       const maxPairs = await this.configService.getNumber('daydreaming.max_concept_pairs_per_cycle', 3);
-      
+
       // Execute the daydreaming cycle
       const result = await this.daydreamingTools.execute('daydream_cycle', {
         max_concept_pairs: Math.min(maxPairs, 2), // Be conservative for background execution
@@ -149,10 +149,10 @@ export class DaydreamingBackgroundScheduler {
       });
 
       const cycleResult = result as any;
-      
+
       if (cycleResult.insightsStored?.length > 0) {
         console.log(`✨ Generated ${cycleResult.insightsStored.length} serendipitous insights from background daydreaming`);
-        
+
         // Log the insights for awareness
         for (const insight of cycleResult.insightsStored) {
           console.log(`  💡 ${insight.insight.substring(0, 100)}...`);
@@ -202,7 +202,7 @@ export class DaydreamingBackgroundScheduler {
   private async updateLastCycleTime(time: Date): Promise<void> {
     try {
       await this.configService.setValue(
-        'daydreaming.last_cycle_time', 
+        'daydreaming.last_cycle_time',
         time.toISOString(),
         'STRING' as any,
         'SYSTEM' as any,
@@ -252,7 +252,7 @@ export function initializeBackgroundScheduler(daydreamingTools: DaydreamingTools
   if (globalScheduler) {
     globalScheduler.stop();
   }
-  
+
   globalScheduler = new DaydreamingBackgroundScheduler(daydreamingTools);
   return globalScheduler;
 }
@@ -272,4 +272,4 @@ export function recordUserActivity(): void {
   if (globalScheduler) {
     globalScheduler.recordActivity();
   }
-} 
+}
