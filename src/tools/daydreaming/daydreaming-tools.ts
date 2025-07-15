@@ -20,7 +20,7 @@ import {
 /**
  * Day-Dreaming Loop Tools - Implements background concept connection generation
  * Inspired by Gwern's AI Day-Dreaming research paper
- * 
+ *
  * This system continuously:
  * 1. Samples concept pairs from memory/knowledge graph
  * 2. Generates connection hypotheses using sequential thinking
@@ -33,7 +33,7 @@ export class DaydreamingTools {
   private memoryTools: MemoryTools;
   private reasoningTools: ReasoningTools;
   private consciousnessTools: ConsciousnessTools;
-  
+
   private config: DaydreamingConfig;
   private recentlyExploredPairs: Map<string, Date> = new Map();
   private backgroundTimer: NodeJS.Timeout | null = null;
@@ -44,7 +44,7 @@ export class DaydreamingTools {
     this.memoryTools = new MemoryTools();
     this.reasoningTools = new ReasoningTools();
     this.consciousnessTools = new ConsciousnessTools();
-    
+
     this.config = { ...DEFAULT_DAYDREAMING_CONFIG };
     this.loadConfiguration();
   }
@@ -60,14 +60,14 @@ export class DaydreamingTools {
         maxConceptPairsPerCycle: await this.configService.getNumber('daydreaming.max_concept_pairs_per_cycle', DEFAULT_DAYDREAMING_CONFIG.maxConceptPairsPerCycle),
         minIdleTimeMs: await this.configService.getNumber('daydreaming.min_idle_time_ms', DEFAULT_DAYDREAMING_CONFIG.minIdleTimeMs),
         maxCognitiveLoad: await this.configService.getNumber('daydreaming.max_cognitive_load', DEFAULT_DAYDREAMING_CONFIG.maxCognitiveLoad),
-        
+
         recentMemoryWeight: await this.configService.getNumber('daydreaming.recent_memory_weight', DEFAULT_DAYDREAMING_CONFIG.recentMemoryWeight),
         importanceWeight: await this.configService.getNumber('daydreaming.importance_weight', DEFAULT_DAYDREAMING_CONFIG.importanceWeight),
         noveltyWeight: await this.configService.getNumber('daydreaming.novelty_weight', DEFAULT_DAYDREAMING_CONFIG.noveltyWeight),
-        
+
         maxThoughtsPerConnection: await this.configService.getNumber('daydreaming.max_thoughts_per_connection', DEFAULT_DAYDREAMING_CONFIG.maxThoughtsPerConnection),
         explorationDepth: await this.configService.getNumber('daydreaming.exploration_depth', DEFAULT_DAYDREAMING_CONFIG.explorationDepth),
-        
+
         noveltyThreshold: await this.configService.getNumber('daydreaming.novelty_threshold', DEFAULT_DAYDREAMING_CONFIG.noveltyThreshold),
         plausibilityThreshold: await this.configService.getNumber('daydreaming.plausibility_threshold', DEFAULT_DAYDREAMING_CONFIG.plausibilityThreshold),
         valueThreshold: await this.configService.getNumber('daydreaming.value_threshold', DEFAULT_DAYDREAMING_CONFIG.valueThreshold),
@@ -106,13 +106,36 @@ export class DaydreamingTools {
     }
   }
 
+  private static readonly CYCLE_ID_LENGTH = 9;
+  private static readonly MAX_ATTEMPTS_MULTIPLIER = 10;
+  private static readonly DEFAULT_CONFIDENCE = 0.7;
+  private static readonly INITIALIZATION_DELAY_MS = 5000;
+  private static readonly MINUTES_TO_MS = 60000;
+  private static readonly HOURS_IN_MS = 3600000;
+  private static readonly MAX_CONCEPT_RESULTS = 10;
+  private static readonly MAX_INPUT_LENGTH = 200;
+  private static readonly MAX_HYPOTHESIS_LENGTH = 1000;
+  private static readonly DEFAULT_LIMIT = 10;
+  private static readonly MAX_LIMIT = 50;
+  private static readonly DEFAULT_MIN_SCORE = 0.7;
+  private static readonly DEFAULT_DAYS_BACK = 7;
+  private static readonly PERCENTAGE_MULTIPLIER = 100;
+  private static readonly HIGH_STORAGE_RATE = 50;
+  private static readonly LOW_STORAGE_RATE = 10;
+  private static readonly MIN_INTERVAL_MS = 60000;
+  private static readonly MAX_INTERVAL_MS = 1800000;
+  private static readonly INTERVAL_REDUCTION_FACTOR = 0.5;
+  private static readonly INTERVAL_INCREASE_FACTOR = 2;
+  private static readonly MAX_FOCUS_AREAS = 3;
+  private static readonly IDLE_THRESHOLD_HOURS = 6;
+
   /**
    * Execute a complete Day-Dreaming Loop cycle
    */
   private async daydreamCycle(args: Record<string, unknown>): Promise<DaydreamingCycleResult> {
-    const cycleId = `ddl_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const cycleId = `ddl_${Date.now()}_${Math.random().toString(DaydreamingTools.CYCLE_ID_LENGTH + 10).substr(2, DaydreamingTools.CYCLE_ID_LENGTH)}`;
     const startTime = new Date();
-    
+
     // Check if daydreaming is enabled and conditions are met
     if (!this.config.enabled) {
       throw new Error('Day-Dreaming Loop is disabled');
@@ -132,7 +155,7 @@ export class DaydreamingTools {
 
     // Sample concept pairs
     const conceptPairs = await this.sampleConceptPairs(maxConceptPairs, focusArea);
-    
+
     const hypothesesGenerated: ConnectionHypothesis[] = [];
     const evaluationsCompleted: ConnectionEvaluation[] = [];
     const insightsStored: SerendipitousInsight[] = [];
@@ -166,11 +189,11 @@ export class DaydreamingTools {
     }
 
     const endTime = new Date();
-    const averageConfidence = hypothesesGenerated.length > 0 
-      ? hypothesesGenerated.reduce((sum, h) => sum + h.confidence, 0) / hypothesesGenerated.length 
+    const averageConfidence = hypothesesGenerated.length > 0
+      ? hypothesesGenerated.reduce((sum, h) => sum + h.confidence, 0) / hypothesesGenerated.length
       : 0;
-    const storageRate = hypothesesGenerated.length > 0 
-      ? (insightsStored.length / hypothesesGenerated.length) * 100 
+    const storageRate = hypothesesGenerated.length > 0
+      ? (insightsStored.length / hypothesesGenerated.length) * DaydreamingTools.PERCENTAGE_MULTIPLIER
       : 0;
 
     // Update consciousness state with daydreaming activity
@@ -210,12 +233,12 @@ export class DaydreamingTools {
    * Sample concept pairs for exploration
    */
   private async sampleConcepts(args: Record<string, unknown>): Promise<{ conceptPairs: ConceptPair[] }> {
-    const count = Math.min((args.count as number) || 1, 5);
+    const count = Math.min((args.count as number) || 1, DaydreamingTools.MAX_CONCEPT_RESULTS / 2);
     const strategy = (args.strategy as string) || 'importance_weighted';
     const excludeRecent = (args.exclude_recent as boolean) !== false;
 
     const conceptPairs = await this.sampleConceptPairs(count, undefined, strategy, excludeRecent);
-    
+
     return { conceptPairs };
   }
 
@@ -223,8 +246,8 @@ export class DaydreamingTools {
    * Explore connection between two concepts
    */
   private async exploreConnection(args: Record<string, unknown>): Promise<{ hypothesis: ConnectionHypothesis }> {
-    const concept1 = InputValidator.sanitizeString(args.concept1 as string, 200);
-    const concept2 = InputValidator.sanitizeString(args.concept2 as string, 200);
+    const concept1 = InputValidator.sanitizeString(args.concept1 as string, DaydreamingTools.MAX_INPUT_LENGTH);
+    const concept2 = InputValidator.sanitizeString(args.concept2 as string, DaydreamingTools.MAX_INPUT_LENGTH);
     const explorationDepth = (args.exploration_depth as string) || 'moderate';
     const context = args.context as string;
 
@@ -245,7 +268,7 @@ export class DaydreamingTools {
     };
 
     const hypothesis = await this.generateConnectionHypothesis(conceptPair, explorationDepth);
-    
+
     return { hypothesis };
   }
 
@@ -253,9 +276,9 @@ export class DaydreamingTools {
    * Evaluate an insight for value
    */
   private async evaluateInsight(args: Record<string, unknown>): Promise<{ evaluation: ConnectionEvaluation }> {
-    const hypothesisText = InputValidator.sanitizeString(args.hypothesis as string, 1000);
-    const concept1 = InputValidator.sanitizeString(args.concept1 as string, 200);
-    const concept2 = InputValidator.sanitizeString(args.concept2 as string, 200);
+    const hypothesisText = InputValidator.sanitizeString(args.hypothesis as string, DaydreamingTools.MAX_HYPOTHESIS_LENGTH);
+    const concept1 = InputValidator.sanitizeString(args.concept1 as string, DaydreamingTools.MAX_INPUT_LENGTH);
+    const concept2 = InputValidator.sanitizeString(args.concept2 as string, DaydreamingTools.MAX_INPUT_LENGTH);
     const explorationContext = args.exploration_context as string;
 
     // Create a temporary hypothesis object for evaluation
@@ -268,13 +291,13 @@ export class DaydreamingTools {
       },
       hypothesis: hypothesisText,
       explorationSteps: explorationContext ? [explorationContext] : [],
-      confidence: 0.7, // Default confidence for manual evaluations
+      confidence: DaydreamingTools.DEFAULT_CONFIDENCE, // Default confidence for manual evaluations
       noveltyScore: 0.0, // Will be calculated in evaluation
       generatedAt: new Date(),
     };
 
     const evaluation = await this.evaluateConnectionHypothesis(hypothesis);
-    
+
     return { evaluation };
   }
 
@@ -282,9 +305,9 @@ export class DaydreamingTools {
    * Get stored daydream insights
    */
   private async getDaydreamInsights(args: Record<string, unknown>): Promise<{ insights: SerendipitousInsight[] }> {
-    const limit = Math.min((args.limit as number) || 10, 50);
-    const minScore = Math.max(0, Math.min(1, (args.min_score as number) || 0.7));
-    const daysBack = Math.max(1, (args.days_back as number) || 7);
+    const limit = Math.min((args.limit as number) || DaydreamingTools.DEFAULT_LIMIT, DaydreamingTools.MAX_LIMIT);
+    const minScore = Math.max(0, Math.min(1, (args.min_score as number) || DaydreamingTools.DEFAULT_MIN_SCORE));
+    const daysBack = Math.max(1, (args.days_back as number) || DaydreamingTools.DEFAULT_DAYS_BACK);
     const tags = (args.tags as string[]) || [];
 
     // Search memories with daydreaming tags
@@ -313,28 +336,28 @@ export class DaydreamingTools {
     const updates: Partial<DaydreamingConfig> = {};
 
     if (typeof args.enabled === 'boolean') {
-      await this.configService.set('daydreaming.enabled', args.enabled);
+      await this.configService.setValue('daydreaming.enabled', args.enabled, 'BOOLEAN' as any, 'SYSTEM' as any, 'Enable or disable Day-Dreaming Loop');
       this.config.enabled = args.enabled;
       updates.enabled = args.enabled;
     }
 
     if (typeof args.sampling_interval_minutes === 'number') {
-      const intervalMs = args.sampling_interval_minutes * 60 * 1000;
-      await this.configService.set('daydreaming.sampling_interval_ms', intervalMs);
+      const intervalMs = args.sampling_interval_minutes * DaydreamingTools.MINUTES_TO_MS;
+      await this.configService.setValue('daydreaming.sampling_interval_ms', intervalMs, 'NUMBER' as any, 'SYSTEM' as any, 'Sampling interval in milliseconds');
       this.config.samplingIntervalMs = intervalMs;
       updates.samplingIntervalMs = intervalMs;
     }
 
     if (typeof args.novelty_threshold === 'number') {
       const threshold = Math.max(0, Math.min(1, args.novelty_threshold));
-      await this.configService.set('daydreaming.novelty_threshold', threshold);
+      await this.configService.setValue('daydreaming.novelty_threshold', threshold, 'NUMBER' as any, 'SYSTEM' as any, 'Minimum novelty score for storing insights');
       this.config.noveltyThreshold = threshold;
       updates.noveltyThreshold = threshold;
     }
 
     if (typeof args.max_cognitive_load === 'number') {
       const load = Math.max(0, Math.min(1, args.max_cognitive_load));
-      await this.configService.set('daydreaming.max_cognitive_load', load);
+      await this.configService.setValue('daydreaming.max_cognitive_load', load, 'NUMBER' as any, 'SYSTEM' as any, 'Maximum cognitive load before pausing daydreaming');
       this.config.maxCognitiveLoad = load;
       updates.maxCognitiveLoad = load;
     }
@@ -346,7 +369,7 @@ export class DaydreamingTools {
   }
 
   // Private helper methods continue in next part...
-  
+
   /**
    * Sample concept pairs using various strategies
    */
@@ -357,7 +380,7 @@ export class DaydreamingTools {
     excludeRecent: boolean = true
   ): Promise<ConceptPair[]> {
     const pairs: ConceptPair[] = [];
-    const maxAttempts = count * 10; // Prevent infinite loops
+    const maxAttempts = count * DaydreamingTools.MAX_ATTEMPTS_MULTIPLIER; // Prevent infinite loops
     let attempts = 0;
 
     while (pairs.length < count && attempts < maxAttempts) {
@@ -394,7 +417,7 @@ export class DaydreamingTools {
         if (excludeRecent) {
           const pairKey = this.getConceptPairKey(pair);
           const recentThreshold = new Date();
-          recentThreshold.setHours(recentThreshold.getHours() - 6); // 6 hour cooldown
+          recentThreshold.setHours(recentThreshold.getHours() - DaydreamingTools.IDLE_THRESHOLD_HOURS); // cooldown
 
           const lastExplored = this.recentlyExploredPairs.get(pairKey);
           if (lastExplored && lastExplored > recentThreshold) {
@@ -412,28 +435,28 @@ export class DaydreamingTools {
   /**
    * Sample random concepts from available sources
    */
-  private async sampleRandomConcepts(focusArea?: string): Promise<[any, any]> {
+  private async sampleRandomConcepts(focusArea?: string): Promise<[ConceptPair['concept1'], ConceptPair['concept2']]> {
     // Get available entities from knowledge graph
     const kgEntities = await this.getKnowledgeGraphEntities(focusArea);
-    
+
     // Get recent memories
     const recentMemories = await this.getRecentMemories(focusArea);
 
     // Combine all concept sources
     const allConcepts = [...kgEntities, ...recentMemories];
-    
+
     if (allConcepts.length < 2) {
       throw new Error('Insufficient concepts available for sampling');
     }
 
-    // Random selection
-    const concept1 = allConcepts[Math.floor(Math.random() * allConcepts.length)];
-    let concept2 = allConcepts[Math.floor(Math.random() * allConcepts.length)];
-    
+    // Random selection with proper typing
+    const concept1 = allConcepts[Math.floor(Math.random() * allConcepts.length)] as ConceptPair['concept1'];
+    let concept2 = allConcepts[Math.floor(Math.random() * allConcepts.length)] as ConceptPair['concept2'];
+
     // Ensure we don't pick the same concept twice
     let attempts = 0;
-    while (concept1.entity === concept2.entity && attempts < 10) {
-      concept2 = allConcepts[Math.floor(Math.random() * allConcepts.length)];
+    while (concept1.entity === concept2.entity && attempts < DaydreamingTools.DEFAULT_LIMIT) {
+      concept2 = allConcepts[Math.floor(Math.random() * allConcepts.length)] as ConceptPair['concept2'];
       attempts++;
     }
 
@@ -443,7 +466,7 @@ export class DaydreamingTools {
   /**
    * Sample concepts with importance weighting
    */
-  private async sampleWeightedConcepts(focusArea?: string): Promise<[any, any]> {
+  private async sampleWeightedConcepts(focusArea?: string): Promise<[ConceptPair['concept1'], ConceptPair['concept2']]> {
     // Implementation would use importance scores to bias selection
     // For now, fall back to random sampling
     return this.sampleRandomConcepts(focusArea);
@@ -476,7 +499,7 @@ export class DaydreamingTools {
   private async getDaydreamingContext(): Promise<DaydreamingContext> {
     // Get current consciousness state
     const consciousnessContext = await this.consciousnessTools.execute('get_context', {}) as any;
-    
+
     return {
       sessionId: consciousnessContext.sessionId || 'unknown',
       currentCognitiveLoad: consciousnessContext.cognitiveLoad || 0,
@@ -487,19 +510,19 @@ export class DaydreamingTools {
     };
   }
 
-  private async getKnowledgeGraphEntities(focusArea?: string): Promise<any[]> {
+  private async getKnowledgeGraphEntities(_focusArea?: string): Promise<unknown[]> {
     // This would query the knowledge graph for available entities
     // For now, return empty array
     return [];
   }
 
-  private async getRecentMemories(focusArea?: string): Promise<any[]> {
+  private async getRecentMemories(_focusArea?: string): Promise<unknown[]> {
     // Query recent memories that could serve as concepts
     const searchResult = await this.memoryTools.execute('search', {
       limit: 20,
-    }) as any;
+    }) as { memories?: Array<{ key: string; importance: string; storedAt: string }> };
 
-    return (searchResult.memories || []).map((memory: any) => ({
+    return (searchResult.memories || []).map((memory) => ({
       entity: memory.key,
       type: 'memory',
       source: 'memory' as const,
@@ -508,10 +531,14 @@ export class DaydreamingTools {
     }));
   }
 
+  private static readonly SURFACE_THOUGHTS = 3;
+  private static readonly DEEP_THOUGHTS = 8;
+  private static readonly MODERATE_THOUGHTS = 5;
+
   private async generateConnectionHypothesis(pair: ConceptPair, depth: string): Promise<ConnectionHypothesis> {
     // Use sequential thinking to explore the connection
-    const maxThoughts = depth === 'surface' ? 3 : depth === 'deep' ? 8 : 5;
-    
+    const maxThoughts = depth === 'surface' ? DaydreamingTools.SURFACE_THOUGHTS : depth === 'deep' ? DaydreamingTools.DEEP_THOUGHTS : DaydreamingTools.MODERATE_THOUGHTS;
+
     const prompt = `Explore potential connections between "${pair.concept1.entity}" and "${pair.concept2.entity}". Consider unexpected relationships, shared patterns, or novel insights that might link these concepts.`;
 
     // Start sequential thinking
@@ -520,17 +547,17 @@ export class DaydreamingTools {
       thought_number: 1,
       total_thoughts: maxThoughts,
       next_thought_needed: true,
-    }) as any;
+    }) as { summary?: string; thought?: string; sessionId?: string };
 
     // Extract the hypothesis and steps
     const hypothesis = thinkingResult.summary || thinkingResult.thought || 'No clear connection identified';
-    const explorationSteps = [thinkingResult.thought];
+    const explorationSteps = [thinkingResult.thought].filter((step): step is string => step !== undefined);
 
     return {
       conceptPair: pair,
       hypothesis,
       explorationSteps,
-      confidence: 0.7, // Default confidence
+      confidence: DaydreamingTools.DEFAULT_CONFIDENCE, // Default confidence
       noveltyScore: 0.0, // Will be calculated during evaluation
       generatedAt: new Date(),
       thinkingSessionId: thinkingResult.sessionId,
@@ -540,15 +567,15 @@ export class DaydreamingTools {
   private async evaluateConnectionHypothesis(hypothesis: ConnectionHypothesis): Promise<ConnectionEvaluation> {
     // This would implement the "critic" component from the DDL paper
     // For now, provide simple heuristic evaluation
-    
+
     const novelty = Math.random() * 0.4 + 0.3; // 0.3-0.7 range
     const plausibility = Math.random() * 0.4 + 0.4; // 0.4-0.8 range
     const value = Math.random() * 0.5 + 0.3; // 0.3-0.8 range
     const actionability = Math.random() * 0.6 + 0.2; // 0.2-0.8 range
-    
+
     const overallScore = (novelty + plausibility + value + actionability) / 4;
-    
-    const shouldStore = novelty >= this.config.noveltyThreshold && 
+
+    const shouldStore = novelty >= this.config.noveltyThreshold &&
                        plausibility >= this.config.plausibilityThreshold &&
                        value >= this.config.valueThreshold;
 
@@ -560,7 +587,7 @@ export class DaydreamingTools {
       actionability,
       overallScore,
       shouldStore,
-      reason: shouldStore 
+      reason: shouldStore
         ? `High-value insight: novelty=${novelty.toFixed(2)}, plausibility=${plausibility.toFixed(2)}, value=${value.toFixed(2)}`
         : `Below thresholds: novelty=${novelty.toFixed(2)} (need ${this.config.noveltyThreshold}), plausibility=${plausibility.toFixed(2)} (need ${this.config.plausibilityThreshold}), value=${value.toFixed(2)} (need ${this.config.valueThreshold})`,
       evaluatedAt: new Date(),
@@ -579,6 +606,34 @@ export class DaydreamingTools {
       storedAt: new Date(),
     };
 
+    // Store in structured SerendipitousInsight database table
+    try {
+      await this.db.execute(async (prisma) => {
+        return prisma.serendipitousInsight.create({
+          data: {
+            id: insight.id,
+            sourceConcept: evaluation.hypothesis.conceptPair.concept1.entity,
+            targetConcept: evaluation.hypothesis.conceptPair.concept2.entity,
+            connectionHypothesis: evaluation.hypothesis.hypothesis,
+            reasoning: evaluation.hypothesis.explorationSteps.join(' → '),
+            noveltyScore: evaluation.novelty,
+            plausibilityScore: evaluation.plausibility,
+            valueScore: evaluation.value,
+            overallScore: evaluation.overallScore,
+            samplingStrategy: evaluation.hypothesis.conceptPair.samplingReason || 'unknown',
+            generatedAt: insight.storedAt,
+            sourceEntityName: await this.getEntityNameIfExists(evaluation.hypothesis.conceptPair.concept1.entity),
+            targetEntityName: await this.getEntityNameIfExists(evaluation.hypothesis.conceptPair.concept2.entity),
+            storedInMemory: true,
+            memoryKey: insight.id
+          }
+        });
+      });
+    } catch (error) {
+      console.error(`[DDL] Failed to store insight in database:`, error);
+      // Continue with memory storage even if DB fails
+    }
+
     // Store in memory system
     await this.memoryTools.execute('store', {
       key: insight.id,
@@ -596,32 +651,46 @@ export class DaydreamingTools {
       source_context: 'day_dreaming_loop',
     });
 
+    console.log(`[DDL] Stored serendipitous insight ${insight.id} in structured DB and memory`);
     return insight;
   }
 
-  private calculateNextInterval(storageRate: number, averageConfidence: number): number {
+  private async getEntityNameIfExists(conceptName: string): Promise<string | null> {
+    try {
+      const entity = await this.db.execute(async (prisma) => {
+        return prisma.knowledgeEntity.findUnique({
+          where: { name: conceptName }
+        });
+      });
+      return entity?.name || null;
+    } catch (error) {
+      return null;
+    }
+  }
+
+  private calculateNextInterval(storageRate: number, _averageConfidence: number): number {
     // Adaptive interval based on recent success
     const baseInterval = this.config.samplingIntervalMs;
-    
-    if (storageRate > 50) {
-      return Math.max(baseInterval * 0.5, 60000); // More frequent if productive
-    } else if (storageRate < 10) {
-      return Math.min(baseInterval * 2, 1800000); // Less frequent if not productive
+
+    if (storageRate > DaydreamingTools.HIGH_STORAGE_RATE) {
+      return Math.max(baseInterval * DaydreamingTools.INTERVAL_REDUCTION_FACTOR, DaydreamingTools.MIN_INTERVAL_MS); // More frequent if productive
+    } else if (storageRate < DaydreamingTools.LOW_STORAGE_RATE) {
+      return Math.min(baseInterval * DaydreamingTools.INTERVAL_INCREASE_FACTOR, DaydreamingTools.MAX_INTERVAL_MS); // Less frequent if not productive
     }
-    
+
     return baseInterval;
   }
 
   private suggestFocusAreas(insights: SerendipitousInsight[]): string[] {
     // Extract focus areas from successful insights
     const areas = new Set<string>();
-    
+
     for (const insight of insights) {
       areas.add(insight.evaluation.hypothesis.conceptPair.concept1.type);
       areas.add(insight.evaluation.hypothesis.conceptPair.concept2.type);
     }
-    
-    return Array.from(areas).slice(0, 3);
+
+    return Array.from(areas).slice(0, DaydreamingTools.MAX_FOCUS_AREAS);
   }
 
   private async storeCycleMetadata(result: DaydreamingCycleResult): Promise<void> {
@@ -638,4 +707,4 @@ export class DaydreamingTools {
       importance: 'low',
     });
   }
-} 
+}
