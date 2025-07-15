@@ -25,8 +25,8 @@ Welcome to the comprehensive documentation for the Consciousness MCP Server - a 
 - **[Security Guidelines](SECURITY.md)** - Security best practices and responsible disclosure
 
 ### 🧠 Advanced Topics
-- **[Day-Dreaming System](DAYDREAMING_SYSTEM.md)** - Background creativity and insight generation
-- **[Day-Dreaming Architecture](DAYDREAMING_ARCHITECTURE.md)** - Multi-agent system design and cost optimization
+- **[Day-Dreaming System](DAYDREAMING_SYSTEM.md)** - Background creativity and insight generation (244 lines)
+- **[Day-Dreaming Architecture](DAYDREAMING_ARCHITECTURE.md)** - Multi-agent system design and cost optimization (322 lines)
 
 ## 🎯 Quick Navigation by Use Case
 
@@ -138,9 +138,10 @@ No fake consciousness generation - agents do authentic thinking while MCP provid
 ## 📊 System Metrics
 
 ### Documentation Coverage
-- **2,500+ lines** of comprehensive documentation
-- **7 specialized guides** covering all aspects
+- **3,100+ lines** of comprehensive documentation
+- **9 specialized guides** covering all aspects
 - **Complete tool reference** with examples and patterns
+- **Advanced topics** including day-dreaming loop architecture
 - **Troubleshooting coverage** for common issues across platforms
 
 ### Technical Specifications

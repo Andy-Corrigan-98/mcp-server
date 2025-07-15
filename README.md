@@ -36,6 +36,10 @@ This MCP server follows the **brain storage pattern**:
 - **Runtime Adaptation**: Agent can modify its own parameters
 - **Evolution Tracking**: Change history with reasoning
 
+### 🌟 **Advanced Capabilities**
+- **Day-Dreaming Loop**: Background creativity and serendipitous insight generation
+- **Multi-Agent Architecture**: Distributed consciousness and cost-optimized creativity
+
 ### 🛠️ **Technical Foundation**
 - **Prisma ORM**: Type-safe database operations with automatic migrations
 - **SQLite Storage**: Persistent data with Docker volume support
@@ -106,6 +110,10 @@ SOCIAL CONSCIOUSNESS:
 - **[Configuration Management](docs/CONFIGURATION.md)** - Self-modification and personality evolution
 - **[Development Guide](docs/DEVELOPMENT.md)** - Build system, testing, and development workflows
 - **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Common issues and emergency recovery
+
+### 🧠 **Advanced Topics**
+- **[Day-Dreaming System](docs/DAYDREAMING_SYSTEM.md)** - Background creativity and insight generation
+- **[Day-Dreaming Architecture](docs/DAYDREAMING_ARCHITECTURE.md)** - Multi-agent distributed creativity system
 
 ### 🤝 **Community & Governance**
 - **[Contributing Guidelines](docs/CONTRIBUTING.md)** - Ethics review and contribution process
