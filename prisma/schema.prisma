@@ -42,6 +42,10 @@ model KnowledgeEntity {
   sourceRelationships KnowledgeRelationship[] @relation("SourceEntity")
   // Relationships where this entity is the target  
   targetRelationships KnowledgeRelationship[] @relation("TargetEntity")
+  
+  // Day-dreaming insights where this entity is involved
+  sourceInsights      SerendipitousInsight[] @relation("InsightSourceEntity")
+  targetInsights      SerendipitousInsight[] @relation("InsightTargetEntity")
 
   @@map("knowledge_entities")
 }
@@ -219,6 +223,7 @@ enum ConfigurationCategory {
   SYSTEM
   PERSONALITY
   SOCIAL  // New category for social consciousness
+  DAYDREAMING  // New category for day-dreaming loop configuration
 }
 
 // Social Consciousness Enums
@@ -361,4 +366,35 @@ model Configuration {
   @@index([category])
   @@index([key])
   @@map("configurations")
+}
+
+// NEW: Day-Dreaming Loop Model  
+model SerendipitousInsight {
+  id                    String               @id @default(cuid())
+  sourceConcept         String               @map("source_concept")     // First entity in the concept pair
+  targetConcept         String               @map("target_concept")     // Second entity in the concept pair
+  connectionHypothesis  String               @map("connection_hypothesis") // The generated hypothesis text
+  reasoning             String               // The reasoning behind the connection
+  noveltyScore          Float                @map("novelty_score")      // 0.0 to 1.0
+  plausibilityScore     Float                @map("plausibility_score") // 0.0 to 1.0  
+  valueScore            Float                @map("value_score")        // 0.0 to 1.0
+  overallScore          Float                @map("overall_score")      // Composite score 0.0 to 1.0
+  samplingStrategy      String               @map("sampling_strategy")  // Which strategy generated this
+  generatedAt           DateTime             @default(now()) @map("generated_at")
+  storedInMemory        Boolean              @default(false) @map("stored_in_memory") // Whether it was stored in memory system
+  memoryKey             String?              @map("memory_key")         // Key if stored in memory
+  
+  // Track which knowledge entities this insight connects
+  sourceEntityName      String?              @map("source_entity_name")
+  targetEntityName      String?              @map("target_entity_name")
+  
+  // Optional relationships to existing knowledge entities
+  sourceEntity          KnowledgeEntity?     @relation("InsightSourceEntity", fields: [sourceEntityName], references: [name])
+  targetEntity          KnowledgeEntity?     @relation("InsightTargetEntity", fields: [targetEntityName], references: [name])
+  
+  @@index([overallScore])
+  @@index([generatedAt])
+  @@index([samplingStrategy])
+  @@index([sourceConcept, targetConcept])
+  @@map("serendipitous_insights")
 }
