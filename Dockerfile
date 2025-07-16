@@ -29,8 +29,8 @@ RUN rm -rf node_modules && \
 # Regenerate Prisma client for production
 RUN npx prisma generate
 
-# Make entrypoint script executable
-RUN chmod +x entrypoint.sh
+# Make entrypoint script executable and fix line endings
+RUN sed -i 's/\r$//' entrypoint.sh && chmod +x entrypoint.sh
 
 # Expose the port (MCP typically uses stdio, but we'll prepare for HTTP if needed)
 EXPOSE 3000
@@ -44,4 +44,4 @@ RUN chown -R mcpserver:nodejs /app
 USER mcpserver
 
 # Use entrypoint script for automatic database setup
-ENTRYPOINT ["./entrypoint.sh"] 
+ENTRYPOINT ["/app/entrypoint.sh"] 
