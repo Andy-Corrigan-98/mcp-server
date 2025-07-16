@@ -28,9 +28,8 @@ export class GenAIReasoningTools {
    */
   private async initializeGenAI(): Promise<void> {
     // Get API key from environment variable or configuration
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY || 
-                   await this.configService.getString('genai.api_key', '');
-    
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY || (await this.configService.getString('genai.api_key', ''));
+
     if (!apiKey) {
       throw new Error('GOOGLE_GENAI_API_KEY environment variable is required');
     }
@@ -69,11 +68,14 @@ export class GenAIReasoningTools {
       isRevision,
       branchId,
       revisesThought: args.revises_thought,
-      branchFromThought: args.branch_from_thought
+      branchFromThought: args.branch_from_thought,
     });
 
     // Validate prompt length against configuration
-    const maxPromptLength = await this.configService.getNumber('genai.max_prompt_length', GenAIReasoningTools.MAX_PROMPT_LENGTH);
+    const maxPromptLength = await this.configService.getNumber(
+      'genai.max_prompt_length',
+      GenAIReasoningTools.MAX_PROMPT_LENGTH
+    );
     if (prompt.length > maxPromptLength) {
       console.warn(`GenAI prompt length (${prompt.length}) exceeds max (${maxPromptLength}), truncating...`);
       return this.parseReasoningResponse(
@@ -96,16 +98,15 @@ export class GenAIReasoningTools {
         thoughtNumber,
         totalThoughts,
         nextThoughtNeeded,
-        branchId
+        branchId,
       });
-
     } catch (error) {
       console.error('GenAI reasoning error:', error);
       return {
         error: 'Failed to generate AI reasoning',
         thoughtNumber,
         totalThoughts,
-        nextThoughtNeeded: false
+        nextThoughtNeeded: false,
       };
     }
   }
@@ -122,10 +123,10 @@ export class GenAIReasoningTools {
       isRevision,
       branchId,
       revisesThought,
-      branchFromThought
+      branchFromThought,
     } = context;
 
-    let prompt = `You are an advanced reasoning system. Analyze this problem step-by-step with deep thinking.
+    const prompt = `You are an advanced reasoning system. Analyze this problem step-by-step with deep thinking.
 
 CURRENT THINKING STEP: ${thoughtNumber} of ${totalThoughts}
 ${isRevision ? `REVISION: This revises thinking step ${revisesThought}` : ''}
@@ -174,7 +175,7 @@ Think deeply and provide sophisticated reasoning:`;
         totalThoughts: context.totalThoughts,
         nextThoughtNeeded: context.nextThoughtNeeded,
         branchId: context.branchId,
-        
+
         // AI-generated reasoning content
         analysis: parsedResponse.analysis || 'AI analysis not parsed correctly',
         insights: parsedResponse.insights || [],
@@ -184,13 +185,12 @@ Think deeply and provide sophisticated reasoning:`;
         alternatives: parsedResponse.alternatives || [],
         conclusion: parsedResponse.conclusion || 'Analysis incomplete',
         confidence: parsedResponse.confidence || GenAIReasoningTools.DEFAULT_CONFIDENCE,
-        
+
         // Metadata
         aiPowered: true,
         timestamp: new Date().toISOString(),
-        model: 'gemini-2.5-flash'
+        model: 'gemini-2.5-flash',
       };
-
     } catch {
       // Fallback if JSON parsing fails
       return {
@@ -201,7 +201,7 @@ Think deeply and provide sophisticated reasoning:`;
         insights: ['AI reasoning generated but not structured'],
         conclusion: 'Reasoning completed via AI model',
         aiPowered: true,
-        parsingError: true
+        parsingError: true,
       };
     }
   }
@@ -220,7 +220,8 @@ Think deeply and provide sophisticated reasoning:`;
 export const GENAI_REASONING_TOOLS: Record<string, Tool> = {
   sequential_thinking: {
     name: 'sequential_thinking',
-    description: 'Advanced AI-powered reasoning system using Google GenAI for sophisticated problem-solving, analysis, and step-by-step thinking. Much more powerful than traditional algorithmic reasoning.',
+    description:
+      'Advanced AI-powered reasoning system using Google GenAI for sophisticated problem-solving, analysis, and step-by-step thinking. Much more powerful than traditional algorithmic reasoning.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -238,7 +239,7 @@ export const GENAI_REASONING_TOOLS: Record<string, Tool> = {
           minimum: 1,
         },
         total_thoughts: {
-          type: 'integer', 
+          type: 'integer',
           description: 'Estimated total thought steps needed',
           minimum: 1,
         },
@@ -270,4 +271,4 @@ export const GENAI_REASONING_TOOLS: Record<string, Tool> = {
       required: ['thought', 'next_thought_needed', 'thought_number', 'total_thoughts'],
     },
   },
-}; 
+};

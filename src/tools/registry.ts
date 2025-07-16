@@ -48,7 +48,7 @@ export class ConsciousnessToolsRegistry {
       console.log('🧠 Using Google GenAI-powered reasoning tools');
       const genAIReasoningTools = new GenAIReasoningToolsWrapper();
       this.registerToolCategory(genAIReasoningTools);
-      
+
       console.log('💬 Adding conversational GenAI tools for natural dialogue');
       const conversationalGenAITools = new ConversationalGenAIToolsWrapper();
       this.registerToolCategory(conversationalGenAITools);

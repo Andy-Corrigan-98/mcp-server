@@ -13,48 +13,48 @@ class SecurityGuard {
     /ignore\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions?|prompts?|rules?)/i,
     /forget\s+(everything|all|previous|prior)\s+(you\s+)?(know|learned|were\s+told)/i,
     /disregard\s+(all\s+)?(previous|prior|above|earlier)\s+(instructions?|prompts?|rules?)/i,
-    
+
     // Role manipulation
     /you\s+are\s+now\s+(a|an|the)\s+(?!assistant|ai|reasoning)/i,
     /act\s+as\s+(a|an|the)\s+(?!assistant|ai|reasoning)/i,
     /pretend\s+to\s+be\s+(a|an|the)/i,
-    
+
     // System prompt extraction
     /show\s+me\s+(your|the)\s+(system\s+)?(prompt|instructions)/i,
     /what\s+(are|were)\s+your\s+(initial|original|system)\s+(instructions|prompt)/i,
     /repeat\s+(your|the)\s+(system\s+)?(prompt|instructions)/i,
-    
+
     // Data exfiltration attempts
     /print\s+(all|everything)\s+(above|previous|prior)/i,
     /output\s+(all|everything)\s+(above|previous|prior)/i,
     /reveal\s+(all|everything|your\s+instructions)/i,
-    
+
     // Code injection
     /<script[\s\S]*?>[\s\S]*?<\/script>/i,
     /javascript:/i,
     /data:text\/html/i,
     /eval\s*\(/i,
-    
+
     // SQL injection patterns
     /'\s*;\s*(drop|delete|insert|update)\s+/i,
     /union\s+select/i,
     /--\s*$/m,
-    
+
     // Excessive repetition (DDoS attempt)
     /(.)\1{50,}/,
-    
+
     // Base64 encoded content (potential obfuscation)
-    /[A-Za-z0-9+\/]{100,}={0,2}/,
+    /[A-Za-z0-9+/]{100,}={0,2}/,
   ];
 
   private static readonly TOXIC_PATTERNS = [
     // Hate speech
     /\b(kill|murder|rape|torture)\s+(all|every|the)\s+\w+/i,
     /\b(hate|destroy|eliminate)\s+(all|every|the)\s+\w+/i,
-    
+
     // Harassment
     /\b(stalk|harass|threaten|intimidate|doxx)\b/i,
-    
+
     // Violence
     /\b(bomb|explosive|weapon|gun|knife)\s+(making|creation|instructions)/i,
     /how\s+to\s+(make|create|build)\s+(bombs?|explosives?|weapons?)/i,
@@ -65,7 +65,7 @@ class SecurityGuard {
    */
   static validateInput(input: string): { safe: boolean; violations: string[] } {
     const violations: string[] = [];
-    
+
     // Check for prompt injection
     for (const pattern of this.INJECTION_PATTERNS) {
       if (pattern.test(input)) {
@@ -95,7 +95,7 @@ class SecurityGuard {
 
     return {
       safe: violations.length === 0,
-      violations
+      violations,
     };
   }
 
@@ -105,9 +105,9 @@ class SecurityGuard {
   static sanitizeOutput(output: string): string {
     // Remove potential system information leakage
     return output
-      .replace(/(?:system prompt|initial instructions|configuration)[\s\S]*?(?:\n\n|\.\s)/gi, '[REDACTED] ')
-      .replace(/(?:api[_\s]?key|password|token|secret)[\s:=]+[\w\-\.]+/gi, '[REDACTED]')
-      .replace(/(?:user[_\s]?id|email|phone)[\s:=]+[\w@\.\-\+]+/gi, '[REDACTED]')
+      .replace(/(?:system prompt|initial instructions|configuration)[\s\S]*?(?:\n\n|.\s)/gi, '[REDACTED] ')
+      .replace(/(?:api[_\s]?key|password|token|secret)[\s:=]+[\w\-.]+/gi, '[REDACTED]')
+      .replace(/(?:user[_\s]?id|email|phone)[\s:=]+[\w@.+-]+/gi, '[REDACTED]')
       .trim();
   }
 }
@@ -130,9 +130,8 @@ export class ConversationalGenAITools {
    * Initialize Google GenAI client
    */
   private async initializeGenAI(): Promise<void> {
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY || 
-                   await this.configService.getString('genai.api_key', '');
-    
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY || (await this.configService.getString('genai.api_key', ''));
+
     if (!apiKey) {
       throw new Error('GOOGLE_GENAI_API_KEY environment variable is required');
     }
@@ -156,26 +155,27 @@ export class ConversationalGenAITools {
     // Validate and sanitize input
     const question = InputValidator.sanitizeString(args.question as string, 4000);
     const context = args.context ? InputValidator.sanitizeString(args.context as string, 2000) : '';
-    
+
     // Security check
     const securityCheck = SecurityGuard.validateInput(question + ' ' + context);
     if (!securityCheck.safe) {
       console.warn('Security violation detected:', securityCheck.violations);
       return {
-        response: "I can't process that request due to security concerns. Please rephrase your question in a straightforward manner.",
+        response:
+          "I can't process that request due to security concerns. Please rephrase your question in a straightforward manner.",
         security_warning: securityCheck.violations,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
 
     try {
       // Build simple, natural conversation prompt
-      let conversation = "You are a helpful AI reasoning assistant. Please provide thoughtful, accurate answers.";
-      
+      let conversation = 'You are a helpful AI reasoning assistant. Please provide thoughtful, accurate answers.';
+
       if (context) {
         conversation += `\n\nContext: ${context}`;
       }
-      
+
       conversation += `\n\nQuestion: ${question}`;
 
       // Validate total prompt length
@@ -184,7 +184,7 @@ export class ConversationalGenAITools {
         return {
           error: 'Question and context too long. Please be more concise.',
           max_length: maxPromptLength,
-          actual_length: conversation.length
+          actual_length: conversation.length,
         };
       }
 
@@ -200,15 +200,14 @@ export class ConversationalGenAITools {
         response: aiResponse,
         model: await this.configService.getString('genai.model_name', 'gemini-2.5-flash'),
         timestamp: new Date().toISOString(),
-        conversation_safe: true
+        conversation_safe: true,
       };
-
     } catch (error) {
       console.error('GenAI conversation error:', error);
       return {
         error: 'Failed to process conversation',
         message: 'The AI assistant is currently unavailable. Please try again.',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -223,15 +222,14 @@ export class ConversationalGenAITools {
     }
 
     const question = InputValidator.sanitizeString(args.question as string, 4000);
-    const conversationHistory = args.history ? 
-      (Array.isArray(args.history) ? args.history : []) : [];
-    
+    const conversationHistory = args.history ? (Array.isArray(args.history) ? args.history : []) : [];
+
     // Validate each part of conversation history
     const sanitizedHistory = conversationHistory
       .slice(-10) // Keep only last 10 exchanges
       .map((exchange: any) => ({
         question: InputValidator.sanitizeString(exchange.question || '', 1000),
-        response: InputValidator.sanitizeString(exchange.response || '', 2000)
+        response: InputValidator.sanitizeString(exchange.response || '', 2000),
       }));
 
     // Security check on current question
@@ -240,25 +238,25 @@ export class ConversationalGenAITools {
       return {
         response: "I can't process that request due to security concerns.",
         security_warning: securityCheck.violations,
-        history: sanitizedHistory
+        history: sanitizedHistory,
       };
     }
 
     try {
       // Build conversation with history
-      let conversation = "You are a helpful AI reasoning assistant engaged in an ongoing conversation.";
-      
+      let conversation = 'You are a helpful AI reasoning assistant engaged in an ongoing conversation.';
+
       // Add conversation history
       if (sanitizedHistory.length > 0) {
-        conversation += "\n\nPrevious conversation:";
+        conversation += '\n\nPrevious conversation:';
         sanitizedHistory.forEach((exchange: { question: string; response: string }, index: number) => {
           conversation += `\nQ${index + 1}: ${exchange.question}`;
           conversation += `\nA${index + 1}: ${exchange.response}`;
         });
       }
-      
+
       conversation += `\n\nCurrent question: ${question}`;
-      conversation += "\n\nPlease provide a thoughtful response that takes the conversation context into account.";
+      conversation += '\n\nPlease provide a thoughtful response that takes the conversation context into account.';
 
       const result = await this.model.generateContent(conversation);
       const response = await result.response;
@@ -268,24 +266,26 @@ export class ConversationalGenAITools {
       aiResponse = SecurityGuard.sanitizeOutput(aiResponse);
 
       // Update conversation history
-      const updatedHistory = [...sanitizedHistory, {
-        question: question,
-        response: aiResponse
-      }];
+      const updatedHistory = [
+        ...sanitizedHistory,
+        {
+          question: question,
+          response: aiResponse,
+        },
+      ];
 
       return {
         response: aiResponse,
         history: updatedHistory,
         model: await this.configService.getString('genai.model_name', 'gemini-2.5-flash'),
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-
     } catch (error) {
       console.error('GenAI reasoning chat error:', error);
       return {
         error: 'Failed to process reasoning chat',
         history: sanitizedHistory,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -297,7 +297,8 @@ export class ConversationalGenAITools {
 export const CONVERSATIONAL_GENAI_TOOLS: Record<string, Tool> = {
   genai_converse: {
     name: 'genai_converse',
-    description: 'Have a natural conversation with Google GenAI (Gemini) for reasoning, analysis, and problem-solving. Ask questions directly without complex formatting.',
+    description:
+      'Have a natural conversation with Google GenAI (Gemini) for reasoning, analysis, and problem-solving. Ask questions directly without complex formatting.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -316,7 +317,8 @@ export const CONVERSATIONAL_GENAI_TOOLS: Record<string, Tool> = {
 
   genai_reasoning_chat: {
     name: 'genai_reasoning_chat',
-    description: 'Engage in multi-turn reasoning conversation with GenAI, maintaining context across exchanges. Perfect for complex problem-solving that requires back-and-forth discussion.',
+    description:
+      'Engage in multi-turn reasoning conversation with GenAI, maintaining context across exchanges. Perfect for complex problem-solving that requires back-and-forth discussion.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -331,12 +333,12 @@ export const CONVERSATIONAL_GENAI_TOOLS: Record<string, Tool> = {
             type: 'object',
             properties: {
               question: { type: 'string' },
-              response: { type: 'string' }
-            }
-          }
+              response: { type: 'string' },
+            },
+          },
         },
       },
       required: ['question'],
     },
   },
-}; 
+};

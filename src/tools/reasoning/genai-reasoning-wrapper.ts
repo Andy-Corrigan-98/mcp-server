@@ -25,9 +25,9 @@ export class GenAIReasoningToolsWrapper {
     switch (name) {
       case 'sequential_thinking':
         return await this.genAITools.sequentialThinking(args);
-      
+
       default:
         throw new Error(`Unknown GenAI reasoning tool: ${name}`);
     }
   }
-} 
+}

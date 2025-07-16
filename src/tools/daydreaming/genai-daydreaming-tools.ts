@@ -38,9 +38,8 @@ export class GenAIDaydreamingTools {
    */
   private async initializeGenAI(): Promise<void> {
     // Get API key from environment variable or configuration
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY || 
-                   await this.configService.getString('genai.api_key', '');
-    
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY || (await this.configService.getString('genai.api_key', ''));
+
     if (!apiKey) {
       throw new Error('GOOGLE_GENAI_API_KEY environment variable is required for daydreaming evaluation');
     }
@@ -67,7 +66,10 @@ export class GenAIDaydreamingTools {
       const prompt = await this.buildEvaluationPrompt(hypothesis);
 
       // Validate prompt length
-      const maxPromptLength = await this.configService.getNumber('genai.max_prompt_length', GenAIDaydreamingTools.MAX_PROMPT_LENGTH);
+      const maxPromptLength = await this.configService.getNumber(
+        'genai.max_prompt_length',
+        GenAIDaydreamingTools.MAX_PROMPT_LENGTH
+      );
       if (prompt.length > maxPromptLength) {
         console.warn(`GenAI evaluation prompt too long (${prompt.length}), using fallback evaluation`);
         return this.createFallbackEvaluation(hypothesis);
@@ -83,7 +85,6 @@ export class GenAIDaydreamingTools {
 
       // Parse AI response into structured evaluation
       return await this.parseEvaluationResponse(evaluationOutput, hypothesis);
-
     } catch (error) {
       console.error('GenAI daydreaming evaluation error:', error);
       return this.createFallbackEvaluation(hypothesis);
@@ -93,9 +94,7 @@ export class GenAIDaydreamingTools {
   /**
    * Build sophisticated evaluation prompt for Gemini
    */
-  private async buildEvaluationPrompt(
-    hypothesis: ConnectionHypothesis
-  ): Promise<string> {
+  private async buildEvaluationPrompt(hypothesis: ConnectionHypothesis): Promise<string> {
     const { conceptPair, hypothesis: connectionHypothesis, explorationSteps } = hypothesis;
 
     const prompt = `You are an expert at evaluating creative insights and conceptual connections. Please analyze this connection hypothesis across four key dimensions.
@@ -157,7 +156,10 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
   /**
    * Parse AI evaluation response into structured ConnectionEvaluation
    */
-  private async parseEvaluationResponse(aiOutput: string, hypothesis: ConnectionHypothesis): Promise<ConnectionEvaluation> {
+  private async parseEvaluationResponse(
+    aiOutput: string,
+    hypothesis: ConnectionHypothesis
+  ): Promise<ConnectionEvaluation> {
     try {
       // Extract JSON from AI response
       const jsonMatch = aiOutput.match(/\{[\s\S]*\}/);
@@ -185,7 +187,7 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
         shouldStore,
         reason: parsedResponse.overall_assessment || 'AI evaluation completed',
         evaluatedAt: new Date(),
-        
+
         // Additional AI insights
         genAIMetadata: {
           noveltyExplanation: parsedResponse.novelty_explanation || '',
@@ -194,13 +196,12 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
           actionabilityExplanation: parsedResponse.actionability_explanation || '',
           keyInsights: parsedResponse.key_insights || [],
           suggestedApplications: parsedResponse.suggested_applications || [],
-                      improvementSuggestions: parsedResponse.improvement_suggestions || [],
-            aiConfidence: parsedResponse.confidence || GenAIDaydreamingTools.DEFAULT_SCORE,
-            model: 'gemini-2.5-flash',
-            evaluatedWithAI: true
-        }
+          improvementSuggestions: parsedResponse.improvement_suggestions || [],
+          aiConfidence: parsedResponse.confidence || GenAIDaydreamingTools.DEFAULT_SCORE,
+          model: 'gemini-2.5-flash',
+          evaluatedWithAI: true,
+        },
       };
-
     } catch (error) {
       console.error('Failed to parse GenAI evaluation response:', error);
       return this.createFallbackEvaluation(hypothesis);
@@ -220,7 +221,7 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
 
     // Basic heuristic scoring
     const novelty = Math.min(0.9, conceptDistance * 0.7 + 0.2); // Cross-domain = more novel
-    const plausibility = Math.max(0.2, 0.8 - (conceptDistance * 0.3)); // Closer concepts = more plausible
+    const plausibility = Math.max(0.2, 0.8 - conceptDistance * 0.3); // Closer concepts = more plausible
     const value = Math.min(0.8, (wordCount / 50) * 0.6 + 0.3); // Longer hypotheses might be more developed
     const actionability = Math.random() * 0.4 + 0.3; // Still random for this one
 
@@ -238,8 +239,8 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
       evaluatedAt: new Date(),
       genAIMetadata: {
         evaluatedWithAI: false,
-        fallbackReason: 'AI evaluation failed, used heuristic scoring'
-      }
+        fallbackReason: 'AI evaluation failed, used heuristic scoring',
+      },
     };
   }
 
@@ -250,13 +251,13 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
     // Very basic heuristic - could be improved with actual semantic analysis
     const words1 = concept1.toLowerCase().split(/\s+/);
     const words2 = concept2.toLowerCase().split(/\s+/);
-    
+
     // Check for word overlap
     const overlap = words1.filter(word => words2.includes(word)).length;
     const totalWords = Math.max(words1.length, words2.length);
-    
+
     // Distance is inverse of overlap ratio
-    return Math.max(GenAIDaydreamingTools.MIN_DISTANCE, 1 - (overlap / totalWords));
+    return Math.max(GenAIDaydreamingTools.MIN_DISTANCE, 1 - overlap / totalWords);
   }
 
   /**
@@ -274,12 +275,19 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
    * Determine if insight should be stored based on configured thresholds
    */
   private async shouldStoreInsight(novelty: number, plausibility: number, value: number): Promise<boolean> {
-    const noveltyThreshold = await this.configService.getNumber('daydreaming.novelty_threshold', GenAIDaydreamingTools.DEFAULT_THRESHOLD);
-    const plausibilityThreshold = await this.configService.getNumber('daydreaming.plausibility_threshold', GenAIDaydreamingTools.PLAUSIBILITY_THRESHOLD);
-    const valueThreshold = await this.configService.getNumber('daydreaming.value_threshold', GenAIDaydreamingTools.DEFAULT_THRESHOLD);
+    const noveltyThreshold = await this.configService.getNumber(
+      'daydreaming.novelty_threshold',
+      GenAIDaydreamingTools.DEFAULT_THRESHOLD
+    );
+    const plausibilityThreshold = await this.configService.getNumber(
+      'daydreaming.plausibility_threshold',
+      GenAIDaydreamingTools.PLAUSIBILITY_THRESHOLD
+    );
+    const valueThreshold = await this.configService.getNumber(
+      'daydreaming.value_threshold',
+      GenAIDaydreamingTools.DEFAULT_THRESHOLD
+    );
 
-    return novelty >= noveltyThreshold && 
-           plausibility >= plausibilityThreshold && 
-           value >= valueThreshold;
+    return novelty >= noveltyThreshold && plausibility >= plausibilityThreshold && value >= valueThreshold;
   }
-} 
+}

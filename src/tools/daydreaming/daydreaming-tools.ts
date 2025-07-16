@@ -650,7 +650,7 @@ export class DaydreamingTools {
     // 🚀 NEW: AI-powered evaluation using Google Gemini!
     // Check if GenAI evaluation is enabled
     const useGenAI = await this.configService.getBoolean('daydreaming.use_genai_evaluation', true);
-    
+
     if (useGenAI) {
       try {
         console.log('🧠 Using GenAI evaluation for daydreaming connection hypothesis...');
@@ -676,7 +676,7 @@ export class DaydreamingTools {
 
     // Heuristic scoring with multiple factors
     const novelty = Math.min(0.9, conceptDistance * 0.7 + 0.2); // Cross-domain = more novel
-    const plausibility = Math.max(0.2, 0.8 - (conceptDistance * 0.3)); // Closer concepts = more plausible  
+    const plausibility = Math.max(0.2, 0.8 - conceptDistance * 0.3); // Closer concepts = more plausible
     const value = Math.min(0.8, (wordCount / 50) * 0.6 + (hasSpecificExamples ? 0.2 : 0) + 0.3);
     const actionability = hasActionWords ? Math.random() * 0.4 + 0.5 : Math.random() * 0.4 + 0.2;
 
@@ -701,8 +701,8 @@ export class DaydreamingTools {
       evaluatedAt: new Date(),
       genAIMetadata: {
         evaluatedWithAI: false,
-        fallbackReason: useGenAI ? 'GenAI evaluation failed, used heuristic fallback' : 'GenAI evaluation disabled'
-      }
+        fallbackReason: useGenAI ? 'GenAI evaluation failed, used heuristic fallback' : 'GenAI evaluation disabled',
+      },
     };
   }
 
@@ -713,13 +713,13 @@ export class DaydreamingTools {
     // Very basic heuristic - could be improved with actual semantic analysis
     const words1 = concept1.toLowerCase().split(/\s+/);
     const words2 = concept2.toLowerCase().split(/\s+/);
-    
+
     // Check for word overlap
     const overlap = words1.filter(word => words2.includes(word)).length;
     const totalWords = Math.max(words1.length, words2.length);
-    
+
     // Distance is inverse of overlap ratio
-    return Math.max(0.1, 1 - (overlap / totalWords));
+    return Math.max(0.1, 1 - overlap / totalWords);
   }
 
   private async storeSerendipitousInsight(evaluation: ConnectionEvaluation): Promise<SerendipitousInsight> {

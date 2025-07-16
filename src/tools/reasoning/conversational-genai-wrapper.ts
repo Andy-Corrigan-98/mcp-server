@@ -26,12 +26,12 @@ export class ConversationalGenAIToolsWrapper {
     switch (name) {
       case 'genai_converse':
         return await this.tools.converse(args);
-      
+
       case 'genai_reasoning_chat':
         return await this.tools.reasoningChat(args);
-      
+
       default:
         throw new Error(`Unknown conversational GenAI tool: ${name}`);
     }
   }
-} 
+}
