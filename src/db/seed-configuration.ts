@@ -868,6 +868,101 @@ const CONFIGURATION_SEEDS: ConfigurationSeed[] = [
     description: 'Available social learning types',
   },
 
+  // Google GenAI Integration Configuration
+  {
+    key: 'genai.api_key',
+    value: '',
+    type: 'STRING',
+    category: 'REASONING',
+    description: 'Google GenAI API key for enhanced reasoning capabilities (set via GOOGLE_GENAI_API_KEY env var)',
+  },
+  {
+    key: 'genai.model_name',
+    value: 'gemini-pro',
+    type: 'STRING',
+    category: 'REASONING',
+    description: 'Google GenAI model to use for reasoning tasks',
+  },
+  {
+    key: 'genai.max_prompt_length',
+    value: 8000,
+    type: 'NUMBER',
+    category: 'REASONING',
+    description: 'Maximum length for GenAI reasoning prompts',
+  },
+  {
+    key: 'genai.response_timeout_ms',
+    value: 30000,
+    type: 'NUMBER',
+    category: 'REASONING',
+    description: 'Timeout for GenAI API calls in milliseconds (30 seconds)',
+  },
+  {
+    key: 'genai.enable_fallback',
+    value: true,
+    type: 'BOOLEAN',
+    category: 'REASONING',
+    description: 'Whether to fall back to traditional reasoning if GenAI fails',
+  },
+
+  // Daydreaming Configuration - Background Creative Insight Generation
+  {
+    key: 'daydreaming.enabled',
+    value: true,
+    type: 'BOOLEAN',
+    category: 'CONSCIOUSNESS',
+    description: 'Enable background Day-Dreaming Loop for serendipitous insights',
+  },
+  {
+    key: 'daydreaming.use_genai_evaluation',
+    value: true,
+    type: 'BOOLEAN',
+    category: 'CONSCIOUSNESS',
+    description: 'Use Google GenAI for intelligent connection evaluation (vs heuristic fallback)',
+  },
+  {
+    key: 'daydreaming.sampling_interval_ms',
+    value: 300000,
+    type: 'NUMBER',
+    category: 'CONSCIOUSNESS',
+    description: 'Interval between daydreaming cycles in milliseconds (5 minutes default)',
+  },
+  {
+    key: 'daydreaming.max_concept_pairs_per_cycle',
+    value: 3,
+    type: 'NUMBER',
+    category: 'CONSCIOUSNESS',
+    description: 'Maximum concept pairs to explore per daydreaming cycle',
+  },
+  {
+    key: 'daydreaming.novelty_threshold',
+    value: 0.6,
+    type: 'NUMBER',
+    category: 'CONSCIOUSNESS',
+    description: 'Minimum novelty score for storing insights (0.0-1.0)',
+  },
+  {
+    key: 'daydreaming.plausibility_threshold',
+    value: 0.5,
+    type: 'NUMBER',
+    category: 'CONSCIOUSNESS',
+    description: 'Minimum plausibility score for storing insights (0.0-1.0)',
+  },
+  {
+    key: 'daydreaming.value_threshold',
+    value: 0.6,
+    type: 'NUMBER',
+    category: 'CONSCIOUSNESS',
+    description: 'Minimum value score for storing insights (0.0-1.0)',
+  },
+  {
+    key: 'daydreaming.max_cognitive_load',
+    value: 0.7,
+    type: 'NUMBER',
+    category: 'CONSCIOUSNESS',
+    description: 'Maximum cognitive load before pausing daydreaming',
+  },
+
   // System Configuration
   {
     key: 'system.cache_expiry_ms',
