@@ -1,5 +1,4 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { InputValidator } from '../../validation/index.js';
 import { ConfigurationService } from '../../db/configuration-service.js';
 import { ConnectionHypothesis, ConnectionEvaluation } from './types.js';
 
@@ -8,9 +7,26 @@ import { ConnectionHypothesis, ConnectionEvaluation } from './types.js';
  * Replaces random placeholder evaluation with intelligent AI assessment
  */
 export class GenAIDaydreamingTools {
+  private static readonly DEFAULT_SCORE = 0.5;
+  private static readonly MAX_PROMPT_LENGTH = 8000;
+  private static readonly DEFAULT_THRESHOLD = 0.6;
+  private static readonly PLAUSIBILITY_THRESHOLD = 0.5;
+  private static readonly QUARTER_DIVISOR = 4;
+  private static readonly NOVELTY_MAX = 0.9;
+  private static readonly NOVELTY_MULTIPLIER = 0.7;
+  private static readonly NOVELTY_BASE = 0.2;
+  private static readonly PLAUSIBILITY_MAX = 0.8;
+  private static readonly PLAUSIBILITY_MULTIPLIER = 0.3;
+  private static readonly VALUE_MAX = 0.8;
+  private static readonly VALUE_DIVISOR = 50;
+  private static readonly VALUE_MULTIPLIER = 0.6;
+  private static readonly VALUE_BASE = 0.3;
+  private static readonly ACTIONABILITY_MULTIPLIER = 0.4;
+  private static readonly MIN_DISTANCE = 0.1;
+
   private genAI: GoogleGenerativeAI | null = null;
   private configService: ConfigurationService;
-  private model: any = null;
+  private model: { generateContent: (prompt: string) => Promise<{ response: { text: () => string } }> } | null = null;
 
   constructor() {
     this.configService = ConfigurationService.getInstance();
@@ -51,13 +67,16 @@ export class GenAIDaydreamingTools {
       const prompt = await this.buildEvaluationPrompt(hypothesis);
 
       // Validate prompt length
-      const maxPromptLength = await this.configService.getNumber('genai.max_prompt_length', 8000);
+      const maxPromptLength = await this.configService.getNumber('genai.max_prompt_length', GenAIDaydreamingTools.MAX_PROMPT_LENGTH);
       if (prompt.length > maxPromptLength) {
         console.warn(`GenAI evaluation prompt too long (${prompt.length}), using fallback evaluation`);
         return this.createFallbackEvaluation(hypothesis);
       }
 
       // Get AI evaluation
+      if (!this.model) {
+        throw new Error('Model not initialized');
+      }
       const result = await this.model.generateContent(prompt);
       const response = await result.response;
       const evaluationOutput = response.text();
@@ -74,7 +93,9 @@ export class GenAIDaydreamingTools {
   /**
    * Build sophisticated evaluation prompt for Gemini
    */
-  private async buildEvaluationPrompt(hypothesis: ConnectionHypothesis): Promise<string> {
+  private async buildEvaluationPrompt(
+    hypothesis: ConnectionHypothesis
+  ): Promise<string> {
     const { conceptPair, hypothesis: connectionHypothesis, explorationSteps } = hypothesis;
 
     const prompt = `You are an expert at evaluating creative insights and conceptual connections. Please analyze this connection hypothesis across four key dimensions.
@@ -143,13 +164,13 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
       const parsedResponse = jsonMatch ? JSON.parse(jsonMatch[0]) : {};
 
       // Extract metrics with fallbacks
-      const novelty = this.validateScore(parsedResponse.novelty, 0.5);
-      const plausibility = this.validateScore(parsedResponse.plausibility, 0.5);
-      const value = this.validateScore(parsedResponse.value, 0.5);
-      const actionability = this.validateScore(parsedResponse.actionability, 0.5);
+      const novelty = this.validateScore(parsedResponse.novelty, GenAIDaydreamingTools.DEFAULT_SCORE);
+      const plausibility = this.validateScore(parsedResponse.plausibility, GenAIDaydreamingTools.DEFAULT_SCORE);
+      const value = this.validateScore(parsedResponse.value, GenAIDaydreamingTools.DEFAULT_SCORE);
+      const actionability = this.validateScore(parsedResponse.actionability, GenAIDaydreamingTools.DEFAULT_SCORE);
 
       // Calculate overall score
-      const overallScore = (novelty + plausibility + value + actionability) / 4;
+      const overallScore = (novelty + plausibility + value + actionability) / GenAIDaydreamingTools.QUARTER_DIVISOR;
 
       // Determine if should store based on thresholds
       const shouldStore = await this.shouldStoreInsight(novelty, plausibility, value);
@@ -174,7 +195,7 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
           keyInsights: parsedResponse.key_insights || [],
           suggestedApplications: parsedResponse.suggested_applications || [],
           improvementSuggestions: parsedResponse.improvement_suggestions || [],
-          aiConfidence: parsedResponse.confidence || 0.5,
+          aiConfidence: parsedResponse.confidence || GenAIDaydreamingTools.DEFAULT_SCORE,
           model: 'gemini-pro',
           evaluatedWithAI: true
         }
@@ -212,7 +233,7 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
       value,
       actionability,
       overallScore,
-      shouldStore: overallScore > 0.6,
+      shouldStore: overallScore > GenAIDaydreamingTools.DEFAULT_THRESHOLD,
       reason: 'Fallback evaluation used due to AI evaluation failure',
       evaluatedAt: new Date(),
       genAIMetadata: {
@@ -235,7 +256,7 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
     const totalWords = Math.max(words1.length, words2.length);
     
     // Distance is inverse of overlap ratio
-    return Math.max(0.1, 1 - (overlap / totalWords));
+    return Math.max(GenAIDaydreamingTools.MIN_DISTANCE, 1 - (overlap / totalWords));
   }
 
   /**
@@ -253,9 +274,9 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
    * Determine if insight should be stored based on configured thresholds
    */
   private async shouldStoreInsight(novelty: number, plausibility: number, value: number): Promise<boolean> {
-    const noveltyThreshold = await this.configService.getNumber('daydreaming.novelty_threshold', 0.6);
-    const plausibilityThreshold = await this.configService.getNumber('daydreaming.plausibility_threshold', 0.5);
-    const valueThreshold = await this.configService.getNumber('daydreaming.value_threshold', 0.6);
+    const noveltyThreshold = await this.configService.getNumber('daydreaming.novelty_threshold', GenAIDaydreamingTools.DEFAULT_THRESHOLD);
+    const plausibilityThreshold = await this.configService.getNumber('daydreaming.plausibility_threshold', GenAIDaydreamingTools.PLAUSIBILITY_THRESHOLD);
+    const valueThreshold = await this.configService.getNumber('daydreaming.value_threshold', GenAIDaydreamingTools.DEFAULT_THRESHOLD);
 
     return novelty >= noveltyThreshold && 
            plausibility >= plausibilityThreshold && 
