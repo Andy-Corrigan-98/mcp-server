@@ -3,18 +3,26 @@ import { SocialTools } from './social-tools.js';
 import { ConsciousnessPrismaService } from '../../db/index.js';
 import { SocialContextResult } from './types.js';
 
-// Mock the database service
-jest.mock('../../db/index.js');
+// Mock the database service at the module level
+jest.mock('../../db/index.js', () => ({
+  ConsciousnessPrismaService: {
+    getInstance: jest.fn(),
+  },
+}));
+
+// Mock the configuration service
+jest.mock('../../db/configuration-service.js');
 
 describe('SocialTools', () => {
   let socialTools: SocialTools;
   let mockPrismaService: jest.Mocked<ConsciousnessPrismaService>;
 
   beforeEach(() => {
-    // Clear all mocks
+    // Clear all mocks and reset modules
     jest.clearAllMocks();
+    jest.resetAllMocks();
 
-    // Create mock instance
+    // Create fresh mock instance with comprehensive methods
     mockPrismaService = {
       execute: jest.fn(),
       storeMemory: jest.fn(),
@@ -28,9 +36,12 @@ describe('SocialTools', () => {
       disconnect: jest.fn(),
     } as any;
 
-    // Mock the getInstance method
-    (ConsciousnessPrismaService.getInstance as jest.Mock).mockReturnValue(mockPrismaService);
+    // Ensure the mock is properly applied before creating SocialTools instance
+    const getInstanceMock = ConsciousnessPrismaService.getInstance as jest.Mock;
+    getInstanceMock.mockClear();
+    getInstanceMock.mockReturnValue(mockPrismaService);
 
+    // Create new instance for each test - this should now use the mocked service
     socialTools = new SocialTools();
   });
 
@@ -100,8 +111,10 @@ describe('SocialTools', () => {
         createdAt: new Date(),
       };
 
-      // Mock database calls
-      mockPrismaService.execute.mockResolvedValueOnce(null); // Check existing
+      // Mock database calls in order:
+      // 1. getSocialEntityByName() call to check if entity exists
+      mockPrismaService.execute.mockResolvedValueOnce(null); // Check existing - should return null
+      // 2. Create new entity call
       mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Create new
 
       const args = {
@@ -116,8 +129,9 @@ describe('SocialTools', () => {
       expect(result).toEqual({
         success: true,
         entity: 'john_doe',
-        display_name: 'John Doe',
         entity_type: 'person',
+        display_name: 'John Doe',
+        entity_id: 1,
         message: "Social entity 'John Doe' created successfully",
       });
     });
@@ -161,10 +175,13 @@ describe('SocialTools', () => {
         createdAt: new Date(),
       };
 
-      // Mock database calls
-      mockPrismaService.execute.mockResolvedValueOnce(mockMemory); // Find memory
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Find entity
-      mockPrismaService.execute.mockResolvedValueOnce(mockLink); // Create link
+      // Mock database calls in the exact order they occur:
+      // 1. Find memory by key in createMemorySocialLink
+      mockPrismaService.execute.mockResolvedValueOnce(mockMemory);
+      // 2. Find entity by name via getSocialEntityByName
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
+      // 3. Create the memory-social link
+      mockPrismaService.execute.mockResolvedValueOnce(mockLink);
 
       const args = {
         memory_key: 'project_discussion',
@@ -211,8 +228,12 @@ describe('SocialTools', () => {
 
     it('should handle entity not found error', async () => {
       const mockMemory = { id: 1, key: 'test_memory' };
-      mockPrismaService.execute.mockResolvedValueOnce(mockMemory); // Find memory
-      mockPrismaService.execute.mockResolvedValueOnce(null); // Entity not found
+
+      // Mock database calls in order:
+      // 1. Find memory (should succeed)
+      mockPrismaService.execute.mockResolvedValueOnce(mockMemory);
+      // 2. Find entity via getSocialEntityByName (should return null - entity not found)
+      mockPrismaService.execute.mockResolvedValueOnce(null);
 
       const args = {
         memory_key: 'test_memory',
@@ -232,11 +253,15 @@ describe('SocialTools', () => {
     it('should validate interaction belongs to entity', async () => {
       const mockMemory = { id: 1, key: 'test_memory' };
       const mockEntity = { id: 2, name: 'alice' };
-      const mockInteraction = { id: 10, entityId: 999 }; // Wrong entity
+      const mockInteraction = { id: 10, entityId: 999 }; // Wrong entity ID (doesn't match entity.id)
 
-      mockPrismaService.execute.mockResolvedValueOnce(mockMemory); // Find memory
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Find entity
-      mockPrismaService.execute.mockResolvedValueOnce(mockInteraction); // Find interaction
+      // Mock database calls in order:
+      // 1. Find memory (should succeed)
+      mockPrismaService.execute.mockResolvedValueOnce(mockMemory);
+      // 2. Find entity via getSocialEntityByName (should succeed)
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
+      // 3. Find interaction (should succeed but with wrong entityId)
+      mockPrismaService.execute.mockResolvedValueOnce(mockInteraction);
 
       const args = {
         memory_key: 'test_memory',
@@ -286,8 +311,11 @@ describe('SocialTools', () => {
         },
       ];
 
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Find entity
-      mockPrismaService.execute.mockResolvedValueOnce(mockLinks); // Find links
+      // Mock database calls in order for searchMemorySocialLinks:
+      // 1. getSocialEntityByName to find the entity by name
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
+      // 2. Find memory links with the search criteria
+      mockPrismaService.execute.mockResolvedValueOnce(mockLinks);
 
       const args = {
         entity_name: 'alice',
@@ -387,7 +415,10 @@ describe('SocialTools', () => {
         },
       ];
 
+      // Mock database calls in order for getSocialMemoryContext:
+      // 1. getSocialEntityByName to find the entity
       mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
+      // 2. Get memory links for the entity
       mockPrismaService.execute.mockResolvedValueOnce(mockLinks);
 
       const args = {
@@ -467,12 +498,17 @@ describe('SocialTools', () => {
         },
       ];
 
-      // Mock database calls for getSocialEntity
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Find entity
-      mockPrismaService.execute.mockResolvedValueOnce(null); // No relationship
-      mockPrismaService.execute.mockResolvedValueOnce([]); // No recent interactions
-      mockPrismaService.execute.mockResolvedValueOnce([]); // No social learnings
-      mockPrismaService.execute.mockResolvedValueOnce(mockMemoryLinks); // Shared memories from getSharedMemoriesForEntity
+      // Mock database calls in order for getSocialEntity method:
+      // 1. getSocialEntityByName call to find the entity
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
+      // 2. Get relationship data (include_relationship = true by default)
+      mockPrismaService.execute.mockResolvedValueOnce(null);
+      // 3. Get recent interactions (include_interactions = true by default)
+      mockPrismaService.execute.mockResolvedValueOnce([]);
+      // 4. Get social learnings
+      mockPrismaService.execute.mockResolvedValueOnce([]);
+      // 5. Get shared memories from getSharedMemoriesForEntity (include_shared_memories = true)
+      mockPrismaService.execute.mockResolvedValueOnce(mockMemoryLinks);
 
       const args = {
         name: 'alice',
@@ -495,11 +531,16 @@ describe('SocialTools', () => {
         entityType: 'person',
       };
 
+      // Mock database calls in order for getSocialEntity (exclude shared memories):
+      // 1. getSocialEntityByName call to find the entity
       mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
-      mockPrismaService.execute.mockResolvedValueOnce(null); // No relationship
-      mockPrismaService.execute.mockResolvedValueOnce([]); // No interactions
-      mockPrismaService.execute.mockResolvedValueOnce([]); // No emotional patterns
-      mockPrismaService.execute.mockResolvedValueOnce([]); // No social learnings
+      // 2. Get relationship data (include_relationship = true by default)
+      mockPrismaService.execute.mockResolvedValueOnce(null);
+      // 3. Get recent interactions (include_interactions = true by default)
+      mockPrismaService.execute.mockResolvedValueOnce([]);
+      // 4. Get social learnings
+      mockPrismaService.execute.mockResolvedValueOnce([]);
+      // No shared memories call since include_shared_memories = false
 
       const args = {
         name: 'alice',
@@ -527,10 +568,13 @@ describe('SocialTools', () => {
         createdAt: new Date(),
       };
 
-      // Mock database calls
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Find entity
-      mockPrismaService.execute.mockResolvedValueOnce(mockInteraction); // Create interaction
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Update entity timestamp
+      // Mock database calls in order for recordInteraction:
+      // 1. getSocialEntityByName to find the entity
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
+      // 2. Create the interaction
+      mockPrismaService.execute.mockResolvedValueOnce(mockInteraction);
+      // 3. Update entity's last interaction time
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
 
       // Mock createMemorySocialLink calls (internal method calls)
       // This would be called for each related memory
@@ -554,9 +598,13 @@ describe('SocialTools', () => {
       const mockEntity = { id: 1, name: 'alice', displayName: 'Alice' };
       const mockInteraction = { id: 10, interactionType: 'casual_chat' };
 
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Find entity for interaction
-      mockPrismaService.execute.mockResolvedValueOnce(mockInteraction); // Create interaction
-      mockPrismaService.execute.mockResolvedValueOnce(mockEntity); // Update entity timestamp
+      // Mock database calls in order for recordInteraction:
+      // 1. getSocialEntityByName to find the entity
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
+      // 2. Create the interaction
+      mockPrismaService.execute.mockResolvedValueOnce(mockInteraction);
+      // 3. Update entity's last interaction time
+      mockPrismaService.execute.mockResolvedValueOnce(mockEntity);
 
       // Mock createMemorySocialLink internal calls
       mockPrismaService.execute.mockResolvedValueOnce(null); // Memory not found (createMemorySocialLink fails here)
@@ -577,7 +625,8 @@ describe('SocialTools', () => {
 
   describe('Error handling', () => {
     it('should handle database errors gracefully', async () => {
-      mockPrismaService.execute.mockRejectedValue(new Error('Database connection failed'));
+      // Mock the first call (getSocialEntityByName) to fail with database error
+      mockPrismaService.execute.mockRejectedValueOnce(new Error('Database connection failed'));
 
       const args = {
         name: 'test_entity',

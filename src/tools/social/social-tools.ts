@@ -150,30 +150,18 @@ export class SocialTools {
           this.config.maxDescriptionLength
         ),
         maxNotesLength: await this.configService.getNumber('social.max_notes_length', this.config.maxNotesLength),
-        maxContextLength: await this.configService.getNumber(
-          'social.max_context_length',
-          this.config.maxContextLength
-        ),
-        maxSummaryLength: await this.configService.getNumber(
-          'social.max_summary_length',
-          this.config.maxSummaryLength
-        ),
+        maxContextLength: await this.configService.getNumber('social.max_context_length', this.config.maxContextLength),
+        maxSummaryLength: await this.configService.getNumber('social.max_summary_length', this.config.maxSummaryLength),
         maxLearningLength: await this.configService.getNumber(
           'social.max_learning_length',
           this.config.maxLearningLength
         ),
-        maxInsightLength: await this.configService.getNumber(
-          'social.max_insight_length',
-          this.config.maxInsightLength
-        ),
+        maxInsightLength: await this.configService.getNumber('social.max_insight_length', this.config.maxInsightLength),
         maxApplicabilityLength: await this.configService.getNumber(
           'social.max_applicability_length',
           this.config.maxApplicabilityLength
         ),
-        maxTriggerLength: await this.configService.getNumber(
-          'social.max_trigger_length',
-          this.config.maxTriggerLength
-        ),
+        maxTriggerLength: await this.configService.getNumber('social.max_trigger_length', this.config.maxTriggerLength),
         maxResponseLength: await this.configService.getNumber(
           'social.max_response_length',
           this.config.maxResponseLength
@@ -238,7 +226,7 @@ export class SocialTools {
     }
 
     // Create the entity using the database service
-    const newEntity = await this.db.execute(async (prisma) => {
+    const newEntity = await this.db.execute(async prisma => {
       return prisma.socialEntity.create({
         data: {
           name,
@@ -284,7 +272,7 @@ export class SocialTools {
     const mergedProperties = { ...existingProperties, ...newProperties };
 
     // Update the entity
-    await this.db.execute(async (prisma) => {
+    await this.db.execute(async prisma => {
       return prisma.socialEntity.update({
         where: { name },
         data: {
@@ -324,7 +312,7 @@ export class SocialTools {
     // Get relationship if requested
     let relationship;
     if (includeRelationship) {
-      const relationshipData = await this.db.execute(async (prisma) => {
+      const relationshipData = await this.db.execute(async prisma => {
         return prisma.socialRelationship.findFirst({
           where: { entityId: entity.id },
         });
@@ -347,7 +335,7 @@ export class SocialTools {
     // Get recent interactions if requested
     let recentInteractions: SocialContextResult['recentInteractions'] = [];
     if (includeInteractions) {
-      const interactions = await this.db.execute(async (prisma) => {
+      const interactions = await this.db.execute(async prisma => {
         return prisma.socialInteraction.findMany({
           where: { entityId: entity.id },
           orderBy: { createdAt: 'desc' },
@@ -367,11 +355,11 @@ export class SocialTools {
     // Get emotional patterns if requested
     let emotionalPatterns: SocialContextResult['emotionalPatterns'] = [];
     if (includeEmotionalContext) {
-      const emotionalContexts = await this.db.execute(async (prisma) => {
+      const emotionalContexts = await this.db.execute(async prisma => {
         return prisma.emotionalContext.findMany({
           where: { entityId: entity.id },
           orderBy: { createdAt: 'desc' },
-          take: 50 // Get recent emotional data
+          take: 50, // Get recent emotional data
         });
       });
 
@@ -381,8 +369,7 @@ export class SocialTools {
 
       emotionalContexts.forEach(context => {
         // Count frequency of emotional states
-        emotionalStateFrequency[context.emotionalState] =
-          (emotionalStateFrequency[context.emotionalState] || 0) + 1;
+        emotionalStateFrequency[context.emotionalState] = (emotionalStateFrequency[context.emotionalState] || 0) + 1;
 
         // Collect triggers for each emotional state
         if (context.trigger) {
@@ -395,17 +382,17 @@ export class SocialTools {
 
       // Generate patterns from the analysis
       emotionalPatterns = Object.entries(emotionalStateFrequency)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, this.config.maxEmotionalPatterns)
         .map(([state, frequency]) => ({
           state,
           frequency: frequency / emotionalContexts.length,
-          triggers: [...new Set(emotionalTriggers[state] || [])].slice(0, 3)
+          triggers: [...new Set(emotionalTriggers[state] || [])].slice(0, 3),
         }));
     }
 
     // Get social learnings
-    const learnings = await this.db.execute(async (prisma) => {
+    const learnings = await this.db.execute(async prisma => {
       return prisma.socialLearning.findMany({
         where: { entityId: entity.id },
         orderBy: { createdAt: 'desc' },
@@ -435,7 +422,13 @@ export class SocialTools {
       memoryInsights = memoryData.insights;
     }
 
-    const recommendations = this.generateRecommendations(entity, relationship, recentInteractions, socialLearnings, sharedMemories);
+    const recommendations = this.generateRecommendations(
+      entity,
+      relationship,
+      recentInteractions,
+      socialLearnings,
+      sharedMemories
+    );
 
     return {
       entity: {
@@ -478,7 +471,7 @@ export class SocialTools {
     }
 
     // Check if relationship already exists
-    const existingRelationship = await this.db.execute(async (prisma) => {
+    const existingRelationship = await this.db.execute(async prisma => {
       return prisma.socialRelationship.findFirst({
         where: { entityId: entity.id },
       });
@@ -489,7 +482,7 @@ export class SocialTools {
     }
 
     // Create the relationship
-    await this.db.execute(async (prisma) => {
+    await this.db.execute(async prisma => {
       return prisma.socialRelationship.create({
         data: {
           entityId: entity.id,
@@ -529,7 +522,7 @@ export class SocialTools {
     }
 
     // Get existing relationship
-    const relationship = await this.db.execute(async (prisma) => {
+    const relationship = await this.db.execute(async prisma => {
       return prisma.socialRelationship.findFirst({
         where: { entityId: entity.id },
       });
@@ -573,7 +566,7 @@ export class SocialTools {
     }
 
     // Update the relationship
-    const updatedRelationship = await this.db.execute(async (prisma) => {
+    const updatedRelationship = await this.db.execute(async prisma => {
       return prisma.socialRelationship.update({
         where: { id: relationship.id },
         data: updateData,
@@ -618,7 +611,8 @@ export class SocialTools {
       ? InputValidator.sanitizeString(args.summary as string, this.config.maxSummaryLength)
       : undefined;
     const duration = args.duration as number;
-    const quality = args.quality !== undefined ? Math.max(0, Math.min(1, args.quality as number)) : this.config.qualityDefault;
+    const quality =
+      args.quality !== undefined ? Math.max(0, Math.min(1, args.quality as number)) : this.config.qualityDefault;
     const learningExtracted = args.learning_extracted
       ? InputValidator.sanitizeString(args.learning_extracted as string, this.config.maxLearningLength)
       : undefined;
@@ -641,7 +635,7 @@ export class SocialTools {
     }
 
     // Record the interaction
-    const interaction = await this.db.execute(async (prisma) => {
+    const interaction = await this.db.execute(async prisma => {
       return prisma.socialInteraction.create({
         data: {
           entityId: entity.id,
@@ -660,7 +654,7 @@ export class SocialTools {
     });
 
     // Update entity's last interaction time
-    await this.db.execute(async (prisma) => {
+    await this.db.execute(async prisma => {
       return prisma.socialEntity.update({
         where: { id: entity.id },
         data: { lastInteraction: new Date() },
@@ -688,14 +682,14 @@ export class SocialTools {
     if (relatedMemories && Array.isArray(relatedMemories)) {
       for (const memoryKey of relatedMemories) {
         try {
-          const result = await this.createMemorySocialLink({
+          const result = (await this.createMemorySocialLink({
             memory_key: memoryKey,
             entity_name: entityName,
             interaction_id: interaction.id,
             link_type: 'discussed_with',
             strength: 0.8,
-            context: `Discussed during ${interactionType} interaction`
-          }) as any;
+            context: `Discussed during ${interactionType} interaction`,
+          })) as any;
 
           if (result.success) {
             memoriesLinked++;
@@ -734,31 +728,25 @@ export class SocialTools {
     const limit = Math.min((args.limit as number) || 10, 50);
 
     // Build where clause
-    // Removed unused variable
+    const whereClause: Record<string, unknown> = {};
 
+    // Get entity once if entityName is provided
     if (entityName) {
-          const entity = await this.getSocialEntityByName(entityName);
-    if (!entity) {
-      throw new Error(`Social entity '${entityName}' not found`);
-    }
-  }
-
-  // Build where clause inline
-  const whereClause: Record<string, unknown> = {};
-  if (entityName) {
-    const entity = await this.getSocialEntityByName(entityName);
-    if (entity) {
+      const entity = await this.getSocialEntityByName(entityName);
+      if (!entity) {
+        throw new Error(`Social entity '${entityName}' not found`);
+      }
       whereClause.entityId = entity.id;
     }
-  }
-  if (interactionType) {
-    whereClause.interactionType = interactionType;
-  }
 
-  // Get interactions
-  const interactions = await this.db.execute(async (prisma) => {
-    return prisma.socialInteraction.findMany({
-      where: whereClause,
+    if (interactionType) {
+      whereClause.interactionType = interactionType;
+    }
+
+    // Get interactions
+    const interactions = await this.db.execute(async prisma => {
+      return prisma.socialInteraction.findMany({
+        where: whereClause,
         include: {
           entity: {
             select: {
@@ -836,7 +824,7 @@ export class SocialTools {
     }
 
     // Record the emotional context
-    const emotionalContext = await this.db.execute(async (prisma) => {
+    const emotionalContext = await this.db.execute(async prisma => {
       return prisma.emotionalContext.create({
         data: {
           entityId,
@@ -899,7 +887,7 @@ export class SocialTools {
     }
 
     // Record the social learning
-    const socialLearning = await this.db.execute(async (prisma) => {
+    const socialLearning = await this.db.execute(async prisma => {
       return prisma.socialLearning.create({
         data: {
           entityId,
@@ -970,44 +958,56 @@ export class SocialTools {
     const now = new Date();
     let daysBack = 30; // default month
     switch (timePeriod) {
-      case 'week': daysBack = 7; break;
-      case 'month': daysBack = 30; break;
-      case 'quarter': daysBack = 90; break;
-      case 'year': daysBack = 365; break;
+      case 'week':
+        daysBack = 7;
+        break;
+      case 'month':
+        daysBack = 30;
+        break;
+      case 'quarter':
+        daysBack = 90;
+        break;
+      case 'year':
+        daysBack = 365;
+        break;
     }
-    const startDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+    const startDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
 
     // Get data for analysis
-    const interactions = await this.db.execute(async (prisma) => {
-      const where = entityName ? {
-        entity: { name: entityName },
-        createdAt: { gte: startDate }
-      } : { createdAt: { gte: startDate } };
+    const interactions = await this.db.execute(async prisma => {
+      const where = entityName
+        ? {
+            entity: { name: entityName },
+            createdAt: { gte: startDate },
+          }
+        : { createdAt: { gte: startDate } };
 
       return prisma.socialInteraction.findMany({
         where,
         include: { entity: true },
         orderBy: { createdAt: 'desc' },
-        take: 200
+        take: 200,
       });
     });
 
-    const relationships = await this.db.execute(async (prisma) => {
+    const relationships = await this.db.execute(async prisma => {
       const where = entityName ? { entity: { name: entityName } } : {};
       return prisma.socialRelationship.findMany({
         where,
         include: { entity: true },
-        orderBy: { updatedAt: 'desc' }
+        orderBy: { updatedAt: 'desc' },
       });
     });
 
-    const learnings = await this.db.execute(async (prisma) => {
+    const learnings = await this.db.execute(async prisma => {
       // Inline where clause to avoid unused variable
 
       return prisma.socialLearning.findMany({
-        where: entityName ? { entity: { name: entityName }, createdAt: { gte: startDate } } : { createdAt: { gte: startDate } },
+        where: entityName
+          ? { entity: { name: entityName }, createdAt: { gte: startDate } }
+          : { createdAt: { gte: startDate } },
         include: { entity: true },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
     });
 
@@ -1033,8 +1033,11 @@ export class SocialTools {
         patterns.push({
           pattern: 'Strong relationship foundation',
           confidence: 0.9,
-          examples: relationships.filter(r => r.strength > 0.7).map(r => r.entity.name).slice(0, 3),
-          impact: 'Positive social network quality'
+          examples: relationships
+            .filter(r => r.strength > 0.7)
+            .map(r => r.entity.name)
+            .slice(0, 3),
+          impact: 'Positive social network quality',
         });
       }
 
@@ -1042,7 +1045,7 @@ export class SocialTools {
         insights.push({
           insight: 'Many relationships are still developing - opportunity for deeper connections',
           category: 'relationship_growth',
-          actionable: true
+          actionable: true,
         });
         recommendations.push('Focus on spending more quality time with existing connections');
       }
@@ -1054,8 +1057,7 @@ export class SocialTools {
       const qualityByType: Record<string, number[]> = {};
 
       interactions.forEach(interaction => {
-        interactionsByType[interaction.interactionType] =
-          (interactionsByType[interaction.interactionType] || 0) + 1;
+        interactionsByType[interaction.interactionType] = (interactionsByType[interaction.interactionType] || 0) + 1;
 
         if (interaction.quality !== null) {
           if (!qualityByType[interaction.interactionType]) {
@@ -1066,13 +1068,12 @@ export class SocialTools {
       });
 
       metrics.totalInteractions = interactions.length;
-      metrics.averageInteractionQuality = interactions
-        .filter(i => i.quality !== null)
-        .reduce((sum, i) => sum + (i.quality || 0), 0) / interactions.filter(i => i.quality !== null).length || 0;
+      metrics.averageInteractionQuality =
+        interactions.filter(i => i.quality !== null).reduce((sum, i) => sum + (i.quality || 0), 0) /
+          interactions.filter(i => i.quality !== null).length || 0;
 
       // Find dominant interaction types
-      const dominantType = Object.entries(interactionsByType)
-        .sort(([,a], [,b]) => b - a)[0];
+      const dominantType = Object.entries(interactionsByType).sort(([, a], [, b]) => b - a)[0];
 
       if (dominantType) {
         patterns.push({
@@ -1082,30 +1083,34 @@ export class SocialTools {
             .filter(i => i.interactionType === dominantType[0])
             .slice(0, 3)
             .map(i => `${i.entity.name} - ${i.summary || 'interaction'}`),
-          impact: 'Defines social engagement style'
+          impact: 'Defines social engagement style',
         });
       }
 
       // Analyze quality trends
-      const recentQuality = interactions.slice(0, 10)
-        .filter(i => i.quality !== null)
-        .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
+      const recentQuality =
+        interactions
+          .slice(0, 10)
+          .filter(i => i.quality !== null)
+          .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
 
-      const olderQuality = interactions.slice(10, 20)
-        .filter(i => i.quality !== null)
-        .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
+      const olderQuality =
+        interactions
+          .slice(10, 20)
+          .filter(i => i.quality !== null)
+          .reduce((sum, i) => sum + (i.quality || 0), 0) / 10;
 
       if (recentQuality > olderQuality + 0.1) {
         trends.push({
           trend: 'Interaction quality improving',
           direction: 'improving' as const,
-          significance: (recentQuality - olderQuality) * 2
+          significance: (recentQuality - olderQuality) * 2,
         });
       } else if (recentQuality < olderQuality - 0.1) {
         trends.push({
           trend: 'Interaction quality declining',
           direction: 'declining' as const,
-          significance: (olderQuality - recentQuality) * 2
+          significance: (olderQuality - recentQuality) * 2,
         });
         recommendations.push('Consider what factors might be affecting interaction quality');
       }
@@ -1115,30 +1120,26 @@ export class SocialTools {
       // Analyze social learning accumulation
       const learningsByType: Record<string, number> = {};
       learnings.forEach(learning => {
-        learningsByType[learning.learningType] =
-          (learningsByType[learning.learningType] || 0) + 1;
+        learningsByType[learning.learningType] = (learningsByType[learning.learningType] || 0) + 1;
       });
 
       metrics.totalSocialLearnings = learnings.length;
-      metrics.averageLearningConfidence = learnings
-        .reduce((sum, l) => sum + l.confidence, 0) / learnings.length || 0;
+      metrics.averageLearningConfidence = learnings.reduce((sum, l) => sum + l.confidence, 0) / learnings.length || 0;
 
       if (learnings.length > 10) {
         patterns.push({
           pattern: 'Active social learning and reflection',
           confidence: 0.85,
           examples: Object.keys(learningsByType).slice(0, 3),
-          impact: 'Continuous social intelligence development'
+          impact: 'Continuous social intelligence development',
         });
       }
 
       // Learning velocity trend
-      const recentWeek = learnings.filter(l =>
-        l.createdAt > new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
-      ).length;
+      const recentWeek = learnings.filter(l => l.createdAt > new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)).length;
       const previousWeek = learnings.filter(l => {
-        const weekAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
-        const twoWeeksAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
         return l.createdAt > twoWeeksAgo && l.createdAt <= weekAgo;
       }).length;
 
@@ -1146,7 +1147,7 @@ export class SocialTools {
         trends.push({
           trend: 'Accelerating social learning',
           direction: 'improving' as const,
-          significance: 0.8
+          significance: 0.8,
         });
       }
     }
@@ -1156,7 +1157,7 @@ export class SocialTools {
       insights.push({
         insight: 'Limited recent social activity - consider increasing social engagement',
         category: 'engagement',
-        actionable: true
+        actionable: true,
       });
       recommendations.push('Schedule regular social interactions to build social momentum');
     }
@@ -1165,7 +1166,7 @@ export class SocialTools {
       insights.push({
         insight: 'High-quality social interactions indicate strong social skills',
         category: 'strength',
-        actionable: false
+        actionable: false,
       });
     }
 
@@ -1187,7 +1188,7 @@ export class SocialTools {
    * Get social entity by name
    */
   private async getSocialEntityByName(name: string) {
-    return this.db.execute(async (prisma) => {
+    return this.db.execute(async prisma => {
       return prisma.socialEntity.findUnique({
         where: { name },
       });
@@ -1202,7 +1203,7 @@ export class SocialTools {
     relationshipImpact: Record<string, unknown>,
     quality: number
   ) {
-    const relationship = await this.db.execute(async (prisma) => {
+    const relationship = await this.db.execute(async prisma => {
       return prisma.socialRelationship.findFirst({
         where: { entityId },
       });
@@ -1231,7 +1232,7 @@ export class SocialTools {
     hasUpdates = true;
 
     if (hasUpdates) {
-      await this.db.execute(async (prisma) => {
+      await this.db.execute(async prisma => {
         return prisma.socialRelationship.update({
           where: { id: relationship.id },
           data: updateData,
@@ -1312,25 +1313,25 @@ export class SocialTools {
   /**
    * Get shared memories for a specific social entity
    */
-  private async getSharedMemoriesForEntity(entityId: number): Promise<{memories: SharedMemory[], insights: Array<{
-    pattern: string;
-    examples: string[];
-    strength: number;
-  }>}> {
+  private async getSharedMemoriesForEntity(entityId: number): Promise<{
+    memories: SharedMemory[];
+    insights: Array<{
+      pattern: string;
+      examples: string[];
+      strength: number;
+    }>;
+  }> {
     try {
       // Get all memory links for this entity
-      const links = await this.db.execute(async (prisma) => {
+      const links = await this.db.execute(async prisma => {
         return prisma.memorySocialLink.findMany({
           where: { socialEntityId: entityId },
           include: {
             memory: true,
-            interaction: true
+            interaction: true,
           },
-          orderBy: [
-            { strength: 'desc' },
-            { createdAt: 'desc' }
-          ],
-          take: 20 // Limit for performance
+          orderBy: [{ strength: 'desc' }, { createdAt: 'desc' }],
+          take: 20, // Limit for performance
         });
       });
 
@@ -1344,12 +1345,14 @@ export class SocialTools {
         linkStrength: link.strength,
         linkContext: link.context ?? undefined,
         createdAt: link.memory.storedAt,
-        interactionContext: link.interaction ? {
-          id: link.interaction.id,
-          type: link.interaction.interactionType,
-          date: link.interaction.createdAt,
-          summary: link.interaction.summary ?? undefined
-        } : undefined
+        interactionContext: link.interaction
+          ? {
+              id: link.interaction.id,
+              type: link.interaction.interactionType,
+              date: link.interaction.createdAt,
+              summary: link.interaction.summary ?? undefined,
+            }
+          : undefined,
       }));
 
       // Generate insights about memory patterns
@@ -1381,37 +1384,38 @@ export class SocialTools {
     // Analyze link type distribution
     const linkTypeDistribution: Record<string, number> = {};
     links.forEach(link => {
-      linkTypeDistribution[link.relationshipType] =
-        (linkTypeDistribution[link.relationshipType] || 0) + 1;
+      linkTypeDistribution[link.relationshipType] = (linkTypeDistribution[link.relationshipType] || 0) + 1;
     });
 
     // Find dominant patterns
     const dominantTypes = Object.entries(linkTypeDistribution)
-      .sort(([,a], [,b]) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 3);
 
     if (dominantTypes.length > 0) {
       insights.push({
         pattern: `Primary connection type: ${dominantTypes[0][0]}`,
-        examples: links.filter(l => l.relationshipType === dominantTypes[0][0])
-                      .slice(0, 3)
-                      .map(l => l.memory.key),
-        strength: dominantTypes[0][1] / links.length
+        examples: links
+          .filter(l => l.relationshipType === dominantTypes[0][0])
+          .slice(0, 3)
+          .map(l => l.memory.key),
+        strength: dominantTypes[0][1] / links.length,
       });
     }
 
     // Analyze memory importance patterns
-    const highImportanceCount = links.filter(l =>
-      l.memory.importance === 'high' || l.memory.importance === 'critical'
+    const highImportanceCount = links.filter(
+      l => l.memory.importance === 'high' || l.memory.importance === 'critical'
     ).length;
 
     if (highImportanceCount > 0) {
       insights.push({
         pattern: `${Math.round((highImportanceCount / links.length) * 100)}% high-importance memories`,
-        examples: links.filter(l => l.memory.importance === 'high' || l.memory.importance === 'critical')
-                      .slice(0, 2)
-                      .map(l => l.memory.key),
-        strength: highImportanceCount / links.length
+        examples: links
+          .filter(l => l.memory.importance === 'high' || l.memory.importance === 'critical')
+          .slice(0, 2)
+          .map(l => l.memory.key),
+        strength: highImportanceCount / links.length,
       });
     }
 
@@ -1424,7 +1428,7 @@ export class SocialTools {
       insights.push({
         pattern: 'Strong creative collaboration history',
         examples: creativeLinks.slice(0, 3).map(l => l.memory.key),
-        strength: creativeLinks.length / links.length
+        strength: creativeLinks.length / links.length,
       });
     }
 
@@ -1547,9 +1551,9 @@ export class SocialTools {
       }
 
       // Get the memory
-      const memory = await this.db.execute(async (prisma) => {
+      const memory = await this.db.execute(async prisma => {
         return prisma.memory.findUnique({
-          where: { key: memoryKey }
+          where: { key: memoryKey },
         });
       });
 
@@ -1566,9 +1570,9 @@ export class SocialTools {
       // Validate interaction if provided
       let interaction = null;
       if (interactionId) {
-        interaction = await this.db.execute(async (prisma) => {
+        interaction = await this.db.execute(async prisma => {
           return prisma.socialInteraction.findUnique({
-            where: { id: interactionId }
+            where: { id: interactionId },
           });
         });
         if (!interaction || interaction.entityId !== entity.id) {
@@ -1577,7 +1581,7 @@ export class SocialTools {
       }
 
       // Create the memory-social link
-      const link = await this.db.execute(async (prisma) => {
+      const link = await this.db.execute(async prisma => {
         return prisma.memorySocialLink.create({
           data: {
             memoryId: memory.id,
@@ -1585,8 +1589,8 @@ export class SocialTools {
             interactionId: interactionId || null,
             relationshipType: linkType as any,
             strength: strength,
-            context: context || null
-          }
+            context: context || null,
+          },
         });
       });
 
@@ -1599,17 +1603,16 @@ export class SocialTools {
           linkType: linkType,
           strength: strength,
           interactionId: interactionId,
-          context: context
+          context: context,
         },
-        message: `Memory '${memoryKey}' successfully linked to '${entityName}' as '${linkType}'`
+        message: `Memory '${memoryKey}' successfully linked to '${entityName}' as '${linkType}'`,
       };
-
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
         error: errorMessage,
-        message: 'Failed to create memory-social link'
+        message: 'Failed to create memory-social link',
       };
     }
   }
@@ -1647,19 +1650,16 @@ export class SocialTools {
       whereClause.strength = { gte: minStrength };
 
       // Get the links with full context
-      const links = await this.db.execute(async (prisma) => {
+      const links = await this.db.execute(async prisma => {
         return prisma.memorySocialLink.findMany({
           where: whereClause,
           include: {
             memory: true,
             socialEntity: true,
-            interaction: true
+            interaction: true,
           },
-          orderBy: [
-            { strength: 'desc' },
-            { createdAt: 'desc' }
-          ],
-          take: limit
+          orderBy: [{ strength: 'desc' }, { createdAt: 'desc' }],
+          take: limit,
         });
       });
 
@@ -1668,19 +1668,19 @@ export class SocialTools {
       if (memoryKeywords && memoryKeywords.length > 0) {
         filteredLinks = links.filter(link => {
           const content = JSON.stringify(link.memory.content).toLowerCase();
-          const tags = JSON.parse(link.memory.tags || '[]').join(' ').toLowerCase();
+          const tags = JSON.parse(link.memory.tags || '[]')
+            .join(' ')
+            .toLowerCase();
           const searchText = `${content} ${tags}`;
 
-          return memoryKeywords.some(keyword =>
-            searchText.includes(keyword.toLowerCase())
-          );
+          return memoryKeywords.some(keyword => searchText.includes(keyword.toLowerCase()));
         });
       }
 
       // Filter by interaction type if provided
       if (interactionType) {
-        filteredLinks = filteredLinks.filter(link =>
-          link.interaction && link.interaction.interactionType === interactionType
+        filteredLinks = filteredLinks.filter(
+          link => link.interaction && link.interaction.interactionType === interactionType
         );
       }
 
@@ -1697,13 +1697,15 @@ export class SocialTools {
         linkCreatedAt: link.createdAt,
         entityName: link.socialEntity?.name,
         entityDisplayName: link.socialEntity?.displayName,
-        interactionContext: link.interaction ? {
-          id: link.interaction.id,
-          type: link.interaction.interactionType,
-          date: link.interaction.createdAt,
-          summary: link.interaction.summary,
-          quality: link.interaction.quality
-        } : null
+        interactionContext: link.interaction
+          ? {
+              id: link.interaction.id,
+              type: link.interaction.interactionType,
+              date: link.interaction.createdAt,
+              summary: link.interaction.summary,
+              quality: link.interaction.quality,
+            }
+          : null,
       }));
 
       return {
@@ -1716,16 +1718,15 @@ export class SocialTools {
           memoryKeywords,
           interactionType,
           minStrength,
-          limit
-        }
+          limit,
+        },
       };
-
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
         error: errorMessage,
-        message: 'Failed to search memory-social links'
+        message: 'Failed to search memory-social links',
       };
     }
   }
@@ -1739,7 +1740,7 @@ export class SocialTools {
       const includeCreation = args.include_creation_memories !== false;
       const includeLearning = args.include_learning_memories !== false;
       const includeEmotional = args.include_emotional_memories !== false;
-      const timePeriod = args.time_period as string || 'all_time';
+      const timePeriod = (args.time_period as string) || 'all_time';
 
       if (!entityName) {
         throw new Error('entity_name is required');
@@ -1757,29 +1758,37 @@ export class SocialTools {
         const now = new Date();
         let daysBack = 0;
         switch (timePeriod) {
-          case 'week': daysBack = 7; break;
-          case 'month': daysBack = 30; break;
-          case 'quarter': daysBack = 90; break;
-          case 'year': daysBack = 365; break;
+          case 'week':
+            daysBack = 7;
+            break;
+          case 'month':
+            daysBack = 30;
+            break;
+          case 'quarter':
+            daysBack = 90;
+            break;
+          case 'year':
+            daysBack = 365;
+            break;
         }
         if (daysBack > 0) {
-          const cutoffDate = new Date(now.getTime() - (daysBack * 24 * 60 * 60 * 1000));
+          const cutoffDate = new Date(now.getTime() - daysBack * 24 * 60 * 60 * 1000);
           dateFilter = { createdAt: { gte: cutoffDate } };
         }
       }
 
       // Get all memory links for this entity
-      const links = await this.db.execute(async (prisma) => {
+      const links = await this.db.execute(async prisma => {
         return prisma.memorySocialLink.findMany({
           where: {
             socialEntityId: entity.id,
-            ...dateFilter
+            ...dateFilter,
           },
           include: {
             memory: true,
-            interaction: true
+            interaction: true,
           },
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: 'desc' },
         });
       });
 
@@ -1791,7 +1800,7 @@ export class SocialTools {
         collaboration: [],
         inspiration: [],
         support: [],
-        other: []
+        other: [],
       };
 
       for (const link of links) {
@@ -1804,12 +1813,14 @@ export class SocialTools {
           linkStrength: link.strength,
           linkContext: link.context,
           createdAt: link.memory.storedAt,
-          interactionContext: link.interaction ? {
-            id: link.interaction.id,
-            type: link.interaction.interactionType,
-            date: link.interaction.createdAt,
-            summary: link.interaction.summary
-          } : null
+          interactionContext: link.interaction
+            ? {
+                id: link.interaction.id,
+                type: link.interaction.interactionType,
+                date: link.interaction.createdAt,
+                summary: link.interaction.summary,
+              }
+            : null,
         };
 
         // Categorize based on link type
@@ -1846,18 +1857,17 @@ export class SocialTools {
       const totalMemories = links.length;
       const linkTypeDistribution: Record<string, number> = {};
       links.forEach(link => {
-        linkTypeDistribution[link.relationshipType] =
-          (linkTypeDistribution[link.relationshipType] || 0) + 1;
+        linkTypeDistribution[link.relationshipType] = (linkTypeDistribution[link.relationshipType] || 0) + 1;
       });
 
       // Find dominant patterns
       const dominantTypes = Object.entries(linkTypeDistribution)
-        .sort(([,a], [,b]) => b - a)
+        .sort(([, a], [, b]) => b - a)
         .slice(0, 3)
         .map(([type, count]) => ({
           pattern: type,
           frequency: count,
-          percentage: Math.round((count / totalMemories) * 100)
+          percentage: Math.round((count / totalMemories) * 100),
         }));
 
       // Analyze memory evolution over time
@@ -1872,7 +1882,7 @@ export class SocialTools {
         entity: {
           name: entity.name,
           displayName: entity.displayName,
-          type: entity.entityType
+          type: entity.entityType,
         },
         summary: {
           totalSharedMemories: totalMemories,
@@ -1884,15 +1894,15 @@ export class SocialTools {
             emotional: categorizedMemories.emotional.length,
             collaboration: categorizedMemories.collaboration.length,
             inspiration: categorizedMemories.inspiration.length,
-            other: categorizedMemories.other.length
-          }
+            other: categorizedMemories.other.length,
+          },
         },
         memories: categorizedMemories,
         insights: {
           linkTypeDistribution,
           monthlyCreation,
           recommendedTopics: dominantTypes.slice(0, 3).map(p => p.pattern),
-          relationshipStrength: links.reduce((sum, link) => sum + link.strength, 0) / Math.max(links.length, 1)
+          relationshipStrength: links.reduce((sum, link) => sum + link.strength, 0) / Math.max(links.length, 1),
         },
         recommendations: {
           conversationStarters: this.generateConversationStarters([
@@ -1902,7 +1912,7 @@ export class SocialTools {
             ...categorizedMemories.collaboration,
             ...categorizedMemories.inspiration,
             ...categorizedMemories.support,
-            ...categorizedMemories.other
+            ...categorizedMemories.other,
           ]),
           memoryReminders: this.generateMemoryReminders([
             ...categorizedMemories.creation,
@@ -1911,18 +1921,17 @@ export class SocialTools {
             ...categorizedMemories.collaboration,
             ...categorizedMemories.inspiration,
             ...categorizedMemories.support,
-            ...categorizedMemories.other
+            ...categorizedMemories.other,
           ]),
-          deepeningOpportunities: this.generateDeepeningOpportunities(linkTypeDistribution)
-        }
+          deepeningOpportunities: this.generateDeepeningOpportunities(linkTypeDistribution),
+        },
       };
-
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
       return {
         success: false,
         error: errorMessage,
-        message: 'Failed to get social memory context'
+        message: 'Failed to get social memory context',
       };
     }
   }

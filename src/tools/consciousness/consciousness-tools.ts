@@ -2,6 +2,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { InputValidator } from '../../validation/index.js';
 import { ConsciousnessPrismaService, MemoryResult } from '../../db/index.js';
 import { ConfigurationService } from '../../db/configuration-service.js';
+import { GuidGenerator } from '../../utils/guid.js';
 import {
   buildConsciousnessTools,
   ConsciousnessState,
@@ -835,30 +836,15 @@ export class ConsciousnessTools {
 
   // Helper methods for brain storage operations
   private generateSessionId(): string {
-    return (
-      'session_' +
-      Math.random()
-        .toString(36)
-        .substring(2, 2 + this.config.sessionIdSuffixLength)
-    );
+    return GuidGenerator.generateSessionId();
   }
 
   private generateIntentionId(): string {
-    return (
-      'int_' +
-      Math.random()
-        .toString(36)
-        .substring(2, 2 + this.config.intentionIdSuffixLength)
-    );
+    return GuidGenerator.generateIntentionId();
   }
 
   private generateInsightId(): string {
-    return (
-      'ins_' +
-      Math.random()
-        .toString(36)
-        .substring(2, 2 + this.config.insightIdSuffixLength)
-    );
+    return GuidGenerator.generateInsightId();
   }
 
   private initializeConsciousnessState(): ConsciousnessState {
