@@ -878,10 +878,10 @@ const CONFIGURATION_SEEDS: ConfigurationSeed[] = [
   },
   {
     key: 'genai.model_name',
-    value: 'gemini-pro',
+    value: 'gemini-2.5-flash',
     type: 'STRING',
     category: 'REASONING',
-    description: 'Google GenAI model to use for reasoning tasks',
+    description: 'Google GenAI model to use for reasoning tasks (using Gemini 2.5 Flash)',
   },
   {
     key: 'genai.max_prompt_length',

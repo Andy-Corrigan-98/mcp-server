@@ -137,7 +137,7 @@ export class ConversationalGenAITools {
       throw new Error('GOOGLE_GENAI_API_KEY environment variable is required');
     }
 
-    const modelName = await this.configService.getString('genai.model_name', 'gemini-pro');
+    const modelName = await this.configService.getString('genai.model_name', 'gemini-2.5-flash');
 
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: modelName });
@@ -198,7 +198,7 @@ export class ConversationalGenAITools {
 
       return {
         response: aiResponse,
-        model: await this.configService.getString('genai.model_name', 'gemini-pro'),
+        model: await this.configService.getString('genai.model_name', 'gemini-2.5-flash'),
         timestamp: new Date().toISOString(),
         conversation_safe: true
       };
@@ -276,7 +276,7 @@ export class ConversationalGenAITools {
       return {
         response: aiResponse,
         history: updatedHistory,
-        model: await this.configService.getString('genai.model_name', 'gemini-pro'),
+        model: await this.configService.getString('genai.model_name', 'gemini-2.5-flash'),
         timestamp: new Date().toISOString()
       };
 

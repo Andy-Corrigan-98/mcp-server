@@ -36,7 +36,7 @@ export class GenAIReasoningTools {
     }
 
     // Get model name from configuration
-    const modelName = await this.configService.getString('genai.model_name', 'gemini-pro');
+    const modelName = await this.configService.getString('genai.model_name', 'gemini-2.5-flash');
 
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: modelName });
@@ -188,7 +188,7 @@ Think deeply and provide sophisticated reasoning:`;
         // Metadata
         aiPowered: true,
         timestamp: new Date().toISOString(),
-        model: 'gemini-pro'
+        model: 'gemini-2.5-flash'
       };
 
     } catch {

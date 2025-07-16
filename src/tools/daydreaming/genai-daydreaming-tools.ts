@@ -46,7 +46,7 @@ export class GenAIDaydreamingTools {
     }
 
     // Get model name from configuration
-    const modelName = await this.configService.getString('genai.model_name', 'gemini-pro');
+    const modelName = await this.configService.getString('genai.model_name', 'gemini-2.5-flash');
 
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: modelName });
@@ -194,10 +194,10 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
           actionabilityExplanation: parsedResponse.actionability_explanation || '',
           keyInsights: parsedResponse.key_insights || [],
           suggestedApplications: parsedResponse.suggested_applications || [],
-          improvementSuggestions: parsedResponse.improvement_suggestions || [],
-          aiConfidence: parsedResponse.confidence || GenAIDaydreamingTools.DEFAULT_SCORE,
-          model: 'gemini-pro',
-          evaluatedWithAI: true
+                      improvementSuggestions: parsedResponse.improvement_suggestions || [],
+            aiConfidence: parsedResponse.confidence || GenAIDaydreamingTools.DEFAULT_SCORE,
+            model: 'gemini-2.5-flash',
+            evaluatedWithAI: true
         }
       };
 
