@@ -1,6 +1,35 @@
 #!/bin/sh
 set -e
 
+# Handle command line arguments
+case "$1" in
+    --version)
+        # Extract version from package.json and display it
+        VERSION=$(node -p "require('./package.json').version")
+        echo "Consciousness MCP Server v$VERSION"
+        exit 0
+        ;;
+    --help)
+        echo "Consciousness MCP Server"
+        echo ""
+        echo "Usage:"
+        echo "  docker run consciousness-mcp-server [OPTION]"
+        echo ""
+        echo "Options:"
+        echo "  --version    Show version information"
+        echo "  --help       Show this help message"
+        echo ""
+        echo "When run without options, starts the database setup process"
+        echo "and keeps container ready for MCP connections."
+        exit 0
+        ;;
+    -*)
+        echo "Unknown option: $1"
+        echo "Use --help for usage information"
+        exit 1
+        ;;
+esac
+
 echo "🚀 Starting Consciousness MCP Server..."
 
 # Ensure data directory exists

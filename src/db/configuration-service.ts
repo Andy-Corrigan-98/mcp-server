@@ -8,10 +8,13 @@ interface ConfigCacheEntry {
 }
 
 export class ConfigurationService {
+  // Constants for cache configuration
+  private static readonly CACHE_EXPIRY_MS = 300000; // 5 minutes
+
   private static instance: ConfigurationService;
   private prisma: ConsciousnessPrismaService;
   private cache: Map<string, ConfigCacheEntry> = new Map();
-  private cacheExpiryMs = 300000; // 5 minutes
+  private cacheExpiryMs = ConfigurationService.CACHE_EXPIRY_MS;
 
   private constructor() {
     this.prisma = ConsciousnessPrismaService.getInstance();

@@ -5,15 +5,23 @@ import { MemoryTools } from './memory/index.js';
 import { ReasoningTools } from './reasoning/index.js';
 import { ConfigurationTools } from './configuration/index.js';
 import { SocialTools } from './social/index.js';
-import { DaydreamingTools, initializeBackgroundScheduler, recordUserActivity } from './daydreaming/index.js';
+import {
+  DaydreamingTools,
+  DaydreamingBackgroundScheduler,
+  initializeBackgroundScheduler,
+  recordUserActivity,
+} from './daydreaming/index.js';
 
 export interface ToolExecutor {
   execute(args: Record<string, unknown>): Promise<unknown>;
 }
 
 export class ConsciousnessToolsRegistry {
+  // Constants for initialization timing
+  private static readonly SCHEDULER_INIT_DELAY_MS = 5000; // 5 seconds
+
   private tools: Map<string, { definition: Tool; executor: ToolExecutor }> = new Map();
-  private daydreamingScheduler: any = null;
+  private daydreamingScheduler: DaydreamingBackgroundScheduler | null = null;
 
   constructor() {
     this.registerTools();
@@ -65,7 +73,7 @@ export class ConsciousnessToolsRegistry {
         await this.daydreamingScheduler.start();
         console.log('🌙 Day-Dreaming Loop background scheduler initialized');
       }
-    }, 5000); // 5 second delay
+    }, ConsciousnessToolsRegistry.SCHEDULER_INIT_DELAY_MS);
   }
 
   private registerToolCategory(toolCategory: {
