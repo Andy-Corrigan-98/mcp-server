@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run start:*)",
+      "Bash(npm run build:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(claude mcp add:*)",
+      "Bash(where bash)",
+      "Bash(setx:*)",
+      "Bash(export CLAUDE_CODE_GIT_BASH_PATH=\"C:\\Program Files\\Git\\usr\\bin\\bash.exe\")"
+    ],
+    "deny": []
+  }
+}
