@@ -1,16 +1,12 @@
-import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
-import { ConfigurationService } from '@/db/configuration-service.js';
 import { InputValidator } from '@/validation/input-validator.js';
+import { ServiceBase } from '../base/index.js';
 import { SocialEntity } from './types.js';
 
 /**
  * Entity Manager for Social Consciousness System
  * Handles creation, updates, and retrieval of social entities
  */
-export class SocialEntityManager {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
-
+export class SocialEntityManager extends ServiceBase {
   // Configuration for entity management
   private config = {
     maxEntityNameLength: 100,
@@ -19,8 +15,7 @@ export class SocialEntityManager {
   };
 
   constructor() {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super();
     this.loadConfiguration();
   }
 
