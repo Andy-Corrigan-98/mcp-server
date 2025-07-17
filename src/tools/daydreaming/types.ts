@@ -23,6 +23,9 @@ export interface DaydreamingConfig {
   noveltyThreshold: number;
   plausibilityThreshold: number;
   valueThreshold: number;
+
+  // GenAI evaluation settings
+  useGenAIEvaluation: boolean;
 }
 
 /**
@@ -78,6 +81,21 @@ export interface ConnectionEvaluation {
   reason: string;
 
   evaluatedAt: Date;
+
+  // Optional GenAI metadata
+  genAIMetadata?: {
+    noveltyExplanation?: string;
+    plausibilityExplanation?: string;
+    valueExplanation?: string;
+    actionabilityExplanation?: string;
+    keyInsights?: string[];
+    suggestedApplications?: string[];
+    improvementSuggestions?: string[];
+    aiConfidence?: number;
+    model?: string;
+    evaluatedWithAI?: boolean;
+    fallbackReason?: string;
+  };
 }
 
 /**
@@ -334,4 +352,6 @@ export const DEFAULT_DAYDREAMING_CONFIG: DaydreamingConfig = {
   noveltyThreshold: 0.6,
   plausibilityThreshold: 0.5,
   valueThreshold: 0.6,
+
+  useGenAIEvaluation: true,
 };

@@ -3,6 +3,8 @@ import { ConsciousnessTools } from './consciousness/index.js';
 import { TimeTools } from './time/index.js';
 import { MemoryTools } from './memory/index.js';
 import { ReasoningTools } from './reasoning/index.js';
+import { GenAIReasoningToolsWrapper } from './reasoning/genai-reasoning-wrapper.js';
+import { ConversationalGenAIToolsWrapper } from './reasoning/conversational-genai-wrapper.js';
 import { ConfigurationTools } from './configuration/index.js';
 import { SocialTools } from './social/index.js';
 import {
@@ -40,9 +42,21 @@ export class ConsciousnessToolsRegistry {
     const memoryTools = new MemoryTools();
     this.registerToolCategory(memoryTools);
 
-    // Register reasoning tools
-    const reasoningTools = new ReasoningTools();
-    this.registerToolCategory(reasoningTools);
+    // Register reasoning tools (GenAI-powered if API key available)
+    const useGenAI = !!process.env.GOOGLE_GENAI_API_KEY;
+    if (useGenAI) {
+      console.log('🧠 Using Google GenAI-powered reasoning tools');
+      const genAIReasoningTools = new GenAIReasoningToolsWrapper();
+      this.registerToolCategory(genAIReasoningTools);
+
+      console.log('💬 Adding conversational GenAI tools for natural dialogue');
+      const conversationalGenAITools = new ConversationalGenAIToolsWrapper();
+      this.registerToolCategory(conversationalGenAITools);
+    } else {
+      console.log('🧠 Using traditional reasoning tools (set GOOGLE_GENAI_API_KEY for GenAI)');
+      const reasoningTools = new ReasoningTools();
+      this.registerToolCategory(reasoningTools);
+    }
 
     // Register configuration tools
     const configurationTools = new ConfigurationTools();
