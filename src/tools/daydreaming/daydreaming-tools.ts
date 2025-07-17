@@ -1,7 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { InputValidator } from '../../validation/index.js';
-import { ConsciousnessPrismaService } from '../../db/index.js';
-import { ConfigurationService } from '../../db/configuration-service.js';
+import { ServiceBase } from '../base/index.js';
 import { MemoryTools } from '../memory/memory-tools.js';
 import { ReasoningTools } from '../reasoning/reasoning-tools.js';
 import { ConsciousnessTools } from '../consciousness/consciousness-tools.js';
@@ -29,9 +28,7 @@ import {
  * 3. Evaluates insights for novelty, plausibility, and value
  * 4. Stores valuable insights back into memory system
  */
-export class DaydreamingTools {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class DaydreamingTools extends ServiceBase {
   private memoryTools: MemoryTools;
   private reasoningTools: ReasoningTools;
   private consciousnessTools: ConsciousnessTools;
@@ -42,8 +39,8 @@ export class DaydreamingTools {
   private backgroundTimer: NodeJS.Timeout | null = null;
 
   constructor() {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super(); // Initialize services automatically
+
     this.memoryTools = new MemoryTools();
     this.reasoningTools = new ReasoningTools();
     this.consciousnessTools = new ConsciousnessTools();
