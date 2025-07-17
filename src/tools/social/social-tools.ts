@@ -1,7 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
-import { ConfigurationService } from '@/db/configuration-service.js';
 import { InputValidator } from '@/validation/input-validator.js';
+import { ServiceBase } from '../base/index.js';
 import {
   SOCIAL_TOOLS,
   SocialContextResult,
@@ -40,15 +39,11 @@ interface SocialConfig {
  * Social Consciousness Tools implementation
  * Provides relationship tracking, emotional intelligence, and social learning
  */
-export class SocialTools {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
-
+export class SocialTools extends ServiceBase {
   private config: SocialConfig = {} as SocialConfig;
 
   constructor() {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super();
 
     // Initialize configuration with defaults
     this.initializeDefaults();
