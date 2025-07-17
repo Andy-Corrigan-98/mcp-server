@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { InputValidator } from '../../validation/index.js';
-import { ConsciousnessPrismaService, MemoryResult } from '../../db/index.js';
-import { ConfigurationService } from '../../db/configuration-service.js';
+import { MemoryResult } from '../../db/index.js';
+import { ServiceBase } from '../base/index.js';
 import { GuidGenerator } from '../../utils/guid.js';
 import {
   buildConsciousnessTools,
@@ -34,12 +34,15 @@ interface SessionUpdateContent {
  * Manages persistent consciousness state, memories, and personality
  * Agent does the actual thinking - MCP provides the brain storage
  */
-export class ConsciousnessTools {
-  private prisma: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class ConsciousnessTools extends ServiceBase {
   private currentState: ConsciousnessState;
   private sessionId: string;
   private sessionStartTime: Date;
+
+  // Alias for compatibility with existing code
+  private get prisma() {
+    return this.db;
+  }
 
   // Configuration cache for performance
   private config: {
@@ -97,8 +100,7 @@ export class ConsciousnessTools {
   } = {} as any;
 
   constructor() {
-    this.prisma = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super();
 
     // Initialize configuration with defaults
     this.initializeDefaults();
