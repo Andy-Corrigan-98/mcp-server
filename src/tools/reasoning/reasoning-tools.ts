@@ -1,7 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ConsciousnessPrismaService } from '../../db/index.js';
 import { InputValidator } from '../../validation/index.js';
-import { ConfigurationService } from '../../db/configuration-service.js';
+import { ServiceBase } from '../base/index.js';
 import { REASONING_TOOLS, ThinkingSession, ThoughtStep, ThinkingResult } from './types.js';
 
 /**
@@ -18,16 +17,12 @@ interface ReasoningConfig {
  * Reasoning Tools implementation for consciousness MCP server
  * Provides sequential thinking and problem-solving capabilities
  */
-export class ReasoningTools {
-  private prisma: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class ReasoningTools extends ServiceBase {
   private sessions: Map<string, ThinkingSession> = new Map();
-
   private config: ReasoningConfig = {} as ReasoningConfig;
 
   constructor() {
-    this.prisma = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super(); // Initialize services automatically
 
     // Initialize configuration with defaults
     this.initializeDefaults();
