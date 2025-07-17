@@ -21,4 +21,14 @@ export abstract class ServiceBase {
     this.db = ConsciousnessPrismaService.getInstance();
     this.configService = ConfigurationService.getInstance();
   }
+
+  /**
+   * Handles configuration loading errors consistently across all modules
+   * @param moduleName Name of the module (e.g., 'memory', 'social', 'reasoning')
+   * @param error The error that occurred during configuration loading
+   */
+  protected handleConfigurationError(moduleName: string, error: unknown): void {
+    console.warn(`Failed to load ${moduleName} configuration, using defaults:`, error);
+    // Defaults are already set in initializeDefaults()
+  }
 }

@@ -384,8 +384,7 @@ export class ConsciousnessTools extends ServiceBase {
         ),
       };
     } catch (error) {
-      console.warn('Failed to load consciousness configuration, using defaults:', error);
-      // Defaults are already set in initializeDefaults()
+      this.handleConfigurationError('consciousness', error);
     }
   }
 

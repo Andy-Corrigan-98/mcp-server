@@ -196,7 +196,7 @@ export class SocialTools extends ServiceBase {
         qualityDefault: await this.configService.getNumber('social.quality_default', this.config.qualityDefault),
       };
     } catch (error) {
-      console.warn('Failed to load social configuration, using defaults:', error);
+      this.handleConfigurationError('social', error);
     }
   }
 

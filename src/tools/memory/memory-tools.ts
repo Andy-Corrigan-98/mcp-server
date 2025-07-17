@@ -126,8 +126,7 @@ export class MemoryTools extends ServiceBase {
         accessWeight: this.config.accessWeight,
       };
     } catch (error) {
-      console.warn('Failed to load memory configuration, using defaults:', error);
-      // Defaults are already set in initializeDefaults()
+      this.handleConfigurationError('memory', error);
     }
   }
 

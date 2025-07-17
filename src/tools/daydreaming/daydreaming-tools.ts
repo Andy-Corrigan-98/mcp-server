@@ -115,7 +115,7 @@ export class DaydreamingTools extends ServiceBase {
         ),
       };
     } catch (error) {
-      console.warn('Failed to load daydreaming configuration, using defaults:', error);
+      this.handleConfigurationError('daydreaming', error);
     }
   }
 

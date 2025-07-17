@@ -64,8 +64,7 @@ export class ReasoningTools extends ServiceBase {
         ),
       };
     } catch (error) {
-      console.warn('Failed to load reasoning configuration, using defaults:', error);
-      // Defaults are already set in initializeDefaults()
+      this.handleConfigurationError('reasoning', error);
     }
   }
 
