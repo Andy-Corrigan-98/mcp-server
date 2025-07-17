@@ -1,5 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { SOCIAL_TOOLS, SocialContextResult, SocialPatternAnalysis } from './types.js';
+import { SocialValidationUtils } from './base/validation-utils.js';
 import { SocialEntityManager } from './entity-manager.js';
 import { SocialRelationshipManager } from './relationship-manager.js';
 import { SocialInteractionRecorder } from './interaction-recorder.js';
@@ -89,7 +90,7 @@ export class SocialToolsRefactored {
    * Orchestrates multiple modules to provide rich context
    */
   private async getSocialEntity(args: Record<string, unknown>): Promise<SocialContextResult> {
-    const entityName = args.name as string;
+    const entityName = SocialValidationUtils.validateRequiredString(args.name, 'name', 100);
     const includeInteractions = args.include_interactions !== false;
     const includeRelationship = args.include_relationship !== false;
     const includeEmotionalContext = args.include_emotional_context !== false;
@@ -113,7 +114,7 @@ export class SocialToolsRefactored {
           trust: relationship.trust,
           familiarity: relationship.familiarity,
           affinity: relationship.affinity,
-          communicationStyle: relationship.communicationStyle ? JSON.parse(relationship.communicationStyle) : undefined,
+          communicationStyle: SocialValidationUtils.parseJsonSafely(relationship.communicationStyle, undefined),
           notes: relationship.notes,
         };
       }
@@ -187,7 +188,7 @@ export class SocialToolsRefactored {
    * Prepare comprehensive social context for an interaction
    */
   private async prepareSocialContext(args: Record<string, unknown>): Promise<SocialContextResult> {
-    const entityName = args.entity_name as string;
+    const entityName = SocialValidationUtils.validateRequiredString(args.entity_name, 'entity_name', 100);
     const interactionType = args.interaction_type as string;
     const context = args.context as string;
 

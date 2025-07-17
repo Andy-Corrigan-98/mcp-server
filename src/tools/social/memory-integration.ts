@@ -1,6 +1,6 @@
-import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
-import { ConfigurationService } from '@/db/configuration-service.js';
-import { InputValidator } from '@/validation/input-validator.js';
+import { ConfigurableBase } from './base/configurable-base.js';
+import { SocialValidationUtils } from './base/validation-utils.js';
+import { SocialResponseBuilder } from './base/response-builder.js';
 import { SocialEntityManager } from './entity-manager.js';
 import { SharedMemory } from './types.js';
 
@@ -8,39 +8,18 @@ import { SharedMemory } from './types.js';
  * Memory Integration Manager for Social Consciousness System
  * Handles linking memories with social entities and interactions
  */
-export class SocialMemoryIntegration {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class SocialMemoryIntegration extends ConfigurableBase {
   private entityManager: SocialEntityManager;
 
   // Configuration for memory integration
-  private config = {
+  protected config = {
     maxContextLength: 500,
     defaultLinkStrength: 0.8,
   };
 
   constructor(entityManager: SocialEntityManager) {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super();
     this.entityManager = entityManager;
-    this.loadConfiguration();
-  }
-
-  /**
-   * Load configuration values
-   */
-  private async loadConfiguration(): Promise<void> {
-    try {
-      const configs = await this.configService.getConfigurationsByCategory('SOCIAL');
-      configs.forEach((config: any) => {
-        const key = config.key.replace('social.', '');
-        if (key in this.config) {
-          (this.config as any)[key] = config.value;
-        }
-      });
-    } catch {
-      console.warn('Failed to load memory integration configuration');
-    }
   }
 
   /**
@@ -54,14 +33,13 @@ export class SocialMemoryIntegration {
     strength?: number;
     context?: string;
   }): Promise<object> {
-    const memoryKey = InputValidator.sanitizeString(args.memory_key, 255);
-    const entityName = InputValidator.sanitizeString(args.entity_name, 100);
+    const memoryKey = SocialValidationUtils.validateRequiredString(args.memory_key, 'memory_key', 255);
+    const entityName = SocialValidationUtils.validateRequiredString(args.entity_name, 'entity_name', 100);
     const interactionId = args.interaction_id;
     const linkType = args.link_type;
-    const strength =
-      args.strength !== undefined ? Math.max(0, Math.min(1, args.strength)) : this.config.defaultLinkStrength;
+    const strength = SocialValidationUtils.validateProbability(args.strength, this.config.defaultLinkStrength);
     const context = args.context
-      ? InputValidator.sanitizeString(args.context, this.config.maxContextLength)
+      ? SocialValidationUtils.sanitizeString(args.context, this.config.maxContextLength)
       : undefined;
 
     // Get the entity
@@ -107,20 +85,16 @@ export class SocialMemoryIntegration {
       });
     });
 
-    return {
-      success: true,
-      memory_social_link: {
-        id: memorySocialLink.id,
-        memory_key: memoryKey,
-        entity_name: entityName,
-        interaction_id: interactionId,
-        link_type: linkType,
-        strength,
-        context,
-        created_at: memorySocialLink.createdAt,
-      },
-      message: `Memory '${memoryKey}' linked to entity '${entityName}' with type '${linkType}'`,
-    };
+    return SocialResponseBuilder.memoryLinked(memoryKey, entityName, linkType, {
+      id: memorySocialLink.id,
+      memory_key: memoryKey,
+      entity_name: entityName,
+      interaction_id: interactionId,
+      link_type: linkType,
+      strength,
+      context,
+      created_at: memorySocialLink.createdAt,
+    });
   }
 
   /**
@@ -138,7 +112,7 @@ export class SocialMemoryIntegration {
     const interactionType = args.interaction_type;
     const linkTypes = args.link_types || [];
     const memoryKeywords = args.memory_keywords || [];
-    const minStrength = args.min_strength || 0.5;
+    const minStrength = SocialValidationUtils.validateProbability(args.min_strength, 0.5);
     const limit = Math.min(args.limit || 10, 50); // Cap at 50
 
     // Build where clause
@@ -218,19 +192,17 @@ export class SocialMemoryIntegration {
       created_at: link.createdAt,
     }));
 
-    return {
-      success: true,
-      memory_social_links: formattedLinks,
-      total_found: formattedLinks.length,
-      filters_applied: {
+    return SocialResponseBuilder.searchResults(
+      formattedLinks,
+      {
         entity_name: entityName,
         interaction_type: interactionType,
         link_types: linkTypes,
         memory_keywords: memoryKeywords,
         min_strength: minStrength,
       },
-      message: `Found ${formattedLinks.length} memory-social links`,
-    };
+      'memory_social_links'
+    );
   }
 
   /**
@@ -289,7 +261,7 @@ export class SocialMemoryIntegration {
     include_emotional_memories?: boolean;
     time_period?: string;
   }): Promise<object> {
-    const entityName = InputValidator.sanitizeString(args.entity_name, 100);
+    const entityName = SocialValidationUtils.validateRequiredString(args.entity_name, 'entity_name', 100);
     const includeCreation = args.include_creation_memories !== false;
     const includeLearning = args.include_learning_memories !== false;
     const includeEmotional = args.include_emotional_memories !== false;
@@ -405,28 +377,30 @@ export class SocialMemoryIntegration {
       }
     });
 
-    return {
-      success: true,
-      entity: {
-        name: entity.name,
-        displayName: entity.displayName,
-        type: entity.entityType,
-      },
-      summary: {
-        totalSharedMemories: links.length,
-        timePeriod: timePeriod,
-        memoryTypes: {
-          creation: categorizedMemories.creation.length,
-          learning: categorizedMemories.learning.length,
-          emotional: categorizedMemories.emotional.length,
-          collaboration: categorizedMemories.collaboration.length,
-          inspiration: categorizedMemories.inspiration.length,
-          other: categorizedMemories.other.length,
+    return SocialResponseBuilder.success(
+      {
+        entity: {
+          name: entity.name,
+          displayName: entity.displayName,
+          type: entity.entityType,
         },
+        summary: {
+          totalSharedMemories: links.length,
+          timePeriod: timePeriod,
+          memoryTypes: {
+            creation: categorizedMemories.creation.length,
+            learning: categorizedMemories.learning.length,
+            emotional: categorizedMemories.emotional.length,
+            collaboration: categorizedMemories.collaboration.length,
+            inspiration: categorizedMemories.inspiration.length,
+            other: categorizedMemories.other.length,
+          },
+        },
+        memories: categorizedMemories,
+        insights: this.generateMemoryInsights(links),
       },
-      memories: categorizedMemories,
-      insights: this.generateMemoryInsights(links),
-    };
+      `Retrieved ${links.length} shared memories for ${entityName}`
+    );
   }
 
   /**

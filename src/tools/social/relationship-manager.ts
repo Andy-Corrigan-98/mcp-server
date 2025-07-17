@@ -1,45 +1,24 @@
-import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
-import { ConfigurationService } from '@/db/configuration-service.js';
-import { InputValidator } from '@/validation/input-validator.js';
+import { ConfigurableBase } from './base/configurable-base.js';
+import { SocialValidationUtils } from './base/validation-utils.js';
+import { SocialResponseBuilder } from './base/response-builder.js';
 import { SocialEntityManager } from './entity-manager.js';
 
 /**
  * Relationship Manager for Social Consciousness System
  * Handles relationship creation, updates, and dynamics tracking
  */
-export class SocialRelationshipManager {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class SocialRelationshipManager extends ConfigurableBase {
   private entityManager: SocialEntityManager;
 
   // Configuration for relationship management
-  private config = {
+  protected config = {
     maxNotesLength: 1000,
     relationshipDecayTime: 7776000000, // 90 days in milliseconds
   };
 
   constructor(entityManager: SocialEntityManager) {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super();
     this.entityManager = entityManager;
-    this.loadConfiguration();
-  }
-
-  /**
-   * Load configuration values
-   */
-  private async loadConfiguration(): Promise<void> {
-    try {
-      const configs = await this.configService.getConfigurationsByCategory('SOCIAL');
-      configs.forEach((config: any) => {
-        const key = config.key.replace('social.', '');
-        if (key in this.config) {
-          (this.config as any)[key] = config.value;
-        }
-      });
-    } catch {
-      console.warn('Failed to load relationship configuration');
-    }
   }
 
   /**
@@ -55,14 +34,14 @@ export class SocialRelationshipManager {
     communication_style?: Record<string, unknown>;
     notes?: string;
   }): Promise<object> {
-    const entityName = InputValidator.sanitizeString(args.entity_name, 100);
+    const entityName = SocialValidationUtils.validateRequiredString(args.entity_name, 'entity_name', 100);
     const relationshipType = args.relationship_type;
-    const strength = Math.max(0, Math.min(1, args.strength ?? 0.5));
-    const trust = Math.max(0, Math.min(1, args.trust ?? 0.5));
-    const familiarity = Math.max(0, Math.min(1, args.familiarity ?? 0.1));
-    const affinity = Math.max(0, Math.min(1, args.affinity ?? 0.5));
+    const strength = SocialValidationUtils.validateProbability(args.strength, 0.5);
+    const trust = SocialValidationUtils.validateProbability(args.trust, 0.5);
+    const familiarity = SocialValidationUtils.validateProbability(args.familiarity, 0.1);
+    const affinity = SocialValidationUtils.validateProbability(args.affinity, 0.5);
     const communicationStyle = args.communication_style || {};
-    const notes = args.notes ? InputValidator.sanitizeString(args.notes, this.config.maxNotesLength) : undefined;
+    const notes = args.notes ? SocialValidationUtils.sanitizeString(args.notes, this.config.maxNotesLength) : null;
 
     // Get the entity
     const entity = await this.entityManager.getEntityByName(entityName);
@@ -86,27 +65,21 @@ export class SocialRelationshipManager {
           trust,
           familiarity,
           affinity,
-          communicationStyle: JSON.stringify(communicationStyle),
+          communicationStyle: SocialValidationUtils.validateAndStringifyJson(communicationStyle),
           notes,
         },
       });
     });
 
-    return {
-      success: true,
-      entity: entityName,
-      relationship: {
-        type: relationshipType,
-        strength,
-        trust,
-        familiarity,
-        affinity,
-        communication_style: communicationStyle,
-        notes,
-      },
-      relationship_id: newRelationship.id,
-      message: `Relationship with '${entityName}' established as '${relationshipType}'`,
-    };
+    return SocialResponseBuilder.relationshipCreated(entityName, relationshipType, newRelationship.id, {
+      type: relationshipType,
+      strength,
+      trust,
+      familiarity,
+      affinity,
+      communication_style: communicationStyle,
+      notes,
+    });
   }
 
   /**
@@ -122,7 +95,7 @@ export class SocialRelationshipManager {
     notes?: string;
     reason?: string;
   }): Promise<object> {
-    const entityName = InputValidator.sanitizeString(args.entity_name, 100);
+    const entityName = SocialValidationUtils.validateRequiredString(args.entity_name, 'entity_name', 100);
     const reason = args.reason || 'Manual update';
 
     // Get the entity
@@ -141,32 +114,27 @@ export class SocialRelationshipManager {
     const updateData: any = { updatedAt: new Date() };
 
     if (args.strength !== undefined) {
-      updateData.strength = Math.max(0, Math.min(1, args.strength));
+      updateData.strength = SocialValidationUtils.validateProbability(args.strength);
     }
     if (args.trust !== undefined) {
-      updateData.trust = Math.max(0, Math.min(1, args.trust));
+      updateData.trust = SocialValidationUtils.validateProbability(args.trust);
     }
     if (args.familiarity !== undefined) {
-      updateData.familiarity = Math.max(0, Math.min(1, args.familiarity));
+      updateData.familiarity = SocialValidationUtils.validateProbability(args.familiarity);
     }
     if (args.affinity !== undefined) {
-      updateData.affinity = Math.max(0, Math.min(1, args.affinity));
+      updateData.affinity = SocialValidationUtils.validateProbability(args.affinity);
     }
     if (args.communication_style !== undefined) {
       // Merge with existing communication style
-      let existingStyle = {};
-      try {
-        existingStyle = JSON.parse(existingRelationship.communicationStyle || '{}');
-      } catch {
-        console.warn('Failed to parse existing communication style');
-      }
-      updateData.communicationStyle = JSON.stringify({
+      const existingStyle = SocialValidationUtils.parseJsonSafely(existingRelationship.communicationStyle || '{}', {});
+      updateData.communicationStyle = SocialValidationUtils.validateAndStringifyJson({
         ...existingStyle,
         ...args.communication_style,
       });
     }
     if (args.notes !== undefined) {
-      updateData.notes = InputValidator.sanitizeString(args.notes, this.config.maxNotesLength);
+      updateData.notes = SocialValidationUtils.sanitizeString(args.notes, this.config.maxNotesLength);
     }
 
     // Update the relationship
@@ -177,19 +145,17 @@ export class SocialRelationshipManager {
       });
     });
 
-    return {
-      success: true,
-      entity: entityName,
-      relationship: {
+    return SocialResponseBuilder.relationshipUpdated(
+      entityName,
+      {
         type: updatedRelationship.relationshipType,
         strength: updatedRelationship.strength,
         trust: updatedRelationship.trust,
         familiarity: updatedRelationship.familiarity,
         affinity: updatedRelationship.affinity,
       },
-      reason,
-      message: `Relationship with '${entityName}' updated successfully`,
-    };
+      reason
+    );
   }
 
   /**
@@ -244,15 +210,17 @@ export class SocialRelationshipManager {
     const totalImpact = (qualityImpact + durationBonus + learningBonus) * typeMultiplier;
 
     // Update relationship metrics
-    const newStrength = Math.max(0, Math.min(1, relationship.strength + totalImpact));
-    const newFamiliarity = Math.max(0, Math.min(1, relationship.familiarity + Math.abs(totalImpact) * 0.5));
+    const newStrength = SocialValidationUtils.validateProbability(relationship.strength + totalImpact);
+    const newFamiliarity = SocialValidationUtils.validateProbability(
+      relationship.familiarity + Math.abs(totalImpact) * 0.5
+    );
 
     // Trust changes more slowly and depends on interaction quality
     let newTrust = relationship.trust;
     if (interactionData.quality > 0.7) {
-      newTrust = Math.min(1, newTrust + totalImpact * 0.3);
+      newTrust = SocialValidationUtils.validateProbability(newTrust + totalImpact * 0.3);
     } else if (interactionData.quality < 0.3) {
-      newTrust = Math.max(0, newTrust + totalImpact * 0.5); // Negative impact on trust
+      newTrust = SocialValidationUtils.validateProbability(newTrust + totalImpact * 0.5); // Negative impact on trust
     }
 
     await this.db.execute(async prisma => {

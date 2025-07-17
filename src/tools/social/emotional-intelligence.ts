@@ -1,19 +1,17 @@
-import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
-import { ConfigurationService } from '@/db/configuration-service.js';
-import { InputValidator } from '@/validation/input-validator.js';
+import { ConfigurableBase } from './base/configurable-base.js';
+import { SocialValidationUtils } from './base/validation-utils.js';
+import { SocialResponseBuilder } from './base/response-builder.js';
 import { SocialEntityManager } from './entity-manager.js';
 
 /**
  * Emotional Intelligence Manager for Social Consciousness System
  * Handles emotional state recording and social learning
  */
-export class SocialEmotionalIntelligence {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class SocialEmotionalIntelligence extends ConfigurableBase {
   private entityManager: SocialEntityManager;
 
   // Configuration for emotional intelligence
-  private config = {
+  protected config = {
     maxTriggerLength: 300,
     maxResponseLength: 500,
     maxLearningLength: 800,
@@ -24,27 +22,8 @@ export class SocialEmotionalIntelligence {
   };
 
   constructor(entityManager: SocialEntityManager) {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super();
     this.entityManager = entityManager;
-    this.loadConfiguration();
-  }
-
-  /**
-   * Load configuration values
-   */
-  private async loadConfiguration(): Promise<void> {
-    try {
-      const configs = await this.configService.getConfigurationsByCategory('SOCIAL');
-      configs.forEach((config: any) => {
-        const key = config.key.replace('social.', '');
-        if (key in this.config) {
-          (this.config as any)[key] = config.value;
-        }
-      });
-    } catch {
-      console.warn('Failed to load emotional intelligence configuration');
-    }
   }
 
   /**
@@ -61,18 +40,17 @@ export class SocialEmotionalIntelligence {
     interaction_id?: number;
   }): Promise<object> {
     const emotionalState = args.emotional_state;
-    const intensity =
-      args.intensity !== undefined ? Math.max(0, Math.min(1, args.intensity)) : this.config.emotionalIntensityDefault;
+    const intensity = SocialValidationUtils.validateProbability(args.intensity, this.config.emotionalIntensityDefault);
     const trigger = args.trigger
-      ? InputValidator.sanitizeString(args.trigger, this.config.maxTriggerLength)
+      ? SocialValidationUtils.sanitizeString(args.trigger, this.config.maxTriggerLength)
       : undefined;
     const response = args.response
-      ? InputValidator.sanitizeString(args.response, this.config.maxResponseLength)
+      ? SocialValidationUtils.sanitizeString(args.response, this.config.maxResponseLength)
       : undefined;
     const learning = args.learning
-      ? InputValidator.sanitizeString(args.learning, this.config.maxLearningLength)
+      ? SocialValidationUtils.sanitizeString(args.learning, this.config.maxLearningLength)
       : undefined;
-    const context = args.context ? InputValidator.sanitizeString(args.context, 500) : undefined;
+    const context = args.context ? SocialValidationUtils.sanitizeString(args.context, 500) : undefined;
     const entityName = args.entity_name;
     const interactionId = args.interaction_id;
 
@@ -102,9 +80,9 @@ export class SocialEmotionalIntelligence {
       });
     });
 
-    return {
-      success: true,
-      emotional_context: {
+    return SocialResponseBuilder.recordCreated(
+      'emotional_context',
+      {
         id: emotionalContext.id,
         emotional_state: emotionalState,
         intensity,
@@ -116,8 +94,8 @@ export class SocialEmotionalIntelligence {
         interaction_id: interactionId,
         created_at: emotionalContext.createdAt,
       },
-      message: `Emotional state '${emotionalState}' recorded successfully`,
-    };
+      entityName
+    );
   }
 
   /**
@@ -132,11 +110,10 @@ export class SocialEmotionalIntelligence {
     entity_name?: string;
   }): Promise<object> {
     const learningType = args.learning_type;
-    const insight = InputValidator.sanitizeString(args.insight, this.config.maxInsightLength);
-    const confidence =
-      args.confidence !== undefined ? Math.max(0, Math.min(1, args.confidence)) : this.config.defaultConfidence;
+    const insight = SocialValidationUtils.validateRequiredString(args.insight, 'insight', this.config.maxInsightLength);
+    const confidence = SocialValidationUtils.validateProbability(args.confidence, this.config.defaultConfidence);
     const applicability = args.applicability
-      ? InputValidator.sanitizeString(args.applicability, this.config.maxApplicabilityLength)
+      ? SocialValidationUtils.sanitizeString(args.applicability, this.config.maxApplicabilityLength)
       : undefined;
     const examples = args.examples;
     const entityName = args.entity_name;
@@ -160,14 +137,14 @@ export class SocialEmotionalIntelligence {
           insight,
           confidence,
           applicability,
-          examples: examples ? JSON.stringify(examples) : undefined,
+          examples: SocialValidationUtils.validateAndStringifyJson(examples),
         },
       });
     });
 
-    return {
-      success: true,
-      social_learning: {
+    return SocialResponseBuilder.recordCreated(
+      'social_learning',
+      {
         id: socialLearning.id,
         learning_type: learningType,
         insight,
@@ -177,8 +154,8 @@ export class SocialEmotionalIntelligence {
         entity_name: entityName,
         created_at: socialLearning.createdAt,
       },
-      message: `Social learning '${learningType}' recorded successfully`,
-    };
+      entityName
+    );
   }
 
   /**

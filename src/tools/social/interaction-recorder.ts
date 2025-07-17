@@ -1,6 +1,6 @@
-import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
-import { ConfigurationService } from '@/db/configuration-service.js';
-import { InputValidator } from '@/validation/input-validator.js';
+import { ConfigurableBase } from './base/configurable-base.js';
+import { SocialValidationUtils } from './base/validation-utils.js';
+import { SocialResponseBuilder } from './base/response-builder.js';
 import { SocialEntityManager } from './entity-manager.js';
 import { SocialRelationshipManager } from './relationship-manager.js';
 
@@ -8,14 +8,12 @@ import { SocialRelationshipManager } from './relationship-manager.js';
  * Interaction Recorder for Social Consciousness System
  * Handles recording and searching social interactions
  */
-export class SocialInteractionRecorder {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class SocialInteractionRecorder extends ConfigurableBase {
   private entityManager: SocialEntityManager;
   private relationshipManager: SocialRelationshipManager;
 
   // Configuration for interaction recording
-  private config = {
+  protected config = {
     maxContextLength: 800,
     maxSummaryLength: 600,
     maxLearningLength: 800,
@@ -24,28 +22,9 @@ export class SocialInteractionRecorder {
   };
 
   constructor(entityManager: SocialEntityManager, relationshipManager: SocialRelationshipManager) {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super();
     this.entityManager = entityManager;
     this.relationshipManager = relationshipManager;
-    this.loadConfiguration();
-  }
-
-  /**
-   * Load configuration values
-   */
-  private async loadConfiguration(): Promise<void> {
-    try {
-      const configs = await this.configService.getConfigurationsByCategory('SOCIAL');
-      configs.forEach((config: any) => {
-        const key = config.key.replace('social.', '');
-        if (key in this.config) {
-          (this.config as any)[key] = config.value;
-        }
-      });
-    } catch {
-      console.warn('Failed to load interaction recorder configuration');
-    }
   }
 
   /**
@@ -65,18 +44,18 @@ export class SocialInteractionRecorder {
     relationship_impact?: Record<string, unknown>;
     related_memories?: string[];
   }): Promise<object> {
-    const entityName = InputValidator.sanitizeString(args.entity_name, 100);
+    const entityName = SocialValidationUtils.validateRequiredString(args.entity_name, 'entity_name', 100);
     const interactionType = args.interaction_type;
     const context = args.context
-      ? InputValidator.sanitizeString(args.context, this.config.maxContextLength)
+      ? SocialValidationUtils.sanitizeString(args.context, this.config.maxContextLength)
       : undefined;
     const summary = args.summary
-      ? InputValidator.sanitizeString(args.summary, this.config.maxSummaryLength)
+      ? SocialValidationUtils.sanitizeString(args.summary, this.config.maxSummaryLength)
       : undefined;
-    const duration = args.duration;
-    const quality = args.quality !== undefined ? Math.max(0, Math.min(1, args.quality)) : this.config.qualityDefault;
+    const duration = SocialValidationUtils.validatePositiveNumber(args.duration);
+    const quality = SocialValidationUtils.validateProbability(args.quality, this.config.qualityDefault);
     const learningExtracted = args.learning_extracted
-      ? InputValidator.sanitizeString(args.learning_extracted, this.config.maxLearningLength)
+      ? SocialValidationUtils.sanitizeString(args.learning_extracted, this.config.maxLearningLength)
       : undefined;
     const myEmotionalState = args.my_emotional_state;
     const theirEmotionalState = args.their_emotional_state;
@@ -108,9 +87,9 @@ export class SocialInteractionRecorder {
           quality,
           learningExtracted,
           emotionalTone: emotionalTone as any,
-          myEmotionalState: myEmotionalState ? JSON.stringify(myEmotionalState) : undefined,
-          theirEmotionalState: theirEmotionalState ? JSON.stringify(theirEmotionalState) : undefined,
-          conversationStyle: conversationStyle ? JSON.stringify(conversationStyle) : undefined,
+          myEmotionalState: SocialValidationUtils.validateAndStringifyJson(myEmotionalState),
+          theirEmotionalState: SocialValidationUtils.validateAndStringifyJson(theirEmotionalState),
+          conversationStyle: SocialValidationUtils.validateAndStringifyJson(conversationStyle),
         },
       });
     });
@@ -137,7 +116,7 @@ export class SocialInteractionRecorder {
             data: {
               entityId: entity.id,
               learningType: 'relationship_dynamic',
-              insight: `Interaction impact: ${JSON.stringify(relationshipImpact)}`,
+              insight: `Interaction impact: ${SocialValidationUtils.validateAndStringifyJson(relationshipImpact)}`,
               confidence: 0.7,
               applicability: `Relationship with ${entityName}`,
             },
@@ -148,9 +127,8 @@ export class SocialInteractionRecorder {
       }
     }
 
-    return {
-      success: true,
-      interaction: {
+    return SocialResponseBuilder.interactionRecorded(
+      {
         id: newInteraction.id,
         entity: entityName,
         type: interactionType,
@@ -160,10 +138,10 @@ export class SocialInteractionRecorder {
         learning_extracted: learningExtracted,
         created_at: newInteraction.createdAt,
       },
-      relationship_updated: quality !== undefined,
-      related_memories: relatedMemories || [],
-      message: `Interaction with '${entityName}' recorded successfully`,
-    };
+      entityName,
+      relatedMemories || [],
+      quality !== undefined
+    );
   }
 
   /**
@@ -242,24 +220,22 @@ export class SocialInteractionRecorder {
       quality: interaction.quality,
       learning_extracted: interaction.learningExtracted,
       emotional_tone: interaction.emotionalTone,
-      my_emotional_state: interaction.myEmotionalState ? JSON.parse(interaction.myEmotionalState) : undefined,
-      their_emotional_state: interaction.theirEmotionalState ? JSON.parse(interaction.theirEmotionalState) : undefined,
-      conversation_style: interaction.conversationStyle ? JSON.parse(interaction.conversationStyle) : undefined,
+      my_emotional_state: SocialValidationUtils.parseJsonSafely(interaction.myEmotionalState, undefined),
+      their_emotional_state: SocialValidationUtils.parseJsonSafely(interaction.theirEmotionalState, undefined),
+      conversation_style: SocialValidationUtils.parseJsonSafely(interaction.conversationStyle, undefined),
       created_at: interaction.createdAt,
     }));
 
-    return {
-      success: true,
-      interactions: formattedInteractions,
-      total_found: formattedInteractions.length,
-      filters_applied: {
+    return SocialResponseBuilder.searchResults(
+      formattedInteractions,
+      {
         entity_name: entityName,
         interaction_type: interactionType,
         date_range: dateRange,
         context_keywords: contextKeywords,
       },
-      message: `Found ${formattedInteractions.length} interactions`,
-    };
+      'interactions'
+    );
   }
 
   /**
