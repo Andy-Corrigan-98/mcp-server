@@ -1,13 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import {
-  ConsciousnessPrismaService,
-  MemoryData,
-  MemoryResult,
-  KnowledgeEntityData,
-  KnowledgeRelationshipData,
-} from '../../db/index.js';
+import { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationshipData } from '../../db/index.js';
 import { InputValidator } from '../../validation/index.js';
-import { ConfigurationService } from '../../db/configuration-service.js';
+import { ServiceBase } from '../base/index.js';
 import { MEMORY_TOOLS, RelevanceConfig } from './types.js';
 
 /**
@@ -35,16 +29,12 @@ interface MemoryConfig {
  * Memory Tools implementation for consciousness MCP server
  * Provides memory storage and knowledge graph operations
  */
-export class MemoryTools {
-  private db: ConsciousnessPrismaService;
-  private configService: ConfigurationService;
+export class MemoryTools extends ServiceBase {
   private relevanceConfig: RelevanceConfig;
-
   private config: MemoryConfig = {} as MemoryConfig;
 
   constructor() {
-    this.db = ConsciousnessPrismaService.getInstance();
-    this.configService = ConfigurationService.getInstance();
+    super(); // Initialize services automatically
 
     // Initialize configuration with defaults
     this.initializeDefaults();
