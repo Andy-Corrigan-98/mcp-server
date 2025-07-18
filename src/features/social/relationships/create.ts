@@ -6,7 +6,7 @@ import {
   validateAndStringifyJson,
 } from '../../../services/validation.js';
 import { relationshipCreatedResponse } from '../../../utils/responses.js';
-import { getEntityByName } from '../entities.js';
+import { getEntityByName } from '../entities/index.js';
 import { loadRelationshipConfig } from './load-config.js';
 import { getRelationshipByEntityId } from './get-by-id.js';
 

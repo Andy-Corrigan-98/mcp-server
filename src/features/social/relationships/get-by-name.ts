@@ -1,4 +1,4 @@
-import { getEntityByName } from '../entities.js';
+import { getEntityByName } from '../entities/index.js';
 import { getRelationshipByEntityId } from './get-by-id.js';
 
 /**
