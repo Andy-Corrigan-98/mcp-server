@@ -21,7 +21,7 @@ export async function prepareContext(args: {
   const maxContextLength = await config.getNumber('consciousness.max_context_length', 1000);
   const maxMemorySlice = await config.getNumber('consciousness.max_memory_slice', 5);
   const maxConnectionDisplay = await config.getNumber('consciousness.max_connection_display', 3);
-  const reflectionDepths = await config.getStringArray('consciousness.reflection_depths', [
+  const reflectionDepths = await config.getEnumArray('consciousness.reflection_depths', [
     'surface_glance',
     'thoughtful_dive',
     'profound_exploration',
