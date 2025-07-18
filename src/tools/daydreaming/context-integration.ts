@@ -1,5 +1,5 @@
 import { executeConsciousnessOperation } from '../../features/consciousness/index.js';
-import { MemoryTools } from '../memory/memory-tools.js';
+import { executeMemoryOperation } from '../../features/memory/index.js';
 import { SerendipitousInsight } from './types.js';
 
 /**
@@ -7,11 +7,7 @@ import { SerendipitousInsight } from './types.js';
  * Enhances context preparation to surface relevant background insights
  */
 export class DaydreamContextIntegrator {
-  private memoryTools: MemoryTools;
-
-  constructor() {
-    this.memoryTools = new MemoryTools();
-  }
+  constructor() {}
 
   /**
    * Enhance consciousness context preparation with daydream insights
@@ -54,10 +50,9 @@ export class DaydreamContextIntegrator {
   private async findRelevantDaydreamInsights(topic: string): Promise<SerendipitousInsight[]> {
     try {
       // Search memories for daydream insights
-      const searchResult = (await this.memoryTools.execute('search', {
+      const searchResult = (await executeMemoryOperation('memory_search', {
         query: topic,
         tags: ['daydreaming', 'serendipitous_insight'],
-        limit: 10,
       })) as any;
 
       const insights: SerendipitousInsight[] = [];

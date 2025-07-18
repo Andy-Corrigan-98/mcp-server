@@ -3,8 +3,8 @@
  * Provides clean imports for memory-related functionality
  */
 
-// Core memory tools implementation
-export { MemoryTools } from './memory-tools.js';
+// Now using functional approach - import from features/memory instead
+export { FunctionalMemoryTools as MemoryTools } from '../../features/memory/index.js';
 
 // Type definitions and tool schemas
 export { MEMORY_TOOLS } from './types.js';

@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { InputValidator } from '../../validation/index.js';
 import { ServiceBase } from '../base/index.js';
-import { MemoryTools } from '../memory/memory-tools.js';
+import { executeMemoryOperation } from '../../features/memory/index.js';
 import { ReasoningTools } from '../reasoning/reasoning-tools.js';
 import { executeConsciousnessOperation } from '../../features/consciousness/index.js';
 import { GuidGenerator } from '../../utils/guid.js';
@@ -29,7 +29,6 @@ import {
  * 4. Stores valuable insights back into memory system
  */
 export class DaydreamingTools extends ServiceBase {
-  private memoryTools: MemoryTools;
   private reasoningTools: ReasoningTools;
   private genAITools: GenAIDaydreamingTools;
 
@@ -40,7 +39,6 @@ export class DaydreamingTools extends ServiceBase {
   constructor() {
     super(); // Initialize services automatically
 
-    this.memoryTools = new MemoryTools();
     this.reasoningTools = new ReasoningTools();
     this.genAITools = new GenAIDaydreamingTools();
 
@@ -349,15 +347,13 @@ export class DaydreamingTools extends ServiceBase {
    * Get stored daydream insights
    */
   private async getDaydreamInsights(args: Record<string, unknown>): Promise<{ insights: SerendipitousInsight[] }> {
-    const limit = Math.min((args.limit as number) || DaydreamingTools.DEFAULT_LIMIT, DaydreamingTools.MAX_LIMIT);
     const minScore = Math.max(0, Math.min(1, (args.min_score as number) || DaydreamingTools.DEFAULT_MIN_SCORE));
     const daysBack = Math.max(1, (args.days_back as number) || DaydreamingTools.DEFAULT_DAYS_BACK);
     const tags = (args.tags as string[]) || [];
 
     // Search memories with daydreaming tags
-    const searchResult = (await this.memoryTools.execute('search', {
+    const searchResult = (await executeMemoryOperation('memory_search', {
       tags: ['daydreaming', 'serendipitous_insight', ...tags],
-      limit,
     })) as any;
 
     const insights: SerendipitousInsight[] = [];
@@ -590,16 +586,16 @@ export class DaydreamingTools extends ServiceBase {
 
   private async getRecentMemories(_focusArea?: string): Promise<unknown[]> {
     // Query recent memories that could serve as concepts
-    const searchResult = (await this.memoryTools.execute('search', {
-      limit: 20,
-    })) as { memories?: Array<{ key: string; importance: string; storedAt: string }> };
+    const searchResult = (await executeMemoryOperation('memory_search', {})) as {
+      results?: Array<{ key: string; importance: string; stored_at: string }>;
+    };
 
-    return (searchResult.memories || []).map(memory => ({
+    return (searchResult.results || []).map(memory => ({
       entity: memory.key,
       type: 'memory',
       source: 'memory' as const,
       importance: memory.importance === 'high' ? 0.8 : memory.importance === 'medium' ? 0.5 : 0.3,
-      lastAccessed: new Date(memory.storedAt),
+      lastAccessed: new Date(memory.stored_at),
     }));
   }
 
@@ -763,7 +759,7 @@ export class DaydreamingTools extends ServiceBase {
     }
 
     // Store in memory system
-    await this.memoryTools.execute('store', {
+    await executeMemoryOperation('memory_store', {
       key: insight.id,
       content: insight,
       tags: insight.tags,
@@ -823,7 +819,7 @@ export class DaydreamingTools extends ServiceBase {
 
   private async storeCycleMetadata(result: DaydreamingCycleResult): Promise<void> {
     // Store cycle metadata for analysis and improvement
-    await this.memoryTools.execute('store', {
+    await executeMemoryOperation('memory_store', {
       key: `ddl_cycle_${result.cycleId}`,
       content: {
         cycleId: result.cycleId,

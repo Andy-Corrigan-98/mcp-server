@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { FunctionalConsciousnessTools } from '../features/consciousness/index.js';
 import { TimeTools } from './time/time-tools.js';
-import { MemoryTools } from './memory/memory-tools.js';
+import { FunctionalMemoryTools } from '../features/memory/index.js';
 import { ReasoningTools } from './reasoning/reasoning-tools.js';
 import { GenAIReasoningToolsWrapper } from './reasoning/genai-reasoning-wrapper.js';
 import { ConversationalGenAIToolsWrapper } from './reasoning/conversational-genai-wrapper.js';
@@ -35,8 +35,8 @@ export class ConsciousnessToolsRegistry {
     const timeTools = new TimeTools();
     this.registerToolCategory(timeTools);
 
-    // Register memory tools
-    const memoryTools = new MemoryTools();
+    // Register memory tools (now using functional approach)
+    const memoryTools = new FunctionalMemoryTools();
     this.registerToolCategory(memoryTools);
 
     // Register reasoning tools (GenAI-powered if API key available)
