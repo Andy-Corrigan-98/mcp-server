@@ -6,11 +6,8 @@ import { ReasoningTools } from './reasoning/reasoning-tools.js';
 import { GenAIReasoningToolsWrapper } from './reasoning/genai-reasoning-wrapper.js';
 import { ConversationalGenAIToolsWrapper } from './reasoning/conversational-genai-wrapper.js';
 import { ConfigurationTools } from './configuration/configuration-tools.js';
-import { SocialTools } from './social/social-tools.js';
 import { DaydreamingTools } from './daydreaming/daydreaming-tools.js';
 import { initializeBackgroundScheduler } from './daydreaming/background-scheduler.js';
-
-// Import functional social tools for demonstration
 import { FunctionalSocialTools } from '../features/social/index.js';
 
 /**
@@ -62,17 +59,9 @@ export class ConsciousnessToolsRegistry {
     const configurationTools = new ConfigurationTools();
     this.registerToolCategory(configurationTools);
 
-    // DEMONSTRATION: Register both class-based and functional social tools
-    const useFunctionalSocial = process.env.USE_FUNCTIONAL_SOCIAL === 'true';
-
-    if (useFunctionalSocial) {
-      console.log('🔧 Using FUNCTIONAL social tools (new architecture)');
-      this.registerFunctionalTools('social_', FunctionalSocialTools);
-    } else {
-      console.log('🏛️ Using CLASS-BASED social tools (legacy architecture)');
-      const socialTools = new SocialTools();
-      this.registerToolCategory(socialTools);
-    }
+    // Register functional social tools (single-responsibility architecture)
+    console.log('🔧 Using functional social tools with single-responsibility modules');
+    this.registerFunctionalTools('social_', FunctionalSocialTools);
 
     // Register day-dreaming loop tools
     const daydreamingTools = new DaydreamingTools();
