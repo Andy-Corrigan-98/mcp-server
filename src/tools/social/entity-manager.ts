@@ -1,40 +1,17 @@
-import { InputValidator } from '@/validation/input-validator.js';
-import { ServiceBase } from '../base/index.js';
 import { SocialEntity } from './types.js';
+import { ConfigurableBase, SocialValidationUtils, SocialResponseBuilder } from './base/index.js';
 
 /**
  * Entity Manager for Social Consciousness System
- * Handles creation, updates, and retrieval of social entities
+ * Handles creation, updates, and retrieval of social entities using base classes and utilities
  */
-export class SocialEntityManager extends ServiceBase {
+export class SocialEntityManager extends ConfigurableBase {
   // Configuration for entity management
-  private config = {
+  protected config = {
     maxEntityNameLength: 100,
     maxDisplayNameLength: 150,
     maxDescriptionLength: 500,
   };
-
-  constructor() {
-    super();
-    this.loadConfiguration();
-  }
-
-  /**
-   * Load configuration values
-   */
-  private async loadConfiguration(): Promise<void> {
-    try {
-      const configs = await this.configService.getConfigurationsByCategory('SOCIAL');
-      configs.forEach((config: any) => {
-        const key = config.key.replace('social.', '');
-        if (key in this.config) {
-          (this.config as any)[key] = config.value;
-        }
-      });
-    } catch {
-      console.warn('Failed to load social entity configuration');
-    }
-  }
 
   /**
    * Create a new social entity
@@ -46,15 +23,22 @@ export class SocialEntityManager extends ServiceBase {
     description?: string;
     properties?: Record<string, unknown>;
   }): Promise<object> {
-    const name = InputValidator.sanitizeString(args.name, this.config.maxEntityNameLength);
+    // Validate and sanitize inputs using utilities
+    const name = SocialValidationUtils.validateRequiredString(
+      args.name,
+      'name',
+      this.getConfig<number>('maxEntityNameLength')
+    );
     const entityType = args.entity_type;
-    const displayName = args.display_name
-      ? InputValidator.sanitizeString(args.display_name, this.config.maxDisplayNameLength)
-      : undefined;
-    const description = args.description
-      ? InputValidator.sanitizeString(args.description, this.config.maxDescriptionLength)
-      : undefined;
-    const properties = args.properties || {};
+    const displayName = SocialValidationUtils.sanitizeString(
+      args.display_name,
+      this.getConfig<number>('maxDisplayNameLength')
+    );
+    const description = SocialValidationUtils.sanitizeString(
+      args.description,
+      this.getConfig<number>('maxDescriptionLength')
+    );
+    const properties = SocialValidationUtils.validateAndStringifyJson(args.properties);
 
     // Check if entity already exists
     const existing = await this.getEntityByName(name);
@@ -70,19 +54,13 @@ export class SocialEntityManager extends ServiceBase {
           entityType: entityType as any,
           displayName,
           description,
-          properties: JSON.stringify(properties),
+          properties,
         },
       });
     });
 
-    return {
-      success: true,
-      entity: name,
-      entity_type: entityType,
-      display_name: displayName,
-      entity_id: newEntity.id,
-      message: `Social entity '${displayName || name}' created successfully`,
-    };
+    // Return standardized response using response builder
+    return SocialResponseBuilder.entityCreated(name, entityType, newEntity.id, displayName);
   }
 
   /**
@@ -94,13 +72,19 @@ export class SocialEntityManager extends ServiceBase {
     description?: string;
     properties?: Record<string, unknown>;
   }): Promise<object> {
-    const name = InputValidator.sanitizeString(args.name, this.config.maxEntityNameLength);
-    const displayName = args.display_name
-      ? InputValidator.sanitizeString(args.display_name, this.config.maxDisplayNameLength)
-      : undefined;
-    const description = args.description
-      ? InputValidator.sanitizeString(args.description, this.config.maxDescriptionLength)
-      : undefined;
+    const name = SocialValidationUtils.validateRequiredString(
+      args.name,
+      'name',
+      this.getConfig<number>('maxEntityNameLength')
+    );
+    const displayName = SocialValidationUtils.sanitizeString(
+      args.display_name,
+      this.getConfig<number>('maxDisplayNameLength')
+    );
+    const description = SocialValidationUtils.sanitizeString(
+      args.description,
+      this.getConfig<number>('maxDescriptionLength')
+    );
 
     // Get existing entity
     const existingEntity = await this.getEntityByName(name);
@@ -109,14 +93,7 @@ export class SocialEntityManager extends ServiceBase {
     }
 
     // Merge properties if provided
-    let mergedProperties = {};
-    if (existingEntity.properties) {
-      try {
-        mergedProperties = JSON.parse(existingEntity.properties);
-      } catch {
-        console.warn('Failed to parse existing properties, starting fresh');
-      }
-    }
+    let mergedProperties = SocialValidationUtils.parseJsonSafely(existingEntity.properties, {});
     if (args.properties) {
       mergedProperties = { ...mergedProperties, ...args.properties };
     }
@@ -134,16 +111,16 @@ export class SocialEntityManager extends ServiceBase {
       });
     });
 
-    return {
-      success: true,
-      entity: name,
-      updated: {
+    // Return standardized response
+    return SocialResponseBuilder.entityUpdated(
+      name,
+      {
         display_name: updatedEntity.displayName,
         description: updatedEntity.description,
         properties: mergedProperties,
       },
-      message: `Social entity '${displayName || name}' updated successfully`,
-    };
+      displayName
+    );
   }
 
   /**
