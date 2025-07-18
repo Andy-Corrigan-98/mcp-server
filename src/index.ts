@@ -36,7 +36,7 @@ class ConsciousnessMCPServer {
     // List available tools
     this.server.setRequestHandler(ListToolsRequestSchema, async (): Promise<ListToolsResult> => {
       return {
-        tools: this.toolsRegistry.getAllTools(),
+        tools: Object.values(this.toolsRegistry.getTools()),
       };
     });
 
