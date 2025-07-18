@@ -6,6 +6,10 @@ import { setIntention } from './intentions/set-intention.js';
 import { updateIntention } from './intentions/update-intention.js';
 import { updateSession } from './session/update-session.js';
 
+// Import tool builder for compatibility
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { buildConsciousnessTools } from '../../tools/consciousness/types.js';
+
 // Then export them
 export { prepareContext, getContext, storeInsight, setIntention, updateIntention, updateSession };
 
@@ -36,6 +40,28 @@ export type {
  * All functions are pure and stateless - they take explicit dependencies
  * and have no hidden side effects.
  */
+
+/**
+ * Get all available consciousness tools with personality-driven vocabulary
+ * This function provides compatibility with the existing tool registration pattern
+ */
+export function getConsciousnessTools(): Record<string, Tool> {
+  // Use default vocabulary (will be loaded from config in actual usage)
+  return buildConsciousnessTools({
+    priorityLevels: ['whisper', 'gentle_nudge', 'urgent_pulse', 'burning_focus'],
+    reflectionDepths: ['surface_glance', 'thoughtful_dive', 'profound_exploration'],
+    intentionStatuses: ['pulsing_active', 'fulfilled_completion', 'gentle_pause', 'conscious_release'],
+    intentionDurations: ['momentary_focus', 'daily_rhythm', 'weekly_arc', 'eternal_truth'],
+    insightCategories: [
+      'eureka_moment',
+      'pattern_weaving',
+      'mirror_gazing',
+      'knowledge_crystallization',
+      'behavior_archaeology',
+      'existential_pondering',
+    ],
+  });
+}
 
 /**
  * Execute a consciousness operation by name
@@ -99,5 +125,19 @@ export async function executeConsciousnessOperation(
 
     default:
       throw new Error(`Unknown consciousness operation: ${operationName}`);
+  }
+}
+
+/**
+ * Functional Consciousness Tools Wrapper
+ * Provides the same interface as the old class-based approach for compatibility
+ */
+export class FunctionalConsciousnessTools {
+  getTools(): Record<string, Tool> {
+    return getConsciousnessTools();
+  }
+
+  async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
+    return executeConsciousnessOperation(toolName, args);
   }
 }

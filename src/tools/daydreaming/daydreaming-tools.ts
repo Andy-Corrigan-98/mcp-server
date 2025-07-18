@@ -3,7 +3,7 @@ import { InputValidator } from '../../validation/index.js';
 import { ServiceBase } from '../base/index.js';
 import { MemoryTools } from '../memory/memory-tools.js';
 import { ReasoningTools } from '../reasoning/reasoning-tools.js';
-import { ConsciousnessTools } from '../consciousness/consciousness-tools.js';
+import { executeConsciousnessOperation } from '../../features/consciousness/index.js';
 import { GuidGenerator } from '../../utils/guid.js';
 import { GenAIDaydreamingTools } from './genai-daydreaming-tools.js';
 import {
@@ -31,7 +31,6 @@ import {
 export class DaydreamingTools extends ServiceBase {
   private memoryTools: MemoryTools;
   private reasoningTools: ReasoningTools;
-  private consciousnessTools: ConsciousnessTools;
   private genAITools: GenAIDaydreamingTools;
 
   private config: DaydreamingConfig;
@@ -43,7 +42,6 @@ export class DaydreamingTools extends ServiceBase {
 
     this.memoryTools = new MemoryTools();
     this.reasoningTools = new ReasoningTools();
-    this.consciousnessTools = new ConsciousnessTools();
     this.genAITools = new GenAIDaydreamingTools();
 
     this.config = { ...DEFAULT_DAYDREAMING_CONFIG };
@@ -240,7 +238,7 @@ export class DaydreamingTools extends ServiceBase {
         : 0;
 
     // Update consciousness state with daydreaming activity
-    await this.consciousnessTools.execute('update_session', {
+    await executeConsciousnessOperation('consciousness_update_session', {
       activity_type: 'daydreaming_cycle',
       cognitive_impact: 'moderate',
       attention_focus: `concept_connections_${focusArea || 'general'}`,
@@ -572,7 +570,7 @@ export class DaydreamingTools extends ServiceBase {
 
   private async getDaydreamingContext(): Promise<DaydreamingContext> {
     // Get current consciousness state
-    const consciousnessContext = (await this.consciousnessTools.execute('get_context', {})) as any;
+    const consciousnessContext = (await executeConsciousnessOperation('consciousness_get_context', {})) as any;
 
     return {
       sessionId: consciousnessContext.sessionId || 'unknown',
@@ -773,7 +771,7 @@ export class DaydreamingTools extends ServiceBase {
     });
 
     // Also store as consciousness insight
-    await this.consciousnessTools.execute('store_insight', {
+    await executeConsciousnessOperation('consciousness_store_insight', {
       insight: insight.insight,
       category: 'eureka_moment',
       confidence: evaluation.overallScore,

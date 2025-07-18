@@ -1,4 +1,4 @@
-import { ConsciousnessTools } from '../consciousness/consciousness-tools.js';
+import { executeConsciousnessOperation } from '../../features/consciousness/index.js';
 import { MemoryTools } from '../memory/memory-tools.js';
 import { SerendipitousInsight } from './types.js';
 
@@ -7,11 +7,9 @@ import { SerendipitousInsight } from './types.js';
  * Enhances context preparation to surface relevant background insights
  */
 export class DaydreamContextIntegrator {
-  private consciousnessTools: ConsciousnessTools;
   private memoryTools: MemoryTools;
 
   constructor() {
-    this.consciousnessTools = new ConsciousnessTools();
     this.memoryTools = new MemoryTools();
   }
 
@@ -56,11 +54,11 @@ export class DaydreamContextIntegrator {
   private async findRelevantDaydreamInsights(topic: string): Promise<SerendipitousInsight[]> {
     try {
       // Search memories for daydream insights
-      const searchResult = await this.memoryTools.execute('search', {
+      const searchResult = (await this.memoryTools.execute('search', {
         query: topic,
         tags: ['daydreaming', 'serendipitous_insight'],
         limit: 10,
-      }) as any;
+      })) as any;
 
       const insights: SerendipitousInsight[] = [];
       for (const memory of searchResult.memories || []) {
@@ -70,12 +68,13 @@ export class DaydreamContextIntegrator {
       }
 
       // Sort by relevance and recency
-      return insights.sort((a, b) => {
-        const scoreA = a.evaluation.overallScore * this.getRecencyWeight(a.storedAt);
-        const scoreB = b.evaluation.overallScore * this.getRecencyWeight(b.storedAt);
-        return scoreB - scoreA;
-      }).slice(0, 5); // Top 5 most relevant
-
+      return insights
+        .sort((a, b) => {
+          const scoreA = a.evaluation.overallScore * this.getRecencyWeight(a.storedAt);
+          const scoreB = b.evaluation.overallScore * this.getRecencyWeight(b.storedAt);
+          return scoreB - scoreA;
+        })
+        .slice(0, 5); // Top 5 most relevant
     } catch (error) {
       console.warn('Could not retrieve daydream insights:', error);
       return [];
@@ -127,9 +126,7 @@ export class DaydreamContextIntegrator {
       const concept2Type = insight.evaluation.hypothesis.conceptPair.concept2.type;
 
       if (concept1Type !== concept2Type) {
-        connections.push(
-          `Cross-domain link: ${concept1Type} ↔ ${concept2Type} patterns might apply to ${topic}`
-        );
+        connections.push(`Cross-domain link: ${concept1Type} ↔ ${concept2Type} patterns might apply to ${topic}`);
       }
     }
 
@@ -194,8 +191,7 @@ export async function prepareEnhancedContext(
   const integrator = new DaydreamContextIntegrator();
 
   // Get standard consciousness context
-  const consciousnessTools = new ConsciousnessTools();
-  const standardContext = await consciousnessTools.execute('consciousness_prepare_context', {
+  const standardContext = await executeConsciousnessOperation('consciousness_prepare_context', {
     topic,
     context_depth: contextDepth,
     include_memories: includeMemories,

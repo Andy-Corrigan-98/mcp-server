@@ -1,5 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ConsciousnessTools } from './consciousness/consciousness-tools.js';
+import { FunctionalConsciousnessTools } from '../features/consciousness/index.js';
 import { TimeTools } from './time/time-tools.js';
 import { MemoryTools } from './memory/memory-tools.js';
 import { ReasoningTools } from './reasoning/reasoning-tools.js';
@@ -27,8 +27,8 @@ export class ConsciousnessToolsRegistry {
    * Register all available tool categories
    */
   private registerTools(): void {
-    // Register consciousness tools
-    const consciousnessTools = new ConsciousnessTools();
+    // Register consciousness tools (now using functional approach)
+    const consciousnessTools = new FunctionalConsciousnessTools();
     this.registerToolCategory(consciousnessTools);
 
     // Register time tools
