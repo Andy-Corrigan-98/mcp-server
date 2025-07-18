@@ -2,7 +2,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { InputValidator } from '../../validation/index.js';
 import { ServiceBase } from '../base/index.js';
 import { executeMemoryOperation } from '../../features/memory/index.js';
-import { ReasoningTools } from '../reasoning/reasoning-tools.js';
+import { executeReasoningOperation } from '../../features/reasoning/index.js';
 import { executeConsciousnessOperation } from '../../features/consciousness/index.js';
 import { GuidGenerator } from '../../utils/guid.js';
 import { GenAIDaydreamingTools } from './genai-daydreaming-tools.js';
@@ -29,7 +29,6 @@ import {
  * 4. Stores valuable insights back into memory system
  */
 export class DaydreamingTools extends ServiceBase {
-  private reasoningTools: ReasoningTools;
   private genAITools: GenAIDaydreamingTools;
 
   private config: DaydreamingConfig;
@@ -39,7 +38,6 @@ export class DaydreamingTools extends ServiceBase {
   constructor() {
     super(); // Initialize services automatically
 
-    this.reasoningTools = new ReasoningTools();
     this.genAITools = new GenAIDaydreamingTools();
 
     this.config = { ...DEFAULT_DAYDREAMING_CONFIG };
@@ -615,7 +613,7 @@ export class DaydreamingTools extends ServiceBase {
     const prompt = `Explore potential connections between "${pair.concept1.entity}" and "${pair.concept2.entity}". Consider unexpected relationships, shared patterns, or novel insights that might link these concepts.`;
 
     // Start sequential thinking
-    const thinkingResult = (await this.reasoningTools.execute('sequential_thinking', {
+    const thinkingResult = (await executeReasoningOperation('sequential_thinking', {
       thought: prompt,
       thought_number: 1,
       total_thoughts: maxThoughts,

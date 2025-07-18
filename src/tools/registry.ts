@@ -2,7 +2,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { FunctionalConsciousnessTools } from '../features/consciousness/index.js';
 import { TimeTools } from './time/time-tools.js';
 import { FunctionalMemoryTools } from '../features/memory/index.js';
-import { ReasoningTools } from './reasoning/reasoning-tools.js';
+import { FunctionalReasoningTools } from '../features/reasoning/index.js';
 import { GenAIReasoningToolsWrapper } from './reasoning/genai-reasoning-wrapper.js';
 import { ConversationalGenAIToolsWrapper } from './reasoning/conversational-genai-wrapper.js';
 import { ConfigurationTools } from './configuration/configuration-tools.js';
@@ -51,7 +51,7 @@ export class ConsciousnessToolsRegistry {
       this.registerToolCategory(conversationalGenAITools);
     } else {
       console.log('🧠 Using traditional reasoning tools (set GOOGLE_GENAI_API_KEY for GenAI)');
-      const reasoningTools = new ReasoningTools();
+      const reasoningTools = new FunctionalReasoningTools();
       this.registerToolCategory(reasoningTools);
     }
 
