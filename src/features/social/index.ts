@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { SOCIAL_TOOLS } from '../../tools/social/types.js';
 import * as entities from './entities.js';
-import * as relationships from './relationships.js';
+import * as relationships from './relationships/index.js';
 
 /**
  * Functional social tools implementation
