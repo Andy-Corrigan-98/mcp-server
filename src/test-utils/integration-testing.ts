@@ -93,7 +93,6 @@ export class IntegrationTestRunner {
 
   // Error handling integration tests
   private async runErrorIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
-    const checker = new TestErrorChecker();
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -104,8 +103,8 @@ export class IntegrationTestRunner {
       totalTests++;
       try {
         // Test error creation and validation
-        const isValid = checker.validateErrorType(data.type);
-        const hasContext = checker.checkErrorContext(data.context || {});
+        const isValid = TestErrorChecker.validateErrorType(data.type);
+        const hasContext = TestErrorChecker.checkErrorContext(data.context || {});
         
         if (isValid && hasContext) {
           passedTests++;
@@ -128,7 +127,6 @@ export class IntegrationTestRunner {
 
   // Configuration integration tests
   private async runConfigurationIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
-    const configBuilder = new TestConfigBuilder();
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -139,7 +137,7 @@ export class IntegrationTestRunner {
     for (const [configName, config] of Object.entries(configData.validConfigs)) {
       totalTests++;
       try {
-        const result = configBuilder.createValidConfig(config.key, config.value);
+        const result = TestConfigBuilder.createValidConfig(config.key, config.value);
         if (result.loaded && result.validationPassed) {
           passedTests++;
           details.push(`✅ ${configName}: Valid configuration loaded`);
@@ -155,7 +153,7 @@ export class IntegrationTestRunner {
     for (const [configName, config] of Object.entries(configData.invalidConfigs)) {
       totalTests++;
       try {
-        const result = configBuilder.createInvalidConfig(config.key, config.value);
+        const result = TestConfigBuilder.createInvalidConfig(config.key, config.value);
         if (!result.loaded || !result.validationPassed) {
           passedTests++;
           details.push(`✅ ${configName}: Invalid configuration properly rejected`);
@@ -177,7 +175,6 @@ export class IntegrationTestRunner {
 
   // Response handling integration tests
   private async runResponseIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
-    const validator = new TestResponseValidator();
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -188,7 +185,7 @@ export class IntegrationTestRunner {
     for (const [responseName, response] of Object.entries(responseData.successResponses)) {
       totalTests++;
       try {
-        const isValid = validator.validateSuccessResponse(response);
+        const isValid = TestResponseValidator.validateSuccessResponse(response);
         if (isValid) {
           passedTests++;
           details.push(`✅ ${responseName}: Valid success response`);
@@ -204,7 +201,7 @@ export class IntegrationTestRunner {
     for (const [responseName, response] of Object.entries(responseData.errorResponses)) {
       totalTests++;
       try {
-        const isValid = validator.validateErrorResponse(response);
+        const isValid = TestResponseValidator.validateErrorResponse(response);
         if (isValid) {
           passedTests++;
           details.push(`✅ ${responseName}: Valid error response`);
@@ -226,7 +223,6 @@ export class IntegrationTestRunner {
 
   // Tool execution integration tests
   private async runToolIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
-    const harness = new TestToolHarness();
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -237,7 +233,7 @@ export class IntegrationTestRunner {
     for (const [toolName, tool] of Object.entries(toolData.validTools)) {
       totalTests++;
       try {
-        const result = await harness.mockToolExecution(tool.name, tool.arguments, tool.expectedResult);
+        const result = await TestToolHarness.mockToolExecution(tool.name, tool.arguments, tool.expectedResult);
         if (result.success) {
           passedTests++;
           details.push(`✅ ${toolName}: Tool executed successfully`);
@@ -253,7 +249,7 @@ export class IntegrationTestRunner {
     for (const [toolName, tool] of Object.entries(toolData.invalidTools)) {
       totalTests++;
       try {
-        const result = await harness.mockToolExecution(tool.name, tool.arguments);
+        const result = await TestToolHarness.mockToolExecution(tool.name, tool.arguments);
         if (!result.success && result.error) {
           passedTests++;
           details.push(`✅ ${toolName}: Invalid tool properly rejected`);
@@ -282,10 +278,7 @@ export class IntegrationTestRunner {
     // Test error handling in configuration loading
     totalTests++;
     try {
-      const configBuilder = new TestConfigBuilder();
-      const checker = new TestErrorChecker();
-      
-      const invalidConfig = configBuilder.createInvalidConfig('invalid.key', 'invalid-value');
+      const invalidConfig = TestConfigBuilder.createInvalidConfig('invalid.key', 'invalid-value');
       if (!invalidConfig.loaded && invalidConfig.errors.length > 0) {
         passedTests++;
         details.push('✅ Error handling in configuration: Proper error propagation');
@@ -299,7 +292,6 @@ export class IntegrationTestRunner {
     // Test response building with error factory
     totalTests++;
     try {
-      const validator = new TestResponseValidator();
       const errorData = TestDataFactory.createErrorTestData();
       
       const errorResponse = {
@@ -307,7 +299,7 @@ export class IntegrationTestRunner {
         error: errorData.validationError
       };
       
-      const isValid = validator.validateErrorResponse(errorResponse);
+      const isValid = TestResponseValidator.validateErrorResponse(errorResponse);
       if (isValid) {
         passedTests++;
         details.push('✅ Response building with errors: Proper error formatting');
@@ -321,10 +313,9 @@ export class IntegrationTestRunner {
     // Test tool execution with configuration
     totalTests++;
     try {
-      const harness = new TestToolHarness();
       const configData = TestDataFactory.createConfigurationTestData();
       
-      const result = await harness.mockToolExecution('configuration_get', { 
+      const result = await TestToolHarness.mockToolExecution('configuration_get', { 
         key: configData.validConfigs.stringConfig.key 
       }, {
         key: configData.validConfigs.stringConfig.key,

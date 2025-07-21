@@ -427,4 +427,34 @@ export class TestToolHarness {
       }
     };
   }
+
+  /**
+   * Mock tool execution for testing
+   */
+  static async mockToolExecution(
+    toolName: string, 
+    args: Record<string, unknown>, 
+    expectedResult?: unknown
+  ): Promise<{ success: boolean; result?: unknown; error?: unknown }> {
+    try {
+      // Simulate tool execution
+      if (expectedResult !== undefined) {
+        return {
+          success: true,
+          result: expectedResult
+        };
+      }
+      
+      // Default mock behavior
+      return {
+        success: true,
+        result: { toolName, args, executedAt: new Date().toISOString() }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error
+      };
+    }
+  }
 } 

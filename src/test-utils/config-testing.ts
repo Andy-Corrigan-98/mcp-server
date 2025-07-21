@@ -405,4 +405,30 @@ export class TestConfigBuilder {
       }
     ];
   }
+
+  /**
+   * Create a valid configuration for testing
+   */
+  static createValidConfig(key: string, value: unknown): ConfigTestResult {
+    return {
+      loaded: true,
+      values: { [key]: value },
+      errors: [],
+      warnings: [],
+      validationPassed: true
+    };
+  }
+
+  /**
+   * Create an invalid configuration for testing
+   */
+  static createInvalidConfig(key: string, value: unknown): ConfigTestResult {
+    return {
+      loaded: false,
+      values: {},
+      errors: [`Invalid configuration for ${key}: ${value}`],
+      warnings: [],
+      validationPassed: false
+    };
+  }
 } 

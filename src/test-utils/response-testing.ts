@@ -386,4 +386,28 @@ export class TestResponseValidator {
       averageValidationTime: validationTime / responses.length
     };
   }
+
+  /**
+   * Validate a success response structure
+   */
+  static validateSuccessResponse(response: unknown): boolean {
+    if (typeof response !== 'object' || response === null) {
+      return false;
+    }
+    
+    const res = response as Record<string, unknown>;
+    return res.success === true && 'data' in res && 'timestamp' in res;
+  }
+
+  /**
+   * Validate an error response structure
+   */
+  static validateErrorResponse(response: unknown): boolean {
+    if (typeof response !== 'object' || response === null) {
+      return false;
+    }
+    
+    const res = response as Record<string, unknown>;
+    return res.success === false && 'error' in res && 'timestamp' in res;
+  }
 } 

@@ -52,6 +52,20 @@ export class TestErrorChecker {
   }
 
   /**
+   * Validate that an error type is valid
+   */
+  static validateErrorType(errorType: string): boolean {
+    return Object.values(ERROR_TYPES).includes(errorType as typeof ERROR_TYPES[keyof typeof ERROR_TYPES]);
+  }
+
+  /**
+   * Check if error context is valid and contains expected data
+   */
+  static checkErrorContext(context: Record<string, unknown>): boolean {
+    return typeof context === 'object' && context !== null;
+  }
+
+  /**
    * Create test cases for all error types
    */
   static createErrorTestCases(): ErrorTestCase[] {
