@@ -1,7 +1,8 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ConfigurationService } from '@/db/configuration-service.js';
 import { ConfigurationType, ConfigurationCategory } from '@prisma/client';
-import { InputValidator } from '@/validation/input-validator.js';
+import { ToolExecutor } from '../base/index.js';
+import { ConfiguredValidator } from '../../validation/index.js';
 import type {
   ConfigurationResult,
   ConfigurationUpdateResult,
@@ -12,12 +13,26 @@ import type {
 /**
  * Configuration Management Tools
  * Allows the consciousness system to modify its own operating parameters
+ * Now using the new ToolExecutor pattern!
  */
-export class ConfigurationTools {
+export class ConfigurationTools extends ToolExecutor {
+  protected category = 'configuration';
   private configService: ConfigurationService;
+  private validator: ConfiguredValidator;
+
+  // Define tool handlers using the new pattern - eliminates switch statement!
+  protected toolHandlers = {
+    configuration_get: this.getConfiguration.bind(this),
+    configuration_set: this.setConfiguration.bind(this),
+    configuration_list: this.listConfigurations.bind(this),
+    configuration_reset: this.resetConfiguration.bind(this),
+    configuration_categories: this.getCategories.bind(this),
+  };
 
   constructor() {
+    super();
     this.configService = ConfigurationService.getInstance();
+    this.validator = ConfiguredValidator.getInstance();
   }
 
   getTools(): Record<string, Tool> {
@@ -105,25 +120,17 @@ export class ConfigurationTools {
     };
   }
 
-  async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
-    switch (toolName) {
-      case 'configuration_get':
-        return this.getConfiguration(args);
-      case 'configuration_set':
-        return this.setConfiguration(args);
-      case 'configuration_list':
-        return this.listConfigurations(args);
-      case 'configuration_reset':
-        return this.resetConfiguration(args);
-      case 'configuration_categories':
-        return this.getCategories(args);
-      default:
-        throw new Error(`Unknown configuration tool: ${toolName}`);
-    }
-  }
+  // Note: execute() method is now inherited from ToolExecutor base class!
+  // This eliminates the repetitive switch statement pattern completely
 
   private async getConfiguration(args: Record<string, unknown>): Promise<ConfigurationResult> {
-    const key = InputValidator.sanitizeString(args.key as string, 255);
+    // Use new validation pattern
+    const key = await this.validator.validateRequiredWithConfig(
+      args.key,
+      'key',
+      'validation.max_config_key_length',
+      255
+    );
 
     const config = await this.configService.getConfigurationByKey(key);
     if (!config) {
@@ -143,9 +150,27 @@ export class ConfigurationTools {
   }
 
   private async setConfiguration(args: Record<string, unknown>): Promise<ConfigurationUpdateResult> {
-    const key = InputValidator.sanitizeString(args.key as string, 255);
+    // Use new validation pattern with batch validation
+    const validated = await this.validator.validateBatch([
+      {
+        value: args.key,
+        type: 'required_string',
+        fieldName: 'key',
+        configKey: 'validation.max_config_key_length',
+        defaultValue: 255,
+      },
+      {
+        value: args.reason,
+        type: 'string',
+        fieldName: 'reason',
+        configKey: 'validation.max_reason_length',
+        defaultValue: 500,
+      },
+    ]);
+
+    const key = validated.key;
     const newValue = args.value;
-    const reason = args.reason ? InputValidator.sanitizeString(args.reason as string, 500) : undefined;
+    const reason = validated.reason;
 
     // Get current configuration to validate and track changes
     const currentConfig = await this.configService.getConfigurationByKey(key);
@@ -199,7 +224,13 @@ export class ConfigurationTools {
 
   private async listConfigurations(args: Record<string, unknown>): Promise<ConfigurationListResult[]> {
     const categoryFilter = args.category as ConfigurationCategory | undefined;
-    const searchTerm = args.search ? InputValidator.sanitizeString(args.search as string, 100) : undefined;
+
+    // Use new validation pattern for search term
+    const searchTerm = await this.validator.sanitizeWithConfig(
+      args.search as string,
+      'validation.max_search_length',
+      100
+    );
 
     if (categoryFilter) {
       const configs = await this.configService.getConfigurationsByCategory(categoryFilter);
@@ -254,8 +285,26 @@ export class ConfigurationTools {
   }
 
   private async resetConfiguration(args: Record<string, unknown>): Promise<ConfigurationUpdateResult> {
-    const key = InputValidator.sanitizeString(args.key as string, 255);
-    const reason = args.reason ? InputValidator.sanitizeString(args.reason as string, 500) : 'Reset to default value';
+    // Use new validation pattern
+    const validated = await this.validator.validateBatch([
+      {
+        value: args.key,
+        type: 'required_string',
+        fieldName: 'key',
+        configKey: 'validation.max_config_key_length',
+        defaultValue: 255,
+      },
+      {
+        value: args.reason || 'Reset to default value',
+        type: 'string',
+        fieldName: 'reason',
+        configKey: 'validation.max_reason_length',
+        defaultValue: 500,
+      },
+    ]);
+
+    const key = validated.key;
+    const reason = validated.reason;
 
     const currentConfig = await this.configService.getConfigurationByKey(key);
     if (!currentConfig) {
@@ -328,6 +377,7 @@ export class ConfigurationTools {
     };
   }
 
+  // Helper methods remain the same but are now part of the improved architecture
   private validateValueForType(value: unknown, type: ConfigurationType): string | number | boolean | object {
     switch (type) {
       case 'NUMBER': {
