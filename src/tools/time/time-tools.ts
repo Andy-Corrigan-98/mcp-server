@@ -1,12 +1,22 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ConfigurationService } from '@/db/configuration-service.js';
+import { ToolExecutor } from '../base/index.js';
+import { ConfiguredValidator } from '../../validation/index.js';
 import type { TimeResult, TimeConversionResult, TimeAwarenessResult } from './types.js';
 
-export class TimeTools {
-  private configService: ConfigurationService;
+export class TimeTools extends ToolExecutor {
+  protected category = 'time';
+  private validator: ConfiguredValidator;
+
+  // Define tool handlers using the new pattern
+  protected toolHandlers = {
+    time_current: this.getCurrentTime.bind(this),
+    time_convert: this.convertTime.bind(this),
+    time_awareness: this.getTimeAwareness.bind(this),
+  };
 
   constructor() {
-    this.configService = ConfigurationService.getInstance();
+    super();
+    this.validator = ConfiguredValidator.getInstance();
   }
 
   getTools(): Record<string, Tool> {
@@ -72,29 +82,31 @@ export class TimeTools {
     };
   }
 
-  async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
-    switch (toolName) {
-      case 'time_current':
-        return this.getCurrentTime(args);
-      case 'time_convert':
-        return this.convertTime(args);
-      case 'time_awareness':
-        return this.getTimeAwareness(args);
-      default:
-        throw new Error(`Unknown time tool: ${toolName}`);
-    }
-  }
+  // Note: execute() method is now inherited from ToolExecutor base class!
+  // This eliminates the repetitive switch statement pattern
 
   private async getCurrentTime(args: Record<string, unknown>): Promise<TimeResult> {
-    const timezone = (args.timezone as string) || 'UTC';
-    const format = (args.format as string) || 'iso';
+    // Use new validation pattern with configuration integration
+    const timezone =
+      (await this.validator.sanitizeWithConfig(
+        (args.timezone as string) || 'UTC',
+        'time.default_timezone_max_length',
+        50
+      )) || 'UTC';
 
+    const format = (args.format as string) || 'iso';
     const now = new Date();
 
     let formattedTime: string;
     switch (format) {
       case 'unix': {
-        const msPerSecond = await this.configService.getNumber('time.milliseconds_per_second', 1000);
+        const msPerSecond = await this.validator.validatePositiveInteger(
+          undefined,
+          'time.milliseconds_per_second',
+          'time.milliseconds_per_second',
+          1000,
+          1000
+        );
         formattedTime = Math.floor(now.getTime() / msPerSecond).toString();
         break;
       }
@@ -117,7 +129,14 @@ export class TimeTools {
         formattedTime = now.toISOString();
     }
 
-    const msPerSecond = await this.configService.getNumber('time.milliseconds_per_second', 1000);
+    const msPerSecond = await this.validator.validatePositiveInteger(
+      undefined,
+      'time.milliseconds_per_second',
+      'time.milliseconds_per_second',
+      1000,
+      1000
+    );
+
     return {
       timestamp: now.toISOString(),
       timezone,
@@ -129,9 +148,27 @@ export class TimeTools {
   }
 
   private async convertTime(args: Record<string, unknown>): Promise<TimeConversionResult> {
-    const timeInput = args.time as string;
-    const fromTimezone = (args.from_timezone as string) || 'UTC';
-    const toTimezone = (args.to_timezone as string) || 'UTC';
+    // Validate required time input
+    const timeInput = await this.validator.validateRequiredWithConfig(
+      args.time,
+      'time',
+      'time.max_time_input_length',
+      100
+    );
+
+    const fromTimezone =
+      (await this.validator.sanitizeWithConfig(
+        (args.from_timezone as string) || 'UTC',
+        'time.default_timezone_max_length',
+        50
+      )) || 'UTC';
+
+    const toTimezone =
+      (await this.validator.sanitizeWithConfig(
+        (args.to_timezone as string) || 'UTC',
+        'time.default_timezone_max_length',
+        50
+      )) || 'UTC';
 
     // Simple time conversion (in a real implementation, you'd use a proper timezone library)
     const inputDate = new Date(timeInput);
@@ -182,31 +219,81 @@ export class TimeTools {
     return awareness;
   }
 
+  // These helper methods now use the new configuration pattern
   private async getMomentType(date: Date): Promise<string> {
     const hour = date.getHours();
-    const deepNightThreshold = await this.configService.getNumber('time.deep_night_hour_threshold', 6);
-    const morningThreshold = await this.configService.getNumber('time.morning_hour_threshold', 12);
-    const afternoonThreshold = await this.configService.getNumber('time.afternoon_hour_threshold', 18);
-    const eveningThreshold = await this.configService.getNumber('time.evening_hour_threshold', 22);
 
-    if (hour < deepNightThreshold) return 'deep_night';
-    if (hour < morningThreshold) return 'morning';
-    if (hour < afternoonThreshold) return 'afternoon';
-    if (hour < eveningThreshold) return 'evening';
+    // Use batch validation for multiple config values
+    const thresholds = await this.validator.validateBatch([
+      {
+        value: undefined,
+        type: 'integer',
+        fieldName: 'deepNight',
+        configKey: 'time.deep_night_hour_threshold',
+        defaultValue: 6,
+      },
+      {
+        value: undefined,
+        type: 'integer',
+        fieldName: 'morning',
+        configKey: 'time.morning_hour_threshold',
+        defaultValue: 12,
+      },
+      {
+        value: undefined,
+        type: 'integer',
+        fieldName: 'afternoon',
+        configKey: 'time.afternoon_hour_threshold',
+        defaultValue: 18,
+      },
+      {
+        value: undefined,
+        type: 'integer',
+        fieldName: 'evening',
+        configKey: 'time.evening_hour_threshold',
+        defaultValue: 22,
+      },
+    ]);
+
+    if (hour < thresholds.deepNight) return 'deep_night';
+    if (hour < thresholds.morning) return 'morning';
+    if (hour < thresholds.afternoon) return 'afternoon';
+    if (hour < thresholds.evening) return 'evening';
     return 'night';
   }
 
   private async getDayPhase(date: Date): Promise<string> {
     const hour = date.getHours();
-    const restThreshold = await this.configService.getNumber('time.rest_hour_threshold', 6);
-    const awakeningThreshold = await this.configService.getNumber('time.awakening_hour_threshold', 9);
-    const activeThreshold = await this.configService.getNumber('time.active_hour_threshold', 17);
-    const windingDownThreshold = await this.configService.getNumber('time.winding_down_hour_threshold', 21);
 
-    if (hour < restThreshold) return 'rest';
-    if (hour < awakeningThreshold) return 'awakening';
-    if (hour < activeThreshold) return 'active';
-    if (hour < windingDownThreshold) return 'winding_down';
+    const thresholds = await this.validator.validateBatch([
+      { value: undefined, type: 'integer', fieldName: 'rest', configKey: 'time.rest_hour_threshold', defaultValue: 6 },
+      {
+        value: undefined,
+        type: 'integer',
+        fieldName: 'awakening',
+        configKey: 'time.awakening_hour_threshold',
+        defaultValue: 9,
+      },
+      {
+        value: undefined,
+        type: 'integer',
+        fieldName: 'active',
+        configKey: 'time.active_hour_threshold',
+        defaultValue: 17,
+      },
+      {
+        value: undefined,
+        type: 'integer',
+        fieldName: 'windingDown',
+        configKey: 'time.winding_down_hour_threshold',
+        defaultValue: 21,
+      },
+    ]);
+
+    if (hour < thresholds.rest) return 'rest';
+    if (hour < thresholds.awakening) return 'awakening';
+    if (hour < thresholds.active) return 'active';
+    if (hour < thresholds.windingDown) return 'winding_down';
     return 'preparation_for_rest';
   }
 
