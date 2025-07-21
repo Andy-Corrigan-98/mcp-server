@@ -4,7 +4,7 @@
  */
 
 import { TestDataFactory } from './data-factory.js';
-import type { TestConfig, TestScenario, ErrorTestCase, ResponseTestCase, ToolTestCase } from './types.js';
+import type { TestConfig, ErrorTestCase, ResponseTestCase, ToolTestCase } from './types.js';
 
 // Extended test scenario interface for scenario builder
 interface BuilderTestScenario {
@@ -114,38 +114,38 @@ export class TestScenarioBuilder {
 
   addAllErrorTests(): TestScenarioBuilder {
     const errorData = TestDataFactory.createErrorTestData();
-    
+
     Object.entries(errorData).forEach(([key, data]) => {
       this.addErrorTest({
         name: `should handle ${key}`,
         errorType: data.type,
         expectedMessage: data.message,
-        expectedContext: data.context
+        expectedContext: data.context,
       });
     });
-    
+
     return this;
   }
 
   addValidationErrorTests(): TestScenarioBuilder {
     const errorData = TestDataFactory.createErrorTestData();
-    
+
     return this.addErrorTest({
       name: 'should handle validation errors',
       errorType: errorData.validationError.type,
       expectedMessage: errorData.validationError.message,
-      expectedContext: errorData.validationError.context
+      expectedContext: errorData.validationError.context,
     });
   }
 
   addNetworkErrorTests(): TestScenarioBuilder {
     const errorData = TestDataFactory.createErrorTestData();
-    
+
     return this.addErrorTest({
       name: 'should handle network errors',
       errorType: errorData.networkError.type,
       expectedMessage: errorData.networkError.message,
-      expectedContext: errorData.networkError.context
+      expectedContext: errorData.networkError.context,
     });
   }
 
@@ -160,53 +160,54 @@ export class TestScenarioBuilder {
 
   addSuccessResponseTests(): TestScenarioBuilder {
     const responseData = TestDataFactory.createResponseTestData();
-    
+
     Object.entries(responseData.successResponses).forEach(([key, response]) => {
       this.addResponseTest({
         name: `should create ${key} success response`,
         response: {
           success: true,
           data: response.data,
-          metadata: { timestamp: new Date().toISOString() }
+          metadata: { timestamp: new Date().toISOString() },
         },
         expectSuccess: true,
-        expectedDataShape: typeof response.data === 'object' ? response.data as Record<string, unknown> : {}
+        expectedDataShape: typeof response.data === 'object' ? (response.data as Record<string, unknown>) : {},
       });
     });
-    
+
     return this;
   }
 
   addErrorResponseTests(): TestScenarioBuilder {
     const responseData = TestDataFactory.createResponseTestData();
-    
+
     Object.entries(responseData.errorResponses).forEach(([key, response]) => {
       this.addResponseTest({
         name: `should create ${key} error response`,
         response: {
           success: false,
-          error: typeof response.error === 'object' ? response.error.message || 'Unknown error' : String(response.error),
-          metadata: { timestamp: new Date().toISOString() }
+          error:
+            typeof response.error === 'object' ? response.error.message || 'Unknown error' : String(response.error),
+          metadata: { timestamp: new Date().toISOString() },
         },
-        expectSuccess: false
+        expectSuccess: false,
       });
     });
-    
+
     return this;
   }
 
   addPaginationResponseTests(): TestScenarioBuilder {
     const responseData = TestDataFactory.createResponseTestData();
-    
+
     return this.addResponseTest({
       name: 'should create paginated response',
       response: {
         success: true,
         data: responseData.successResponses.paginated.data,
-        metadata: { timestamp: new Date().toISOString() }
+        metadata: { timestamp: new Date().toISOString() },
       },
       expectSuccess: true,
-      validatePagination: true
+      validatePagination: true,
     });
   }
 
@@ -221,74 +222,75 @@ export class TestScenarioBuilder {
 
   addValidToolTests(): TestScenarioBuilder {
     const toolData = TestDataFactory.createToolTestData();
-    
-    Object.entries(toolData.validTools).forEach(([key, tool]) => {
+
+    Object.entries(toolData.validTools).forEach(([_key, tool]) => {
       this.addToolTest({
         name: `should execute ${tool.name}`,
         toolName: tool.name,
         input: tool.arguments,
-        expectedOutputShape: tool.expectedResult ? tool.expectedResult as Record<string, unknown> : {}
+        expectedOutputShape: tool.expectedResult ? (tool.expectedResult as Record<string, unknown>) : {},
       });
     });
-    
+
     return this;
   }
 
   addInvalidToolTests(): TestScenarioBuilder {
     const toolData = TestDataFactory.createToolTestData();
-    
+
     Object.entries(toolData.invalidTools).forEach(([key, tool]) => {
       this.addToolTest({
         name: `should reject ${tool.name} with ${key}`,
         toolName: tool.name,
         input: tool.arguments,
         expectError: true,
-        expectedErrorType: typeof tool.expectedError === 'object' ? tool.expectedError.type || 'unknown' : String(tool.expectedError)
+        expectedErrorType:
+          typeof tool.expectedError === 'object' ? tool.expectedError.type || 'unknown' : String(tool.expectedError),
       });
     });
-    
+
     return this;
   }
 
   addPerformanceToolTests(): TestScenarioBuilder {
     const toolData = TestDataFactory.createToolTestData();
-    
-    Object.entries(toolData.performanceScenarios).forEach(([key, scenario]) => {
+
+    Object.entries(toolData.performanceScenarios).forEach(([_key, scenario]) => {
       this.addToolTest({
         name: `should execute ${scenario.name} within ${scenario.maxExecutionTimeMs}ms`,
         toolName: scenario.name,
         input: scenario.arguments,
-        validateExecution: true
+        validateExecution: true,
       });
     });
-    
+
     return this;
   }
 
   // Configuration test builders
   addConfigurationTests(): TestScenarioBuilder {
     const configData = TestDataFactory.createConfigurationTestData();
-    
+
     // Add valid configuration tests
     Object.entries(configData.validConfigs).forEach(([key, config]) => {
       this.addTest({
         name: `should load valid ${key}`,
         type: 'configuration',
         input: config,
-        expectedSuccess: true
+        expectedSuccess: true,
       });
     });
-    
+
     // Add invalid configuration tests
     Object.entries(configData.invalidConfigs).forEach(([key, config]) => {
       this.addTest({
         name: `should reject invalid ${key}`,
         type: 'configuration',
         input: config,
-        expectedSuccess: false
+        expectedSuccess: false,
       });
     });
-    
+
     return this;
   }
 
@@ -349,7 +351,7 @@ export class TestScenarioBuilder {
   // Build the final scenario
   build(): BuilderTestScenario {
     const built = { ...this.scenario };
-    
+
     // Set defaults if not provided
     if (!built.name) {
       built.name = 'Test Scenario';
@@ -360,7 +362,7 @@ export class TestScenarioBuilder {
     if (!built.tags) {
       built.tags = [];
     }
-    
+
     return built as BuilderTestScenario;
   }
 
@@ -370,14 +372,14 @@ export class TestScenarioBuilder {
       TestScenarioBuilder.errorHandlingScenario().buildComprehensiveErrorScenario(),
       TestScenarioBuilder.responseValidationScenario().buildResponseValidationScenario(),
       TestScenarioBuilder.toolExecutionScenario().buildToolIntegrationScenario(),
-      TestScenarioBuilder.integrationScenario().buildFullStackScenario()
+      TestScenarioBuilder.integrationScenario().buildFullStackScenario(),
     ];
   }
 
   // Utilities for scenario collections
   static combineScenarios(scenarios: BuilderTestScenario[], name: string): BuilderTestScenario {
     const combined = new TestScenarioBuilder(name);
-    
+
     scenarios.forEach(scenario => {
       if (scenario.errorTests) {
         scenario.errorTests.forEach((test: ErrorTestCase) => combined.addErrorTest(test));
@@ -389,13 +391,15 @@ export class TestScenarioBuilder {
         scenario.toolTests.forEach((test: ToolTestCase) => combined.addToolTest(test));
       }
       if (scenario.tests) {
-        scenario.tests.forEach((test: { name: string; type: string; input?: unknown; expectedSuccess: boolean }) => combined.addTest(test));
+        scenario.tests.forEach((test: { name: string; type: string; input?: unknown; expectedSuccess: boolean }) =>
+          combined.addTest(test)
+        );
       }
       if (scenario.tags) {
         scenario.tags.forEach((tag: string) => combined.addTag(tag));
       }
     });
-    
+
     return combined.build();
   }
-} 
+}
