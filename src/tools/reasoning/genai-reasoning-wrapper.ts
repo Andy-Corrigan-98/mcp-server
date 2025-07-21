@@ -1,13 +1,22 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { ToolExecutor } from '../base/index.js';
 import { GenAIReasoningTools, GENAI_REASONING_TOOLS } from './genai-reasoning-tools.js';
 
 /**
- * Wrapper for GenAI reasoning tools that follows the tool category pattern
+ * Wrapper for GenAI reasoning tools that uses the new ToolExecutor pattern
+ * Demonstrates how existing wrappers can benefit from pattern extraction
  */
-export class GenAIReasoningToolsWrapper {
+export class GenAIReasoningToolsWrapper extends ToolExecutor {
+  protected category = 'genai_reasoning';
   private genAITools: GenAIReasoningTools;
 
+  // Define tool handlers using the new pattern
+  protected toolHandlers = {
+    sequential_thinking: this.handleSequentialThinking.bind(this),
+  };
+
   constructor() {
+    super();
     this.genAITools = new GenAIReasoningTools();
   }
 
@@ -19,15 +28,9 @@ export class GenAIReasoningToolsWrapper {
   }
 
   /**
-   * Execute a GenAI reasoning tool
+   * Handle sequential thinking tool
    */
-  async execute(name: string, args: Record<string, unknown>): Promise<unknown> {
-    switch (name) {
-      case 'sequential_thinking':
-        return await this.genAITools.sequentialThinking(args);
-
-      default:
-        throw new Error(`Unknown GenAI reasoning tool: ${name}`);
-    }
+  private async handleSequentialThinking(args: Record<string, unknown>): Promise<unknown> {
+    return await this.genAITools.sequentialThinking(args);
   }
 }
