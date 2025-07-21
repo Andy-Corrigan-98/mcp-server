@@ -4,10 +4,24 @@
  */
 
 import { TestDataFactory } from './data-factory.js';
-import type { TestConfig, ErrorTestCase, ResponseTestCase, ToolTestCase } from './types.js';
+import type { TestConfig, TestScenario, ErrorTestCase, ResponseTestCase, ToolTestCase } from './types.js';
+
+// Extended test scenario interface for scenario builder
+interface BuilderTestScenario {
+  name: string;
+  description?: string;
+  config?: TestConfig;
+  tags?: string[];
+  setup?: () => Promise<void> | void;
+  teardown?: () => Promise<void> | void;
+  errorTests?: ErrorTestCase[];
+  responseTests?: ResponseTestCase[];
+  toolTests?: ToolTestCase[];
+  tests?: Array<{ name: string; type: string; input?: unknown; expectedSuccess: boolean }>;
+}
 
 export class TestScenarioBuilder {
-  private scenario: Partial<TestScenario> = {};
+  private scenario: Partial<BuilderTestScenario> = {};
 
   constructor(name?: string) {
     if (name) {
@@ -23,31 +37,31 @@ export class TestScenarioBuilder {
   static errorHandlingScenario(): TestScenarioBuilder {
     return new TestScenarioBuilder('Error Handling Scenarios')
       .withDescription('Comprehensive error handling test cases')
-      .withConfig({ timeoutMs: 5000, retries: 0 });
+      .withConfig({ timeoutMs: 5000 });
   }
 
   static configurationValidationScenario(): TestScenarioBuilder {
     return new TestScenarioBuilder('Configuration Validation Scenarios')
       .withDescription('Configuration schema validation test cases')
-      .withConfig({ timeout: 1000, retries: 0 });
+      .withConfig({ timeoutMs: 1000 });
   }
 
   static responseValidationScenario(): TestScenarioBuilder {
     return new TestScenarioBuilder('Response Validation Scenarios')
       .withDescription('API response structure validation test cases')
-      .withConfig({ timeout: 2000, retries: 0 });
+      .withConfig({ timeoutMs: 2000 });
   }
 
   static toolExecutionScenario(): TestScenarioBuilder {
     return new TestScenarioBuilder('Tool Execution Scenarios')
       .withDescription('Tool executor integration test cases')
-      .withConfig({ timeout: 10000, retries: 1 });
+      .withConfig({ timeoutMs: 10000 });
   }
 
   static integrationScenario(): TestScenarioBuilder {
     return new TestScenarioBuilder('Integration Test Scenarios')
       .withDescription('End-to-end integration test cases')
-      .withConfig({ timeout: 30000, retries: 2 });
+      .withConfig({ timeoutMs: 30000 });
   }
 
   // Builder methods
@@ -106,8 +120,7 @@ export class TestScenarioBuilder {
         name: `should handle ${key}`,
         errorType: data.type,
         expectedMessage: data.message,
-        expectedContext: data.context,
-        cause: data.cause
+        expectedContext: data.context
       });
     });
     
@@ -151,10 +164,13 @@ export class TestScenarioBuilder {
     Object.entries(responseData.successResponses).forEach(([key, response]) => {
       this.addResponseTest({
         name: `should create ${key} success response`,
-        responseType: 'success',
-        expectedData: response.data,
-        expectedSuccess: response.success,
-        expectedMessage: response.message
+        response: {
+          success: true,
+          data: response.data,
+          metadata: { timestamp: new Date().toISOString() }
+        },
+        expectSuccess: true,
+        expectedDataShape: typeof response.data === 'object' ? response.data as Record<string, unknown> : {}
       });
     });
     
@@ -167,9 +183,12 @@ export class TestScenarioBuilder {
     Object.entries(responseData.errorResponses).forEach(([key, response]) => {
       this.addResponseTest({
         name: `should create ${key} error response`,
-        responseType: 'error',
-        expectedSuccess: response.success,
-        expectedError: response.error
+        response: {
+          success: false,
+          error: typeof response.error === 'object' ? response.error.message || 'Unknown error' : String(response.error),
+          metadata: { timestamp: new Date().toISOString() }
+        },
+        expectSuccess: false
       });
     });
     
@@ -181,10 +200,13 @@ export class TestScenarioBuilder {
     
     return this.addResponseTest({
       name: 'should create paginated response',
-      responseType: 'paginated',
-      expectedData: responseData.successResponses.paginated.data,
-      expectedSuccess: responseData.successResponses.paginated.success,
-      expectedPagination: responseData.successResponses.paginated.pagination
+      response: {
+        success: true,
+        data: responseData.successResponses.paginated.data,
+        metadata: { timestamp: new Date().toISOString() }
+      },
+      expectSuccess: true,
+      validatePagination: true
     });
   }
 
@@ -204,9 +226,8 @@ export class TestScenarioBuilder {
       this.addToolTest({
         name: `should execute ${tool.name}`,
         toolName: tool.name,
-        arguments: tool.arguments,
-        expectedSuccess: true,
-        expectedResult: tool.expectedResult
+        input: tool.arguments,
+        expectedOutputShape: tool.expectedResult ? tool.expectedResult as Record<string, unknown> : {}
       });
     });
     
@@ -220,9 +241,9 @@ export class TestScenarioBuilder {
       this.addToolTest({
         name: `should reject ${tool.name} with ${key}`,
         toolName: tool.name,
-        arguments: tool.arguments,
-        expectedSuccess: false,
-        expectedError: tool.expectedError
+        input: tool.arguments,
+        expectError: true,
+        expectedErrorType: typeof tool.expectedError === 'object' ? tool.expectedError.type || 'unknown' : String(tool.expectedError)
       });
     });
     
@@ -236,9 +257,8 @@ export class TestScenarioBuilder {
       this.addToolTest({
         name: `should execute ${scenario.name} within ${scenario.maxExecutionTimeMs}ms`,
         toolName: scenario.name,
-        arguments: scenario.arguments,
-        expectedSuccess: true,
-        performanceThreshold: scenario.maxExecutionTimeMs
+        input: scenario.arguments,
+        validateExecution: true
       });
     });
     
@@ -282,7 +302,7 @@ export class TestScenarioBuilder {
   }
 
   // Preset scenario builders
-  buildComprehensiveErrorScenario(): TestScenario {
+  buildComprehensiveErrorScenario(): BuilderTestScenario {
     return this.withName('Comprehensive Error Testing')
       .withDescription('Tests all error types with proper context and formatting')
       .addTag('error-handling')
@@ -291,7 +311,7 @@ export class TestScenarioBuilder {
       .build();
   }
 
-  buildResponseValidationScenario(): TestScenario {
+  buildResponseValidationScenario(): BuilderTestScenario {
     return this.withName('Response Validation Testing')
       .withDescription('Tests all response types and structures')
       .addTag('response-validation')
@@ -302,7 +322,7 @@ export class TestScenarioBuilder {
       .build();
   }
 
-  buildToolIntegrationScenario(): TestScenario {
+  buildToolIntegrationScenario(): BuilderTestScenario {
     return this.withName('Tool Integration Testing')
       .withDescription('Tests tool execution with valid and invalid inputs')
       .addTag('tool-integration')
@@ -313,7 +333,7 @@ export class TestScenarioBuilder {
       .build();
   }
 
-  buildFullStackScenario(): TestScenario {
+  buildFullStackScenario(): BuilderTestScenario {
     return this.withName('Full Stack Testing')
       .withDescription('Comprehensive testing across all patterns')
       .addTag('full-stack')
@@ -327,7 +347,7 @@ export class TestScenarioBuilder {
   }
 
   // Build the final scenario
-  build(): TestScenario {
+  build(): BuilderTestScenario {
     const built = { ...this.scenario };
     
     // Set defaults if not provided
@@ -335,17 +355,17 @@ export class TestScenarioBuilder {
       built.name = 'Test Scenario';
     }
     if (!built.config) {
-      built.config = { timeout: 5000, retries: 0 };
+      built.config = { timeoutMs: 5000 };
     }
     if (!built.tags) {
       built.tags = [];
     }
     
-    return built as TestScenario;
+    return built as BuilderTestScenario;
   }
 
   // Create multiple scenarios
-  static createStandardScenarios(): TestScenario[] {
+  static createStandardScenarios(): BuilderTestScenario[] {
     return [
       TestScenarioBuilder.errorHandlingScenario().buildComprehensiveErrorScenario(),
       TestScenarioBuilder.responseValidationScenario().buildResponseValidationScenario(),
@@ -355,24 +375,24 @@ export class TestScenarioBuilder {
   }
 
   // Utilities for scenario collections
-  static combineScenarios(scenarios: TestScenario[], name: string): TestScenario {
+  static combineScenarios(scenarios: BuilderTestScenario[], name: string): BuilderTestScenario {
     const combined = new TestScenarioBuilder(name);
     
     scenarios.forEach(scenario => {
       if (scenario.errorTests) {
-        scenario.errorTests.forEach(test => combined.addErrorTest(test));
+        scenario.errorTests.forEach((test: ErrorTestCase) => combined.addErrorTest(test));
       }
       if (scenario.responseTests) {
-        scenario.responseTests.forEach(test => combined.addResponseTest(test));
+        scenario.responseTests.forEach((test: ResponseTestCase) => combined.addResponseTest(test));
       }
       if (scenario.toolTests) {
-        scenario.toolTests.forEach(test => combined.addToolTest(test));
+        scenario.toolTests.forEach((test: ToolTestCase) => combined.addToolTest(test));
       }
       if (scenario.tests) {
-        scenario.tests.forEach(test => combined.addTest(test));
+        scenario.tests.forEach((test: { name: string; type: string; input?: unknown; expectedSuccess: boolean }) => combined.addTest(test));
       }
       if (scenario.tags) {
-        scenario.tags.forEach(tag => combined.addTag(tag));
+        scenario.tags.forEach((tag: string) => combined.addTag(tag));
       }
     });
     
