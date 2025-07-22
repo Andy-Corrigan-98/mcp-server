@@ -1,5 +1,5 @@
 import { executeDatabase } from '../../../services/database.js';
-import { validateRequiredString, sanitizeString } from '../../../services/validation.js';
+import { validateRequiredString } from '../../../services/validation.js';
 import { ResponseBuilder } from '../../../utils/response-builder.js';
 import { getEntityByName } from '../entities/get-by-name.js';
 
@@ -25,7 +25,7 @@ export const prepareSocialContext = async (args: {
   // TODO: Use interaction type and context for enhanced preparation
   // const interactionType = sanitizeString(args.interaction_type, 50);
   // const context = sanitizeString(args.context, 500);
-  
+
   const includeEmotionalPrep = args.include_emotional_prep !== false;
   const includeConversationTips = args.include_conversation_tips !== false;
   const includeRelationshipAnalysis = args.include_relationship_analysis !== false;
@@ -147,13 +147,15 @@ export const prepareSocialContext = async (args: {
 
   if (includeEmotionalPrep && socialContext.emotionalContexts.length > 0) {
     const lastEmotional = socialContext.emotionalContexts[0];
-    response.recommendations.emotional_prep.push(
-      `Last emotional state: ${lastEmotional.emotionalState}`,
-      lastEmotional.response ? `Previous response: ${lastEmotional.response}` : ''
-    ).filter(Boolean);
+    response.recommendations.emotional_prep
+      .push(
+        `Last emotional state: ${lastEmotional.emotionalState}`,
+        lastEmotional.response ? `Previous response: ${lastEmotional.response}` : ''
+      )
+      .filter(Boolean);
   }
 
   // TODO: Add shared memories integration when memory-social linking is implemented
 
   return ResponseBuilder.success(response, `Social context prepared for interaction with '${entityName}'`);
-}; 
+};

@@ -1,7 +1,6 @@
 import { executeDatabase } from '../../../services/database.js';
 import { sanitizeString } from '../../../services/validation.js';
 import { ResponseBuilder } from '../../../utils/response-builder.js';
-import { loadInteractionConfig } from './load-config.js';
 import { getEntityByName } from '../entities/get-by-name.js';
 
 /**
@@ -130,15 +129,18 @@ export const searchInteractions = async (args: {
     created_at: interaction.createdAt,
   }));
 
-  return ResponseBuilder.success({
-    interactions: formattedInteractions,
-    total_found: formattedInteractions.length,
-    search_criteria: {
-      entity_name: args.entity_name,
-      interaction_type: args.interaction_type,
-      context_keywords: args.context_keywords,
-      date_range: args.date_range,
-      limit,
+  return ResponseBuilder.success(
+    {
+      interactions: formattedInteractions,
+      total_found: formattedInteractions.length,
+      search_criteria: {
+        entity_name: args.entity_name,
+        interaction_type: args.interaction_type,
+        context_keywords: args.context_keywords,
+        date_range: args.date_range,
+        limit,
+      },
     },
-  }, `Found ${formattedInteractions.length} interactions`);
-}; 
+    `Found ${formattedInteractions.length} interactions`
+  );
+};
