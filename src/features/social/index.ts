@@ -2,6 +2,12 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { SOCIAL_TOOLS } from '../../tools/social/types.js';
 import * as entities from './entities/index.js';
 import * as relationships from './relationships/index.js';
+import * as interactions from './interactions/index.js';
+import * as emotional from './emotional/index.js';
+import * as learning from './learning/index.js';
+import * as context from './context/index.js';
+import * as patterns from './patterns/index.js';
+import * as memory from './memory/index.js';
 
 /**
  * Functional social tools implementation
@@ -35,17 +41,35 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
     case 'social_relationship_update':
       return relationships.updateRelationship(args as any);
 
-    // TODO: Add other tool implementations as we migrate them
+    // Interaction Management
     case 'social_interaction_record':
+      return interactions.recordInteraction(args as any);
     case 'social_interaction_search':
+      return interactions.searchInteractions(args as any);
+
+    // Emotional State Tracking
     case 'emotional_state_record':
+      return emotional.recordEmotionalState(args as any);
+
+    // Social Learning
     case 'social_learning_record':
+      return learning.recordSocialLearning(args as any);
+
+    // Context Preparation
     case 'social_context_prepare':
+      return context.prepareSocialContext(args as any);
+
+    // Pattern Analysis
     case 'social_pattern_analyze':
+      return patterns.analyzeSocialPatterns(args as any);
+
+    // Memory-Social Integration
     case 'memory_social_link_create':
+      return memory.createMemorySocialLink(args as any);
     case 'memory_social_search':
+      return memory.searchMemorySocialLinks(args as any);
     case 'social_memory_context':
-      throw new Error(`Tool '${toolName}' not yet migrated to functional approach`);
+      return memory.getSocialMemoryContext(args as any);
 
     default:
       throw new Error(`Unknown social tool: ${toolName}`);
