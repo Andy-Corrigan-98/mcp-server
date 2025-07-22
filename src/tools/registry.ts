@@ -6,8 +6,8 @@ import { FunctionalReasoningTools } from '../features/reasoning/index.js';
 import { GenAIReasoningToolsWrapper } from './reasoning/genai-reasoning-wrapper.js';
 import { ConversationalGenAIToolsWrapper } from './reasoning/conversational-genai-wrapper.js';
 import { ConfigurationTools } from './configuration/configuration-tools.js';
-import { DaydreamingTools } from './daydreaming/daydreaming-tools.js';
-import { initializeBackgroundScheduler } from './daydreaming/background-scheduler.js';
+import { FunctionalDaydreamingTools } from '../features/daydreaming/index.js';
+// import { initializeBackgroundScheduler } from './daydreaming/background-scheduler.js'; // TODO: Update for functional architecture
 import { FunctionalSocialTools } from '../features/social/index.js';
 
 /**
@@ -63,15 +63,16 @@ export class ConsciousnessToolsRegistry {
     console.log('🔧 Using functional social tools with single-responsibility modules');
     this.registerFunctionalTools('social_', FunctionalSocialTools);
 
-    // Register day-dreaming loop tools
-    const daydreamingTools = new DaydreamingTools();
+    // Register functional day-dreaming loop tools
+    console.log('🌙 Using functional daydreaming tools with single-responsibility modules');
+    const daydreamingTools = new FunctionalDaydreamingTools();
     this.registerToolCategory(daydreamingTools);
 
-    // Store reference for background scheduler
-    this.daydreamingScheduler = initializeBackgroundScheduler(daydreamingTools);
+    // Store reference for background scheduler (TODO: Update background scheduler for functional architecture)
+    // this.daydreamingScheduler = initializeBackgroundScheduler(daydreamingTools);
 
-    // Start the background scheduler
-    this.initializeBackgroundScheduler();
+    // Start the background scheduler (TODO: Update for functional architecture)
+    // this.initializeBackgroundScheduler();
   }
 
   /**
