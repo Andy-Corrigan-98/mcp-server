@@ -1,12 +1,13 @@
 import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
+import type { PrismaClient } from '@prisma/client';
 
 /**
  * Pure database service functions
  * Replaces the singleton pattern with explicit dependency injection
  */
 
-// Type for database operations
-export type DatabaseOperation<T> = (prisma: any) => Promise<T>;
+// Type for database operations with proper Prisma client typing
+export type DatabaseOperation<T> = (prisma: PrismaClient) => Promise<T>;
 
 /**
  * Execute a database operation with the singleton instance

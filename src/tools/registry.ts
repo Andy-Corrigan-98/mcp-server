@@ -9,6 +9,7 @@ import { ConfigurationTools } from './configuration/configuration-tools.js';
 import { FunctionalDaydreamingTools } from '../features/daydreaming/index.js';
 // import { initializeBackgroundScheduler } from './daydreaming/background-scheduler.js'; // TODO: Update for functional architecture
 import { FunctionalSocialTools } from '../features/social/index.js';
+import type { DaydreamingBackgroundScheduler } from './daydreaming/background-scheduler.js';
 
 /**
  * Central registry for all consciousness tools
@@ -17,7 +18,7 @@ import { FunctionalSocialTools } from '../features/social/index.js';
 export class ConsciousnessToolsRegistry {
   private tools: Map<string, Tool> = new Map();
   private toolExecutors: Map<string, (toolName: string, args: Record<string, unknown>) => Promise<unknown>> = new Map();
-  private daydreamingScheduler: any = null;
+  private daydreamingScheduler: DaydreamingBackgroundScheduler | null = null;
 
   constructor() {
     this.registerTools();
