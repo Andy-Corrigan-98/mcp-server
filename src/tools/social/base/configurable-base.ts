@@ -1,5 +1,6 @@
 import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
 import { ConfigurationService } from '@/db/configuration-service.js';
+import type { Configuration } from '@prisma/client';
 
 /**
  * Base class for configurable social consciousness modules
@@ -23,7 +24,7 @@ export abstract class ConfigurableBase {
   protected async loadConfiguration(): Promise<void> {
     try {
       const configs = await this.configService.getConfigurationsByCategory('SOCIAL');
-      configs.forEach((config: any) => {
+      configs.forEach((config: Configuration) => {
         const key = config.key.replace('social.', '');
         if (key in this.config) {
           (this.config as any)[key] = config.value;
@@ -44,7 +45,7 @@ export abstract class ConfigurableBase {
   /**
    * Update configuration value
    */
-  protected setConfig(key: string, value: any): void {
+  protected setConfig(key: string, value: unknown): void {
     this.config[key] = value;
   }
 }

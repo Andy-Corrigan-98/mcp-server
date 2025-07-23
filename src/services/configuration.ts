@@ -1,4 +1,5 @@
 import { ConfigurationService } from '@/db/configuration-service.js';
+import type { Configuration } from '@prisma/client';
 import { ConfigurationCategory } from '@prisma/client';
 
 /**
@@ -21,7 +22,7 @@ export const loadConfiguration = async <TConfig extends Record<string, unknown>>
     const result = { ...defaultConfig };
     const prefix = keyPrefix ? `${keyPrefix}.` : `${category.toLowerCase()}.`;
 
-    configs.forEach((config: any) => {
+    configs.forEach((config: Configuration) => {
       const key = config.key.replace(prefix, '');
       if (key in result) {
         (result as any)[key] = config.value;

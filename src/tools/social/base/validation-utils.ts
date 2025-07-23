@@ -32,7 +32,7 @@ export class SocialValidationUtils {
   /**
    * Validate required string field
    */
-  static validateRequiredString(input: any, fieldName: string, maxLength: number): string {
+  static validateRequiredString(input: unknown, fieldName: string, maxLength: number): string {
     if (!input || typeof input !== 'string') {
       throw new Error(`Field '${fieldName}' is required and must be a string`);
     }
