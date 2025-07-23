@@ -38,6 +38,20 @@ src/features/daydreaming/
 └── index.ts          # Functional composition
 ```
 
+### 💬 Conversational GenAI Tools Architecture Migration
+- **Pattern**: 345-line class → Single-responsibility functional modules
+- **Impact**: Complex AI integration with security → Clean modular architecture
+- **Structure**: Security, client, and conversation concerns cleanly separated
+
+```
+src/features/reasoning/
+├── security/          # Prompt injection detection & sanitization
+├── client/            # GenAI initialization and configuration
+├── conversation/      # Simple conversation vs multi-turn chat
+├── conversational/    # Functional composition and tool definitions
+└── wrapper updated    # Maintains API compatibility
+```
+
 ### 🧹 Base Classes & Dead Code Cleanup
 - **Removed**: Entire `src/tools/social/base/` directory (confirmed dead code)
 - **Removed**: `ConfigurableToolBase` and `ServiceBase` (no actual usage)
