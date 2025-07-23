@@ -1,5 +1,5 @@
 /**
- * Functional Sequential Thinking Module
+ * Sequential Thinking Module
  * Single responsibility: Orchestrate AI-powered sequential reasoning
  * Uses shared GenAI infrastructure and specialized reasoning modules
  */
@@ -13,7 +13,7 @@ import {
 } from './response-processor.js';
 
 /**
- * Arguments for functional sequential thinking
+ * Arguments for sequential thinking
  */
 export interface SequentialThinkingArgs {
   thought: string;
@@ -29,7 +29,7 @@ export interface SequentialThinkingArgs {
 
 /**
  * Enhanced sequential thinking powered by Google GenAI
- * Functional implementation using shared infrastructure
+ * Implementation using shared infrastructure
  */
 export const sequentialThinking = async (args: SequentialThinkingArgs): Promise<ProcessedReasoningResult> => {
   try {

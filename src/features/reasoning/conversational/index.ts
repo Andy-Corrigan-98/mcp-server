@@ -1,5 +1,5 @@
 /**
- * Functional Conversational Reasoning Tools
+ * Conversational Reasoning Tools
  * Provides secure GenAI conversation functionality using single-responsibility modules
  *
  * Single-responsibility modules:
@@ -73,7 +73,7 @@ export const getTools = (): Record<string, Tool> => {
 
 /**
  * Execute a conversational GenAI reasoning tool operation
- * Routes to the appropriate functional module with proper type validation
+ * Routes to the appropriate module with proper type validation
  */
 export const execute = async (toolName: string, args: Record<string, unknown>): Promise<unknown> => {
   switch (toolName) {
@@ -103,7 +103,7 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
 };
 
 /**
- * Export the functional conversational reasoning tools interface
+ * Export the conversational reasoning tools interface
  * This can replace the class-based ConversationalGenAITools
  */
 export const ConversationalReasoningTools = {

@@ -12,7 +12,7 @@ export { sequentialThinking };
 export type { ThinkingSession, ThoughtStep, ThinkingResult } from '../../tools/reasoning/types.js';
 
 /**
- * Functional Reasoning Tools
+ * Reasoning Tools
  *
  * Reasoning operations organized into single-responsibility modules:
  * - sequential/: Sequential thinking and problem-solving operations
@@ -60,7 +60,7 @@ export async function executeReasoningOperation(
 }
 
 /**
- * Functional Reasoning Tools Wrapper
+ * Reasoning Tools Wrapper
  * Provides the same interface as the old class-based approach for compatibility
  */
 export class ReasoningTools {

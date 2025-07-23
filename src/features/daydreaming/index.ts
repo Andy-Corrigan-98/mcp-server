@@ -10,8 +10,8 @@ import { daydreamCycle } from './cycles/execute-cycle.js';
 import { getDaydreamInsights } from './storage/get-insights.js';
 
 /**
- * Functional Daydreaming Tools
- * Routes tool calls to appropriate functional modules using single-responsibility pattern
+ * Daydreaming Tools
+ * Routes tool calls to appropriate modules using single-responsibility pattern
  */
 export class DaydreamingTools {
   /**
@@ -51,14 +51,14 @@ export class DaydreamingTools {
 }
 
 /**
- * Execute a daydreaming operation using the functional architecture
+ * Execute a daydreaming operation using the modular architecture
  */
 export async function executeDaydreamingOperation(operation: string, args: Record<string, unknown>): Promise<unknown> {
   const tools = new DaydreamingTools();
   return tools.execute(operation, args);
 }
 
-// Export all functional modules for external use
+// Export all modules for external use
 export * from './config/index.js';
 export * from './sampling/index.js';
 export * from './exploration/index.js';

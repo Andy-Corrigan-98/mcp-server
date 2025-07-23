@@ -16,7 +16,7 @@ export { storeMemory, retrieveMemory, searchMemories, addToKnowledgeGraph, query
 export type { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationshipData } from '../../db/index.js';
 
 /**
- * Functional Memory Tools
+ * Memory Tools
  *
  * Memory operations organized into single-responsibility modules:
  * - storage/: Memory storage and retrieval operations
@@ -86,7 +86,7 @@ export async function executeMemoryOperation(operationName: string, args: Record
 }
 
 /**
- * Functional Memory Tools Wrapper
+ * Memory Tools Wrapper
  * Provides the same interface as the old class-based approach for compatibility
  */
 export class MemoryTools {

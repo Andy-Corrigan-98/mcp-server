@@ -1,6 +1,6 @@
 /**
- * Functional GenAI Reasoning Tools
- * Replaces the class-based GenAIReasoningTools with functional single-responsibility modules
+ * GenAI Reasoning Tools
+ * Replaces the class-based GenAIReasoningTools with single-responsibility modules
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -9,7 +9,7 @@ import { sequentialThinking, SequentialThinkingArgs } from '../sequential/index.
 /**
  * Tool definitions for GenAI-powered reasoning
  */
-export const FUNCTIONAL_GENAI_REASONING_TOOLS: Record<string, Tool> = {
+export const GENAI_REASONING_TOOLS: Record<string, Tool> = {
   sequential_thinking: {
     name: 'sequential_thinking',
     description:
@@ -66,15 +66,15 @@ export const FUNCTIONAL_GENAI_REASONING_TOOLS: Record<string, Tool> = {
 };
 
 /**
- * Get all available functional GenAI reasoning tools
+ * Get all available GenAI reasoning tools
  */
 export const getTools = (): Record<string, Tool> => {
-  return FUNCTIONAL_GENAI_REASONING_TOOLS;
+  return GENAI_REASONING_TOOLS;
 };
 
 /**
- * Execute a functional GenAI reasoning tool operation
- * Routes to the appropriate functional module with proper type validation
+ * Execute a GenAI reasoning tool operation
+ * Routes to the appropriate module with proper type validation
  */
 export const execute = async (toolName: string, args: Record<string, unknown>): Promise<unknown> => {
   switch (toolName) {
@@ -109,12 +109,12 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
     }
 
     default:
-      throw new Error(`Unknown functional GenAI reasoning tool: ${toolName}`);
+      throw new Error(`Unknown GenAI reasoning tool: ${toolName}`);
   }
 };
 
 /**
- * Export the functional GenAI reasoning tools interface
+ * Export the GenAI reasoning tools interface
  * This can replace the class-based GenAIReasoningTools
  */
 export const GenAIReasoningTools = {

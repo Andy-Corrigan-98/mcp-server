@@ -1,5 +1,5 @@
 /**
- * Functional Insight Evaluation Module
+ * Insight Evaluation Core Module
  * Single responsibility: Orchestrate AI-powered insight evaluation
  * Uses shared GenAI infrastructure and specialized evaluation modules
  */
@@ -12,7 +12,7 @@ import { createFallbackEvaluation } from './fallback-evaluator.js';
 
 /**
  * Intelligent evaluation of connection hypotheses using Gemini
- * Functional implementation using shared infrastructure
+ * Core implementation using shared infrastructure
  */
 export const evaluateInsightCore = async (
   concept1: string,

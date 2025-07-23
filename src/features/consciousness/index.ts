@@ -26,9 +26,9 @@ export type {
 } from '../../tools/consciousness/types.js';
 
 /**
- * Functional Consciousness Tools
+ * Consciousness Tools
  *
- * This module provides a clean, functional interface to consciousness operations.
+ * This module provides a clean interface to consciousness operations.
  * Each function has a single responsibility and can be used independently.
  *
  * Features:
@@ -129,7 +129,7 @@ export async function executeConsciousnessOperation(
 }
 
 /**
- * Functional Consciousness Tools Wrapper
+ * Consciousness Tools Wrapper
  * Provides the same interface as the old class-based approach for compatibility
  */
 export class ConsciousnessTools {
