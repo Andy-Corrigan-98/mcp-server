@@ -1,6 +1,6 @@
 import { ConnectionHypothesis, ConnectionEvaluation } from '../../../tools/daydreaming/types.js';
 import { ConfigurationService } from '../../../db/configuration-service.js';
-import { functionalEvaluateInsight } from './functional-evaluate-insight.js';
+import { evaluateInsightCore } from './evaluate-insight-core.js';
 import { estimateConceptDistance } from './concept-distance.js';
 import { loadDaydreamingConfig } from '../config/load-config.js';
 
@@ -34,8 +34,8 @@ export async function evaluateConnectionHypothesis(hypothesis: ConnectionHypothe
     try {
       console.log('🧠 Using functional GenAI evaluation for daydreaming connection hypothesis...');
 
-      // Use the new functional evaluation approach
-      const evaluation = await functionalEvaluateInsight(
+      // Use the core evaluation implementation
+      const evaluation = await evaluateInsightCore(
         hypothesis.conceptPair.concept1.entity,
         hypothesis.conceptPair.concept2.entity,
         hypothesis.hypothesis,

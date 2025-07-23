@@ -14,7 +14,7 @@ import { createFallbackEvaluation } from './fallback-evaluator.js';
  * Intelligent evaluation of connection hypotheses using Gemini
  * Functional implementation using shared infrastructure
  */
-export const functionalEvaluateInsight = async (
+export const evaluateInsightCore = async (
   concept1: string,
   concept2: string,
   hypothesis: string,

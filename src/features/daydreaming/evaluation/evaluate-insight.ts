@@ -1,5 +1,5 @@
 import { ConnectionEvaluation } from '../../../tools/daydreaming/types.js';
-import { functionalEvaluateInsight } from './functional-evaluate-insight.js';
+import { evaluateInsightCore } from './evaluate-insight-core.js';
 import { InputValidator } from '../../../validation/index.js';
 
 const MAX_HYPOTHESIS_LENGTH = 1000;
@@ -16,7 +16,7 @@ export async function evaluateInsight(args: Record<string, unknown>): Promise<{ 
   const hypothesis = InputValidator.sanitizeString(args.hypothesis as string, MAX_HYPOTHESIS_LENGTH);
   const explorationContext = args.exploration_context as string;
 
-  // Delegate to the new functional implementation
-  const evaluation = await functionalEvaluateInsight(concept1, concept2, hypothesis, explorationContext);
+  // Delegate to the core implementation
+  const evaluation = await evaluateInsightCore(concept1, concept2, hypothesis, explorationContext);
   return { evaluation };
 }
