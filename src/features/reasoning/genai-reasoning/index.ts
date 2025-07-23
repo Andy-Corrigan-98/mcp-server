@@ -3,5 +3,5 @@
  * Barrel export for functional reasoning modules
  */
 
-export { FunctionalGenAIReasoningTools, getTools, execute } from './functional-genai-reasoning.js';
+export { GenAIReasoningTools, getTools, execute } from './functional-genai-reasoning.js';
 export { FUNCTIONAL_GENAI_REASONING_TOOLS } from './functional-genai-reasoning.js';

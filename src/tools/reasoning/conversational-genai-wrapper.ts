@@ -1,5 +1,5 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { FunctionalConversationalReasoningTools } from '../../features/reasoning/conversational/index.js';
+import { ConversationalReasoningTools } from '../../features/reasoning/conversational/index.js';
 
 /**
  * Wrapper for Functional Conversational GenAI Reasoning Tools
@@ -7,19 +7,19 @@ import { FunctionalConversationalReasoningTools } from '../../features/reasoning
  * Now using functional single-responsibility modules instead of class-based approach
  */
 export class ConversationalGenAIToolsWrapper {
-  private functionalTools = FunctionalConversationalReasoningTools;
+  private tools = ConversationalReasoningTools;
 
   /**
    * Get available tool definitions
    */
   getTools(): Record<string, Tool> {
-    return this.functionalTools.getTools();
+    return this.tools.getTools();
   }
 
   /**
    * Execute a conversational GenAI tool using functional approach
    */
   async execute(name: string, args: Record<string, unknown>): Promise<unknown> {
-    return this.functionalTools.execute(name, args);
+    return this.tools.execute(name, args);
   }
 }

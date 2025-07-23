@@ -13,7 +13,7 @@ import { getDaydreamInsights } from './storage/get-insights.js';
  * Functional Daydreaming Tools
  * Routes tool calls to appropriate functional modules using single-responsibility pattern
  */
-export class FunctionalDaydreamingTools {
+export class DaydreamingTools {
   /**
    * Get available tool definitions
    */
@@ -54,7 +54,7 @@ export class FunctionalDaydreamingTools {
  * Execute a daydreaming operation using the functional architecture
  */
 export async function executeDaydreamingOperation(operation: string, args: Record<string, unknown>): Promise<unknown> {
-  const tools = new FunctionalDaydreamingTools();
+  const tools = new DaydreamingTools();
   return tools.execute(operation, args);
 }
 

@@ -1,10 +1,10 @@
 /**
  * Functional Conversational Reasoning Tools
  * Provides secure GenAI conversation functionality using single-responsibility modules
- * 
+ *
  * Single-responsibility modules:
  * - Security: Prompt injection detection and content sanitization
- * - Client: GenAI initialization and configuration  
+ * - Client: GenAI initialization and configuration
  * - Simple Conversation: Direct Q&A interactions
  * - Multi-turn Chat: Context-aware conversation management
  */
@@ -106,7 +106,7 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
  * Export the functional conversational reasoning tools interface
  * This can replace the class-based ConversationalGenAITools
  */
-export const FunctionalConversationalReasoningTools = {
+export const ConversationalReasoningTools = {
   getTools,
   execute,
-}; 
+};

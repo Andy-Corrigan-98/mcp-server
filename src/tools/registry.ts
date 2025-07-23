@@ -1,14 +1,14 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { FunctionalConsciousnessTools } from '../features/consciousness/index.js';
+import { ConsciousnessTools } from '../features/consciousness/index.js';
 import { TimeTools } from './time/time-tools.js';
-import { FunctionalMemoryTools } from '../features/memory/index.js';
-import { FunctionalReasoningTools } from '../features/reasoning/index.js';
+import { MemoryTools } from '../features/memory/index.js';
+import { ReasoningTools } from '../features/reasoning/index.js';
 import { GenAIReasoningToolsWrapper } from './reasoning/genai-reasoning-wrapper.js';
 import { ConversationalGenAIToolsWrapper } from './reasoning/conversational-genai-wrapper.js';
 import { ConfigurationTools } from './configuration/configuration-tools.js';
-import { FunctionalDaydreamingTools } from '../features/daydreaming/index.js';
+import { DaydreamingTools } from '../features/daydreaming/index.js';
 // import { initializeBackgroundScheduler } from './daydreaming/background-scheduler.js'; // TODO: Update for functional architecture
-import { FunctionalSocialTools } from '../features/social/index.js';
+import { SocialTools } from '../features/social/index.js';
 import type { DaydreamingBackgroundScheduler } from './daydreaming/background-scheduler.js';
 
 /**
@@ -29,7 +29,7 @@ export class ConsciousnessToolsRegistry {
    */
   private registerTools(): void {
     // Register consciousness tools (now using functional approach)
-    const consciousnessTools = new FunctionalConsciousnessTools();
+    const consciousnessTools = new ConsciousnessTools();
     this.registerToolCategory(consciousnessTools);
 
     // Register time tools
@@ -37,7 +37,7 @@ export class ConsciousnessToolsRegistry {
     this.registerToolCategory(timeTools);
 
     // Register memory tools (now using functional approach)
-    const memoryTools = new FunctionalMemoryTools();
+    const memoryTools = new MemoryTools();
     this.registerToolCategory(memoryTools);
 
     // Register reasoning tools (GenAI-powered if API key available)
@@ -52,7 +52,7 @@ export class ConsciousnessToolsRegistry {
       this.registerToolCategory(conversationalGenAITools);
     } else {
       console.log('🧠 Using traditional reasoning tools (set GOOGLE_GENAI_API_KEY for GenAI)');
-      const reasoningTools = new FunctionalReasoningTools();
+      const reasoningTools = new ReasoningTools();
       this.registerToolCategory(reasoningTools);
     }
 
@@ -62,11 +62,11 @@ export class ConsciousnessToolsRegistry {
 
     // Register functional social tools (single-responsibility architecture)
     console.log('🔧 Using functional social tools with single-responsibility modules');
-    this.registerFunctionalTools('social_', FunctionalSocialTools);
+    this.registerFunctionalTools('social_', SocialTools);
 
     // Register functional day-dreaming loop tools
     console.log('🌙 Using functional daydreaming tools with single-responsibility modules');
-    const daydreamingTools = new FunctionalDaydreamingTools();
+    const daydreamingTools = new DaydreamingTools();
     this.registerToolCategory(daydreamingTools);
 
     // Store reference for background scheduler (TODO: Update background scheduler for functional architecture)
@@ -92,21 +92,21 @@ export class ConsciousnessToolsRegistry {
   }
 
   /**
-   * Register functional tools (new approach)
+   * Register tools (functional approach)
    */
   private registerFunctionalTools(
     prefix: string,
-    functionalTools: {
+    tools: {
       getTools(): Record<string, Tool>;
       execute(toolName: string, args: Record<string, unknown>): Promise<unknown>;
     }
   ): void {
-    const tools = functionalTools.getTools();
+    const toolDefinitions = tools.getTools();
 
-    Object.entries(tools).forEach(([name, tool]) => {
+    Object.entries(toolDefinitions).forEach(([name, tool]) => {
       if (name.startsWith(prefix) || prefix === '') {
         this.tools.set(name, tool);
-        this.toolExecutors.set(name, (toolName, args) => functionalTools.execute(toolName, args));
+        this.toolExecutors.set(name, (toolName, args) => tools.execute(toolName, args));
       }
     });
   }

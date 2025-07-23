@@ -63,7 +63,7 @@ export async function executeReasoningOperation(
  * Functional Reasoning Tools Wrapper
  * Provides the same interface as the old class-based approach for compatibility
  */
-export class FunctionalReasoningTools {
+export class ReasoningTools {
   getTools(): Record<string, Tool> {
     return getReasoningTools();
   }

@@ -89,7 +89,7 @@ export async function executeMemoryOperation(operationName: string, args: Record
  * Functional Memory Tools Wrapper
  * Provides the same interface as the old class-based approach for compatibility
  */
-export class FunctionalMemoryTools {
+export class MemoryTools {
   getTools(): Record<string, Tool> {
     return getMemoryTools();
   }

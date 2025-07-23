@@ -1,4 +1,4 @@
-import { FunctionalDaydreamingTools } from '../../features/daydreaming/index.js';
+import { DaydreamingTools } from '../../features/daydreaming/index.js';
 import { ConfigurationService } from '../../db/configuration-service.js';
 
 /**
@@ -8,7 +8,7 @@ import { ConfigurationService } from '../../db/configuration-service.js';
  * Now uses functional single-responsibility daydreaming architecture
  */
 export class DaydreamingBackgroundScheduler {
-  private daydreamingTools: FunctionalDaydreamingTools;
+  private daydreamingTools: DaydreamingTools;
   private configService: ConfigurationService;
   private isRunning: boolean = false;
   private intervalId: NodeJS.Timeout | null = null;
@@ -18,7 +18,7 @@ export class DaydreamingBackgroundScheduler {
   private activityListeners: Set<() => void> = new Set();
   private isIdleTime: boolean = false;
 
-  constructor(daydreamingTools: FunctionalDaydreamingTools) {
+  constructor(daydreamingTools: DaydreamingTools) {
     this.daydreamingTools = daydreamingTools;
     this.configService = ConfigurationService.getInstance();
   }
@@ -249,9 +249,7 @@ let globalScheduler: DaydreamingBackgroundScheduler | null = null;
 /**
  * Initialize the global background scheduler
  */
-export function initializeBackgroundScheduler(
-  daydreamingTools: FunctionalDaydreamingTools
-): DaydreamingBackgroundScheduler {
+export function initializeBackgroundScheduler(daydreamingTools: DaydreamingTools): DaydreamingBackgroundScheduler {
   if (globalScheduler) {
     globalScheduler.stop();
   }

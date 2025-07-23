@@ -117,7 +117,7 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
  * Export the functional GenAI reasoning tools interface
  * This can replace the class-based GenAIReasoningTools
  */
-export const FunctionalGenAIReasoningTools = {
+export const GenAIReasoningTools = {
   getTools,
   execute,
 };

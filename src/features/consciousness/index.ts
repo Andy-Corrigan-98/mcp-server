@@ -132,7 +132,7 @@ export async function executeConsciousnessOperation(
  * Functional Consciousness Tools Wrapper
  * Provides the same interface as the old class-based approach for compatibility
  */
-export class FunctionalConsciousnessTools {
+export class ConsciousnessTools {
   getTools(): Record<string, Tool> {
     return getConsciousnessTools();
   }

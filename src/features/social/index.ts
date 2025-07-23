@@ -148,7 +148,7 @@ const getSocialEntity = async (args: Record<string, unknown>): Promise<any> => {
  * Export the functional social tools interface
  * This can replace the class-based SocialTools
  */
-export const FunctionalSocialTools = {
+export const SocialTools = {
   getTools,
   execute,
 };
