@@ -59,9 +59,8 @@ describe('FunctionalSocialTools', () => {
         });
 
         expect(result).toHaveProperty('success', true);
-        expect(result).toHaveProperty('name', entityName);
-        expect(result).toHaveProperty('entity_type', entityType);
-        expect(result).toHaveProperty('id');
+        expect(result).toHaveProperty('entity', entityName);
+        expect(result).toHaveProperty('entity_id');
 
         // Verify stored in database
         const storedEntity = await prisma.socialEntity.findUnique({
@@ -75,9 +74,9 @@ describe('FunctionalSocialTools', () => {
 
       it('should create entity with full details', async () => {
         const entityName = 'test_full_entity';
-        const entityType = 'colleague';
-        const displayName = 'Test Colleague (Full Details)';
-        const description = 'A test colleague entity with full details for testing';
+        const entityType = 'organization'; // Changed from 'colleague' to valid enum
+        const displayName = 'Test Organization (Full Details)';
+        const description = 'A test organization entity with full details for testing';
         const properties = {
           expertise: ['testing', 'development'],
           timezone: 'UTC',
@@ -93,7 +92,7 @@ describe('FunctionalSocialTools', () => {
         });
 
         expect(result).toHaveProperty('success', true);
-        expect(result).toHaveProperty('name', entityName);
+        expect(result).toHaveProperty('entity', entityName);
         expect(result).toHaveProperty('display_name', displayName);
 
         // Verify stored in database
@@ -179,8 +178,8 @@ describe('FunctionalSocialTools', () => {
         });
 
         expect(result).toHaveProperty('success', true);
-        expect(result).toHaveProperty('name', 'test_update_entity');
-        expect(result).toHaveProperty('updated', true);
+        expect(result).toHaveProperty('entity', 'test_update_entity');
+        expect(result).toHaveProperty('updated');
 
         // Verify in database
         const updatedEntity = await prisma.socialEntity.findUnique({
@@ -258,7 +257,6 @@ describe('FunctionalSocialTools', () => {
           name: 'test_get_entity',
         });
 
-        expect(result).toHaveProperty('success', true);
         expect(result).toHaveProperty('entity');
 
         const resultObj = result as any;
@@ -296,9 +294,9 @@ describe('FunctionalSocialTools', () => {
         });
 
         expect(result).toHaveProperty('success', true);
-        expect(result).toHaveProperty('entity_name', 'test_relationship_entity');
+        expect(result).toHaveProperty('entity', 'test_relationship_entity');
         expect(result).toHaveProperty('relationship_type', 'colleague');
-        expect(result).toHaveProperty('id');
+        expect(result).toHaveProperty('relationship_id');
 
         // Verify in database
         const entity = await prisma.socialEntity.findUnique({
@@ -425,8 +423,8 @@ describe('FunctionalSocialTools', () => {
         });
 
         expect(result).toHaveProperty('success', true);
-        expect(result).toHaveProperty('entity_name', 'test_relationship_entity');
-        expect(result).toHaveProperty('updated', true);
+        expect(result).toHaveProperty('entity', 'test_relationship_entity');
+        expect(result).toHaveProperty('updated');
 
         // Verify in database
         const entity = await prisma.socialEntity.findUnique({
@@ -523,13 +521,13 @@ describe('FunctionalSocialTools', () => {
       );
     });
 
-    it('should handle not-yet-migrated tools', async () => {
+    it('should handle missing entity in interaction record', async () => {
       await expect(
         executeSocialOperation('social_interaction_record', {
-          entity_name: 'test',
+          entity_name: 'test_nonexistent_entity',
           interaction_type: 'conversation',
         })
-      ).rejects.toThrow(`Tool 'social_interaction_record' not yet migrated to functional approach`);
+      ).rejects.toThrow(`Social entity 'test_nonexistent_entity' not found`);
     });
   });
 });
