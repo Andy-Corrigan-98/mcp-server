@@ -3,6 +3,7 @@ import { validateRequiredString, sanitizeString, validateAndStringifyJson } from
 import { entityCreatedResponse } from '../../../utils/responses.js';
 import { loadEntityConfig } from './load-config.js';
 import { getEntityByName } from './get-by-name.js';
+import type { SocialEntityType } from '@prisma/client';
 
 /**
  * Entity creation
@@ -23,7 +24,7 @@ export const createEntity = async (args: {
 
   // Validate and sanitize inputs
   const name = validateRequiredString(args.name, 'name', config.maxEntityNameLength);
-  const entityType = args.entity_type;
+  const entityType = args.entity_type as SocialEntityType;
   const displayName = sanitizeString(args.display_name, config.maxDisplayNameLength);
   const description = sanitizeString(args.description, config.maxDescriptionLength);
   const properties = validateAndStringifyJson(args.properties);

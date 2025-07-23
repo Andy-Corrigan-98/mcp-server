@@ -2,6 +2,7 @@ import { executeDatabase } from '../../../services/database.js';
 import { validateRequiredString, sanitizeString, validateAndStringifyJson } from '../../../services/validation.js';
 import { ResponseBuilder } from '../../../utils/response-builder.js';
 import { getEntityByName } from '../entities/get-by-name.js';
+import type { SocialLearningType } from '@prisma/client';
 
 /**
  * Social learning recording
@@ -20,7 +21,7 @@ export const recordSocialLearning = async (args: {
   examples?: Record<string, unknown>;
 }): Promise<object> => {
   // Validate inputs
-  const learningType = validateRequiredString(args.learning_type, 'learning_type', 50);
+  const learningType = validateRequiredString(args.learning_type, 'learning_type', 50) as SocialLearningType;
   const insight = validateRequiredString(args.insight, 'insight', 1000);
   const confidence = Math.max(0, Math.min(1, args.confidence ?? 0.8));
   const applicability = sanitizeString(args.applicability, 500);
@@ -50,14 +51,17 @@ export const recordSocialLearning = async (args: {
     });
   });
 
-  return ResponseBuilder.success({
-    learning_record: {
-      id: learningRecord.id,
-      learning_type: learningType,
-      insight,
-      confidence,
-      entity_name: args.entity_name,
-      created_at: learningRecord.createdAt,
+  return ResponseBuilder.success(
+    {
+      learning_record: {
+        id: learningRecord.id,
+        learning_type: learningType,
+        insight,
+        confidence,
+        entity_name: args.entity_name,
+        created_at: learningRecord.createdAt,
+      },
     },
-  }, `Social learning '${learningType}' recorded successfully`);
-}; 
+    `Social learning '${learningType}' recorded successfully`
+  );
+};

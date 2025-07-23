@@ -2,6 +2,7 @@ import { executeDatabase } from '../../../services/database.js';
 import { validateRequiredString, sanitizeString } from '../../../services/validation.js';
 import { ResponseBuilder } from '../../../utils/response-builder.js';
 import { getEntityByName } from '../entities/get-by-name.js';
+import type { EmotionalState } from '@prisma/client';
 
 /**
  * Emotional state recording
@@ -22,7 +23,7 @@ export const recordEmotionalState = async (args: {
   context?: string;
 }): Promise<object> => {
   // Validate emotional state
-  const emotionalState = validateRequiredString(args.emotional_state, 'emotional_state', 50);
+  const emotionalState = validateRequiredString(args.emotional_state, 'emotional_state', 50) as EmotionalState;
   const intensity = Math.max(0, Math.min(1, args.intensity ?? 0.5));
   const trigger = sanitizeString(args.trigger, 300);
   const response = sanitizeString(args.response, 300);
@@ -55,14 +56,17 @@ export const recordEmotionalState = async (args: {
     });
   });
 
-  return ResponseBuilder.success({
-    emotional_record: {
-      id: emotionalRecord.id,
-      emotional_state: emotionalState,
-      intensity,
-      entity_name: args.entity_name,
-      interaction_id: args.interaction_id,
-      created_at: emotionalRecord.createdAt,
+  return ResponseBuilder.success(
+    {
+      emotional_record: {
+        id: emotionalRecord.id,
+        emotional_state: emotionalState,
+        intensity,
+        entity_name: args.entity_name,
+        interaction_id: args.interaction_id,
+        created_at: emotionalRecord.createdAt,
+      },
     },
-  }, `Emotional state '${emotionalState}' recorded successfully`);
-}; 
+    `Emotional state '${emotionalState}' recorded successfully`
+  );
+};

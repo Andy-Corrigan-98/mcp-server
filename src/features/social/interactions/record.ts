@@ -3,6 +3,7 @@ import { validateRequiredString, sanitizeString, validateAndStringifyJson } from
 import { interactionRecordedResponse } from '../../../utils/responses.js';
 import { loadInteractionConfig } from './load-config.js';
 import { getEntityByName } from '../entities/get-by-name.js';
+import type { InteractionType } from '@prisma/client';
 
 /**
  * Interaction recording
@@ -35,7 +36,7 @@ export const recordInteraction = async (args: {
   }
 
   // Validate and sanitize inputs
-  const interactionType = validateRequiredString(args.interaction_type, 'interaction_type', 50);
+  const interactionType = validateRequiredString(args.interaction_type, 'interaction_type', 50) as InteractionType;
   const context = sanitizeString(args.context, config.maxContextLength);
   const summary = sanitizeString(args.summary, config.maxSummaryLength);
   const duration = args.duration || null;
@@ -73,4 +74,4 @@ export const recordInteraction = async (args: {
     related_memories: relatedMemories,
     relationship_updated: false, // TODO: Implement relationship impact processing
   };
-}; 
+};

@@ -2,6 +2,7 @@ import { executeDatabase } from '../../../services/database.js';
 import { validateRequiredString, sanitizeString } from '../../../services/validation.js';
 import { ResponseBuilder } from '../../../utils/response-builder.js';
 import { getEntityByName } from '../entities/get-by-name.js';
+import type { MemorySocialLinkType } from '@prisma/client';
 
 /**
  * Memory-social link creation
@@ -22,7 +23,7 @@ export const createMemorySocialLink = async (args: {
   // Validate inputs
   const memoryKey = validateRequiredString(args.memory_key, 'memory_key', 100);
   const entityName = validateRequiredString(args.entity_name, 'entity_name', 100);
-  const linkType = validateRequiredString(args.link_type, 'link_type', 50);
+  const linkType = validateRequiredString(args.link_type, 'link_type', 50) as MemorySocialLinkType;
   const strength = Math.max(0, Math.min(1, args.strength ?? 0.8));
   const context = sanitizeString(args.context, 500);
 
@@ -48,7 +49,7 @@ export const createMemorySocialLink = async (args: {
   if (args.interaction_id) {
     const interactionExists = await executeDatabase(async prisma => {
       const interaction = await prisma.socialInteraction.findFirst({
-        where: { 
+        where: {
           id: args.interaction_id,
           entityId: entity.id,
         },
@@ -75,15 +76,18 @@ export const createMemorySocialLink = async (args: {
     });
   });
 
-  return ResponseBuilder.success({
-    link: {
-      id: link.id,
-      memory_key: memoryKey,
-      entity_name: entityName,
-      interaction_id: args.interaction_id,
-      link_type: linkType,
-      strength,
-      created_at: link.createdAt,
+  return ResponseBuilder.success(
+    {
+      link: {
+        id: link.id,
+        memory_key: memoryKey,
+        entity_name: entityName,
+        interaction_id: args.interaction_id,
+        link_type: linkType,
+        strength,
+        created_at: link.createdAt,
+      },
     },
-  }, `Memory-social link created between '${memoryKey}' and '${entityName}'`);
-}; 
+    `Memory-social link created between '${memoryKey}' and '${entityName}'`
+  );
+};
