@@ -1,6 +1,6 @@
 import { ConnectionHypothesis, ConnectionEvaluation } from '../../../tools/daydreaming/types.js';
 import { ConfigurationService } from '../../../db/configuration-service.js';
-import { GenAIDaydreamingTools } from '../../../tools/daydreaming/genai-daydreaming-tools.js';
+import { functionalEvaluateInsight } from './functional-evaluate-insight.js';
 import { estimateConceptDistance } from './concept-distance.js';
 import { loadDaydreamingConfig } from '../config/load-config.js';
 
@@ -22,20 +22,29 @@ const SCORE_DIVISOR = 4;
 
 /**
  * Evaluate a connection hypothesis using GenAI or heuristic fallback
+ * Now uses the new functional architecture with shared GenAI infrastructure
  */
 export async function evaluateConnectionHypothesis(hypothesis: ConnectionHypothesis): Promise<ConnectionEvaluation> {
   const configService = ConfigurationService.getInstance();
-  const genAITools = new GenAIDaydreamingTools();
 
   // Check if GenAI evaluation is enabled
   const useGenAI = await configService.getBoolean('daydreaming.use_genai_evaluation', true);
 
   if (useGenAI) {
     try {
-      console.log('🧠 Using GenAI evaluation for daydreaming connection hypothesis...');
-      return await genAITools.evaluateConnectionHypothesis(hypothesis);
+      console.log('🧠 Using functional GenAI evaluation for daydreaming connection hypothesis...');
+
+      // Use the new functional evaluation approach
+      const evaluation = await functionalEvaluateInsight(
+        hypothesis.conceptPair.concept1.entity,
+        hypothesis.conceptPair.concept2.entity,
+        hypothesis.hypothesis,
+        hypothesis.explorationSteps.join(' ')
+      );
+
+      return evaluation;
     } catch (error) {
-      console.warn('GenAI evaluation failed, falling back to heuristic evaluation:', error);
+      console.warn('Functional GenAI evaluation failed, falling back to heuristic evaluation:', error);
       // Fall through to heuristic evaluation
     }
   }
