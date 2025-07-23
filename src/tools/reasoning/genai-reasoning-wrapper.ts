@@ -1,14 +1,14 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ToolExecutor } from '../base/index.js';
-import { GenAIReasoningTools, GENAI_REASONING_TOOLS } from './genai-reasoning-tools.js';
+import { FunctionalGenAIReasoningTools } from '../../features/reasoning/genai-reasoning/index.js';
 
 /**
- * Wrapper for GenAI reasoning tools that uses the new ToolExecutor pattern
- * Demonstrates how existing wrappers can benefit from pattern extraction
+ * Wrapper for Functional GenAI Reasoning Tools
+ * Updated to use functional single-responsibility modules instead of class-based approach
  */
 export class GenAIReasoningToolsWrapper extends ToolExecutor {
   protected category = 'genai_reasoning';
-  private genAITools: GenAIReasoningTools;
+  private functionalTools = FunctionalGenAIReasoningTools;
 
   // Define tool handlers using the new pattern
   protected toolHandlers = {
@@ -17,20 +17,19 @@ export class GenAIReasoningToolsWrapper extends ToolExecutor {
 
   constructor() {
     super();
-    this.genAITools = new GenAIReasoningTools();
   }
 
   /**
    * Get available GenAI reasoning tools
    */
   getTools(): Record<string, Tool> {
-    return GENAI_REASONING_TOOLS;
+    return this.functionalTools.getTools();
   }
 
   /**
-   * Handle sequential thinking tool
+   * Handle sequential thinking tool using functional approach
    */
   private async handleSequentialThinking(args: Record<string, unknown>): Promise<unknown> {
-    return await this.genAITools.sequentialThinking(args);
+    return await this.functionalTools.execute('sequential_thinking', args);
   }
 }

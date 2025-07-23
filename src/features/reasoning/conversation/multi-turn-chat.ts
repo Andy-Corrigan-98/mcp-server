@@ -4,15 +4,17 @@
  * Extracted from ConversationalGenAITools for single-responsibility
  */
 
-import { InputValidator } from '../../../validation/index.js';
-import { validateInput, sanitizeOutput } from '../security/index.js';
-import { initializeGenAIClient, handleGenAIError } from '../client/index.js';
+import {
+  getGenAIModel,
+  getModelName,
+  SecurityGuard,
+  validateThoughtInput,
+  validateConversationHistory,
+} from '../shared/index.js';
 
 // Constants to avoid magic numbers
 const MAX_QUESTION_LENGTH = 4000;
 const MAX_HISTORY_EXCHANGES = 10;
-const MAX_HISTORY_QUESTION_LENGTH = 1000;
-const MAX_HISTORY_RESPONSE_LENGTH = 2000;
 
 /**
  * Conversation exchange interface
@@ -48,27 +50,23 @@ export interface ReasoningChatResult {
  */
 export async function multiTurnChat(args: ReasoningChatArgs): Promise<ReasoningChatResult> {
   try {
-    // Initialize GenAI client
-    const { model, config } = await initializeGenAIClient();
+    // Get GenAI model and model name using shared infrastructure
+    const model = await getGenAIModel();
+    const modelName = await getModelName();
 
-    const question = InputValidator.sanitizeString(args.question, MAX_QUESTION_LENGTH);
-    const conversationHistory = args.history ? (Array.isArray(args.history) ? args.history : []) : [];
+    // Validate and sanitize question using shared validation
+    const question = await validateThoughtInput(args.question, MAX_QUESTION_LENGTH);
 
-    // Validate each part of conversation history
-    const sanitizedHistory = conversationHistory
-      .slice(-MAX_HISTORY_EXCHANGES) // Keep only last exchanges to manage context length
-      .map((exchange: ConversationExchange) => ({
-        question: InputValidator.sanitizeString(exchange.question || '', MAX_HISTORY_QUESTION_LENGTH),
-        response: InputValidator.sanitizeString(exchange.response || '', MAX_HISTORY_RESPONSE_LENGTH),
-      }));
+    // Validate conversation history using shared validation
+    const sanitizedHistory = validateConversationHistory(args.history, MAX_HISTORY_EXCHANGES);
 
-    // Security check on current question
-    const securityCheck = validateInput(question);
+    // Security check on current question using shared SecurityGuard
+    const securityCheck = SecurityGuard.validateInput(question);
     if (!securityCheck.safe) {
       return {
         response: "I can't process that request due to security concerns.",
         history: sanitizedHistory,
-        model: config.modelName,
+        model: modelName,
         timestamp: new Date().toISOString(),
         security_warning: securityCheck.violations,
       };
@@ -93,8 +91,8 @@ export async function multiTurnChat(args: ReasoningChatArgs): Promise<ReasoningC
     const response = await result.response;
     let aiResponse = response.text();
 
-    // Sanitize output
-    aiResponse = sanitizeOutput(aiResponse);
+    // Sanitize output using shared SecurityGuard
+    aiResponse = SecurityGuard.sanitizeOutput(aiResponse);
 
     // Update conversation history
     const updatedHistory = [
@@ -108,17 +106,17 @@ export async function multiTurnChat(args: ReasoningChatArgs): Promise<ReasoningC
     return {
       response: aiResponse,
       history: updatedHistory,
-      model: config.modelName,
+      model: modelName,
       timestamp: new Date().toISOString(),
     };
   } catch (error) {
-    const errorResult = handleGenAIError(error, 'process reasoning chat');
+    console.error('GenAI reasoning chat error:', error);
     return {
       response: '',
       history: args.history || [],
       model: 'unknown',
       timestamp: new Date().toISOString(),
-      ...errorResult,
+      error: 'Failed to process reasoning chat',
     };
   }
-} 
+}

@@ -4,9 +4,14 @@
  * Extracted from ConversationalGenAITools for single-responsibility
  */
 
-import { InputValidator } from '../../../validation/index.js';
-import { validateInput, sanitizeOutput } from '../security/index.js';
-import { initializeGenAIClient, validatePromptLength, handleGenAIError } from '../client/index.js';
+import {
+  getGenAIModel,
+  getModelName,
+  SecurityGuard,
+  validateThoughtInput,
+  validateContextInput,
+  validatePromptLength,
+} from '../shared/index.js';
 
 // Constants to avoid magic numbers
 const MAX_QUESTION_LENGTH = 4000;
@@ -40,20 +45,22 @@ export interface ConverseResult {
  */
 export async function simpleConversation(args: ConverseArgs): Promise<ConverseResult> {
   try {
-    // Initialize GenAI client
-    const { model, config } = await initializeGenAIClient();
+    // Get GenAI model and model name using shared infrastructure
+    const model = await getGenAIModel();
+    const modelName = await getModelName();
 
-    // Validate and sanitize input
-    const question = InputValidator.sanitizeString(args.question, MAX_QUESTION_LENGTH);
-    const context = args.context ? InputValidator.sanitizeString(args.context, MAX_CONTEXT_LENGTH) : '';
+    // Validate and sanitize input using shared validation
+    const question = await validateThoughtInput(args.question, MAX_QUESTION_LENGTH);
+    const context = args.context ? await validateContextInput(args.context, MAX_CONTEXT_LENGTH) : '';
 
-    // Security check
-    const securityCheck = validateInput(question + ' ' + context);
+    // Security check using shared SecurityGuard
+    const securityCheck = SecurityGuard.validateInput(question + ' ' + context);
     if (!securityCheck.safe) {
       console.warn('Security violation detected:', securityCheck.violations);
       return {
-        response: "I can't process that request due to security concerns. Please rephrase your question in a straightforward manner.",
-        model: config.modelName,
+        response:
+          "I can't process that request due to security concerns. Please rephrase your question in a straightforward manner.",
+        model: modelName,
         timestamp: new Date().toISOString(),
         conversation_safe: false,
         security_warning: securityCheck.violations,
@@ -69,12 +76,12 @@ export async function simpleConversation(args: ConverseArgs): Promise<ConverseRe
 
     conversation += `\n\nQuestion: ${question}`;
 
-    // Validate prompt length
-    const lengthCheck = validatePromptLength(conversation, config.maxPromptLength);
+    // Validate prompt length using shared validation
+    const lengthCheck = await validatePromptLength(conversation);
     if (!lengthCheck.valid) {
       return {
         response: '',
-        model: config.modelName,
+        model: modelName,
         timestamp: new Date().toISOString(),
         conversation_safe: true,
         error: 'Question and context too long. Please be more concise.',
@@ -88,23 +95,23 @@ export async function simpleConversation(args: ConverseArgs): Promise<ConverseRe
     const response = await result.response;
     let aiResponse = response.text();
 
-    // Sanitize output for security
-    aiResponse = sanitizeOutput(aiResponse);
+    // Sanitize output for security using shared SecurityGuard
+    aiResponse = SecurityGuard.sanitizeOutput(aiResponse);
 
     return {
       response: aiResponse,
-      model: config.modelName,
+      model: modelName,
       timestamp: new Date().toISOString(),
       conversation_safe: true,
     };
   } catch (error) {
-    const errorResult = handleGenAIError(error, 'process conversation');
+    console.error('GenAI conversation error:', error);
     return {
       response: '',
       model: 'unknown',
       timestamp: new Date().toISOString(),
       conversation_safe: true,
-      ...errorResult,
+      error: 'Failed to process conversation',
     };
   }
-} 
+}
