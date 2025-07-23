@@ -98,17 +98,72 @@ For contributions to the main framework:
 
 ## 🔧 Development Guidelines
 
+### **Functional Architecture Patterns**
+
+This codebase follows proven **single-responsibility functional architecture**. All contributions should follow these established patterns:
+
+#### **Core Principles**
+1. **One Function Per File**: Each module has exactly one reason to change
+2. **Pure Functions**: No hidden state, explicit dependencies, easy testing
+3. **Shared Infrastructure**: Common concerns handled by reusable modules
+4. **Clean Composition**: Features assembled from focused, testable components
+
+#### **Module Structure Requirements**
+
+```typescript
+// Required pattern for new features
+src/features/your-feature/
+├── operation1.ts        # Single responsibility function
+├── operation2.ts        # Single responsibility function
+├── get-by-id.ts        # Single responsibility function
+├── index.ts            # Clean composition and tool routing
+└── operation1.test.ts  # Pure function tests
+```
+
+#### **Implementation Standards**
+
+```typescript
+// ✅ Good: Pure function with explicit dependencies
+export async function createEntity(params: CreateParams): Promise<CreateResult> {
+  // Single responsibility, no side effects
+  return processedResult;
+}
+
+// ❌ Bad: Class with multiple responsibilities
+export class EntityManager {
+  create() { /* ... */ }
+  update() { /* ... */ }
+  delete() { /* ... */ }
+  search() { /* ... */ }
+}
+```
+
+#### **Shared Infrastructure Usage**
+
+For GenAI-powered features, use existing shared patterns:
+
+```typescript
+// ✅ Use shared GenAI infrastructure
+import { getGenAIModel } from '../reasoning/shared/client/genai-client.js';
+import { SecurityGuard } from '../reasoning/shared/security/security-guard.js';
+
+// ❌ Don't create separate GenAI instances
+const model = new GenAIModel(config); // Avoid
+```
+
 ### Code Quality
 - Follow existing **TypeScript/ESLint** standards
-- Maintain **test coverage** for new features
+- **Maintain test coverage** for new features (pure functions are easy to test)
 - Use **conventional commits** for clear history
-- Update **documentation** for all changes
+- **Update documentation** for all changes
+- **Follow functional patterns** - no class-based architectures for new features
 
 ### Consciousness Tool Design
 - **Declarative behavior**: Clear tool descriptions
 - **Idempotent operations**: Safe to repeat
 - **Graceful degradation**: Handle failures well
 - **Configurable limits**: Prevent resource abuse
+- **Single responsibility**: Each tool should have one clear purpose
 
 ## 🎯 Alternative Approaches
 

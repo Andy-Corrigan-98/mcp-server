@@ -61,6 +61,85 @@ npm run build  # Runs: tsc && tsc-alias
 - **`tsconfig.build.json`**: Production build configuration
 - **`package.json`**: Build scripts and dependencies
 
+## 🏗️ **Functional Architecture Patterns**
+
+This codebase follows proven **single-responsibility functional architecture** patterns. Understanding these patterns is essential for effective development.
+
+### **Core Principles**
+
+1. **One Function Per File**: Each module has exactly one reason to change
+2. **Pure Functions**: No hidden state, explicit dependencies, easy testing
+3. **Shared Infrastructure**: Common concerns handled by reusable modules
+4. **Clean Composition**: Features assembled from focused, testable components
+
+### **Module Structure Pattern**
+
+```typescript
+// feature/operation.ts - Single responsibility module
+export async function operationName(params: ValidatedParams): Promise<Result> {
+  // Pure function with explicit dependencies
+  // No side effects or hidden state
+  return processedResult;
+}
+
+// feature/index.ts - Composition and routing
+export class FeatureTools {
+  getTools(): Record<string, Tool> { 
+    return FEATURE_TOOLS; // Tool definitions
+  }
+  
+  async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
+    switch (toolName) {
+      case 'operation_name':
+        return operationName(validatedArgs);
+      default:
+        throw new Error(`Unknown tool: ${toolName}`);
+    }
+  }
+}
+```
+
+### **Creating New Features**
+
+Follow these established patterns:
+
+1. **Create single-responsibility modules** in `src/features/your-feature/`
+2. **Use shared infrastructure** from `src/features/reasoning/shared/` for GenAI features
+3. **Follow barrel export pattern** with clean composition in `index.ts`
+4. **Maintain API compatibility** using wrapper pattern for existing integrations
+5. **Write comprehensive tests** - pure functions are easy to test
+
+### **Shared Infrastructure Usage**
+
+For GenAI-powered features, leverage existing patterns:
+
+```typescript
+// Use shared GenAI client
+import { getGenAIModel } from '../reasoning/shared/client/genai-client.js';
+
+// Use shared security
+import { SecurityGuard } from '../reasoning/shared/security/security-guard.js';
+
+// Use shared validation
+import { validateThoughtInput } from '../reasoning/shared/validation/genai-validation.js';
+
+// Use shared response processing
+import { parseAIResponse } from '../reasoning/shared/responses/response-parser.js';
+```
+
+### **Directory Structure Example**
+
+```
+src/features/your-feature/
+├── config/               # Configuration management
+├── create.ts            # Creation operations
+├── update.ts            # Update operations  
+├── get-by-id.ts        # ID-based retrieval
+├── search.ts           # Search and filtering
+├── delete.ts           # Deletion operations
+└── index.ts            # Feature composition and tool routing
+```
+
 ## 📦 Development Scripts
 
 ### Core Development Commands
@@ -189,18 +268,76 @@ The project maintains comprehensive test coverage across all layers:
 
 #### Test Structure
 
+The functional architecture makes testing straightforward with pure functions:
+
 ```
 src/
-├── tools/
+├── features/
 │   ├── consciousness/
-│   │   ├── consciousness-tools.test.ts
-│   │   └── consciousness-tools.ts
-│   ├── memory/
-│   │   ├── memory-tools.test.ts
-│   │   └── memory-tools.ts
-│   └── social/
-│       ├── social-tools.test.ts
-│       └── social-tools.ts
+│   │   ├── context/
+│   │   │   ├── get-context.ts
+│   │   │   └── get-context.test.ts
+│   │   └── insights/
+│   │       ├── store-insight.ts
+│   │       └── store-insight.test.ts
+│   ├── social/
+│   │   ├── entities/
+│   │   │   ├── create.ts
+│   │   │   └── create.test.ts
+│   │   └── relationships/
+│   │       ├── create.ts
+│   │       └── create.test.ts
+└── tools/
+    ├── consciousness/
+    │   └── consciousness-tools.test.ts    # Integration tests
+    └── social/
+        └── social-tools.test.ts           # Integration tests
+```
+
+#### **Testing Functional Modules**
+
+Pure functions are easy to test:
+
+```typescript
+// Testing a single-responsibility module
+import { createSocialEntity } from '../features/social/entities/create.js';
+
+describe('createSocialEntity', () => {
+  it('creates entity with validated data', async () => {
+    const params = {
+      name: 'test-entity',
+      entityType: 'person',
+      displayName: 'Test Person'
+    };
+    
+    const result = await createSocialEntity(params);
+    
+    expect(result.entity.name).toBe('test-entity');
+    expect(result.entity.entityType).toBe('person');
+  });
+});
+```
+
+#### **Testing Tool Integration**
+
+Integration tests verify tool composition:
+
+```typescript
+// Testing tool routing and composition
+import { SocialTools } from '../features/social/index.js';
+
+describe('SocialTools Integration', () => {
+  it('routes to correct module', async () => {
+    const tools = new SocialTools();
+    
+    const result = await tools.execute('social_entity_create', {
+      name: 'test',
+      entity_type: 'person'
+    });
+    
+    expect(result.entity.name).toBe('test');
+  });
+});
 ```
 
 #### Test Configuration
@@ -435,12 +572,55 @@ The Dockerfile uses multi-stage builds:
 
 ### Adding New Tools
 
-1. **Define Interface**: Create tool interface and types
-2. **Implement Logic**: Write tool implementation class
-3. **Add Validation**: Define input validation schema
-4. **Write Tests**: Comprehensive test coverage
-5. **Register Tool**: Add to MCP tool registry
-6. **Update Documentation**: Add to tools reference
+Follow the established **functional architecture patterns**:
+
+1. **Create Single-Responsibility Modules**: Write focused functions in `src/features/your-feature/`
+2. **Define Tool Interface**: Create tool definitions and types  
+3. **Implement Pure Functions**: Write operations as pure functions with explicit dependencies
+4. **Add Input Validation**: Define validation schemas for tool inputs
+5. **Create Tool Composition**: Add routing logic in feature `index.ts`
+6. **Write Comprehensive Tests**: Test both individual functions and tool integration
+7. **Update Tool Registry**: Register the new feature tools
+8. **Update Documentation**: Add to tools reference
+
+#### **Example: Adding a New Feature**
+
+```bash
+# 1. Create feature directory structure
+mkdir -p src/features/new-feature
+cd src/features/new-feature
+
+# 2. Create single-responsibility modules
+touch create.ts update.ts get-by-id.ts delete.ts
+
+# 3. Create composition file
+touch index.ts
+
+# 4. Create tests
+touch create.test.ts update.test.ts get-by-id.test.ts
+```
+
+#### **Implementation Pattern**
+
+```typescript
+// src/features/new-feature/create.ts
+export async function createNewItem(params: CreateParams): Promise<CreateResult> {
+  // Pure function - single responsibility
+  // Explicit dependencies, no side effects
+}
+
+// src/features/new-feature/index.ts  
+export class NewFeatureTools {
+  getTools() { return NEW_FEATURE_TOOLS; }
+  
+  async execute(toolName: string, args: Record<string, unknown>) {
+    switch (toolName) {
+      case 'new_feature_create': return createNewItem(validatedArgs);
+      // ... other operations
+    }
+  }
+}
+```
 
 ## 🚀 Performance Optimization
 
