@@ -6,4 +6,4 @@
  */
 
 // Operations
-export { analyzeSocialPatterns } from './analyze.js'; 
+export { analyzeSocialPatterns } from './analyze.js';

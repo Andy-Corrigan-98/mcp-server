@@ -6,4 +6,4 @@
  */
 
 // Operations
-export { prepareSocialContext } from './prepare.js'; 
+export { prepareSocialContext } from './prepare.js';

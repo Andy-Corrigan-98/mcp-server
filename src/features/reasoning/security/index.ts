@@ -8,5 +8,5 @@ export {
   validateInput,
   sanitizeOutput,
   containsSensitiveInfo,
-  type SecurityValidationResult
-} from './security-guard.js'; 
+  type SecurityValidationResult,
+} from './security-guard.js';

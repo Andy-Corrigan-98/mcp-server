@@ -37,9 +37,8 @@ export async function initializeGenAIClient(): Promise<{
   config: GenAIClientConfig;
 }> {
   const configService = ConfigurationService.getInstance();
-  
-  const apiKey = process.env.GOOGLE_GENAI_API_KEY || 
-                 await configService.getString('genai.api_key', '');
+
+  const apiKey = process.env.GOOGLE_GENAI_API_KEY || (await configService.getString('genai.api_key', ''));
 
   if (!apiKey) {
     throw new Error('GOOGLE_GENAI_API_KEY environment variable is required for GenAI functionality');
@@ -61,7 +60,10 @@ export async function initializeGenAIClient(): Promise<{
 /**
  * Validate prompt length against configuration
  */
-export function validatePromptLength(prompt: string, maxLength: number): {
+export function validatePromptLength(
+  prompt: string,
+  maxLength: number
+): {
   valid: boolean;
   length: number;
   maxLength: number;
@@ -78,11 +80,11 @@ export function validatePromptLength(prompt: string, maxLength: number): {
  */
 export function handleGenAIError(error: unknown, operation: string): Record<string, unknown> {
   console.error(`GenAI ${operation} error:`, error);
-  
+
   return {
     error: `Failed to ${operation}`,
     message: 'The AI assistant is currently unavailable. Please try again.',
     timestamp: new Date().toISOString(),
     operation,
   };
-} 
+}

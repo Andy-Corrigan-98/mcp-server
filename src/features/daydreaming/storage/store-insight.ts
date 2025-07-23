@@ -31,4 +31,4 @@ export async function storeSerendipitousInsight(evaluation: ConnectionEvaluation
   });
 
   return insight;
-} 
+}

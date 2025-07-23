@@ -6,4 +6,4 @@
  */
 
 // Operations
-export { recordEmotionalState } from './record.js'; 
+export { recordEmotionalState } from './record.js';

@@ -8,5 +8,5 @@ export {
   validatePromptLength,
   handleGenAIError,
   type GenAIModel,
-  type GenAIClientConfig
-} from './genai-client.js'; 
+  type GenAIClientConfig,
+} from './genai-client.js';

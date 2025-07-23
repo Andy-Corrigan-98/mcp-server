@@ -6,4 +6,4 @@
  */
 
 // Operations
-export { recordSocialLearning } from './record.js'; 
+export { recordSocialLearning } from './record.js';

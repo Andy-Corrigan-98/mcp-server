@@ -24,4 +24,4 @@ export async function loadInteractionConfig(): Promise<InteractionConfig> {
     defaultQuality: await configService.getNumber('social.default_quality', 0.5),
     maxRelatedMemories: await configService.getNumber('social.max_related_memories', 10),
   };
-} 
+}

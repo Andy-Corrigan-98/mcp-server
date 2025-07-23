@@ -1,2 +1,2 @@
 export { daydreamCycle } from './execute-cycle.js';
-export { getDaydreamingContext } from './context.js'; 
+export { getDaydreamingContext } from './context.js';

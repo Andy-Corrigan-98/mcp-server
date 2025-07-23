@@ -17,7 +17,7 @@ export class ErrorAssertions {
   ): asserts error is MCPError {
     // Use our comprehensive error checker
     const validation = TestErrorChecker.validateMCPError(error, expectedType);
-    
+
     expect(validation.isValidMCPError).toBe(true);
     expect(validation.hasCorrectType).toBe(true);
     expect(validation.hasTimestamp).toBe(true);
@@ -49,7 +49,7 @@ export class ErrorAssertions {
    */
   static expectEntityNotFound(error: unknown, entityType?: string, identifier?: string): void {
     ErrorAssertions.expectMCPError(error, ERROR_TYPES.ENTITY_NOT_FOUND);
-    
+
     const mcpError = error as MCPError;
     if (entityType) {
       expect(mcpError.context?.entityType).toBe(entityType);
@@ -64,7 +64,7 @@ export class ErrorAssertions {
    */
   static expectValidationError(error: unknown, fieldName?: string): void {
     ErrorAssertions.expectMCPError(error, ERROR_TYPES.VALIDATION_FAILED);
-    
+
     if (fieldName) {
       const mcpError = error as MCPError;
       expect(mcpError.context?.fieldName).toBe(fieldName);
@@ -76,7 +76,7 @@ export class ErrorAssertions {
    */
   static expectToolNotFound(error: unknown, toolName?: string, category?: string): void {
     ErrorAssertions.expectMCPError(error, ERROR_TYPES.TOOL_NOT_FOUND);
-    
+
     const mcpError = error as MCPError;
     if (toolName) {
       expect(mcpError.context?.toolName).toBe(toolName);
@@ -91,7 +91,7 @@ export class ErrorAssertions {
    */
   static expectConfigurationError(error: unknown, configKey?: string): void {
     ErrorAssertions.expectMCPError(error, ERROR_TYPES.CONFIGURATION_ERROR);
-    
+
     if (configKey) {
       const mcpError = error as MCPError;
       expect(mcpError.context?.configKey).toBe(configKey);
@@ -103,7 +103,7 @@ export class ErrorAssertions {
    */
   static expectSecurityViolation(error: unknown, expectedViolations?: string[]): void {
     ErrorAssertions.expectMCPError(error, ERROR_TYPES.SECURITY_VIOLATION);
-    
+
     if (expectedViolations) {
       const mcpError = error as MCPError;
       expect(mcpError.context?.violations).toEqual(expect.arrayContaining(expectedViolations));
@@ -115,17 +115,17 @@ export class ErrorAssertions {
    */
   static expectValidErrorFormatting(error: MCPError): void {
     const formatting = TestErrorChecker.testErrorFormatting(error);
-    
+
     // Validate logging format
     expect(formatting.logging).toContain(error.type);
     expect(formatting.logging).toContain(error.message);
     expect(formatting.logging).toContain(error.timestamp);
-    
+
     // Validate API format
     expect(formatting.api).toHaveProperty('error', error.message);
     expect(formatting.api).toHaveProperty('type', error.type);
     expect(formatting.api).toHaveProperty('timestamp', error.timestamp);
-    
+
     // Validate user format
     expect(formatting.user).toBeTruthy();
     expect(typeof formatting.user).toBe('string');
@@ -134,12 +134,9 @@ export class ErrorAssertions {
   /**
    * Assert that error context contains expected properties
    */
-  static expectErrorContext(
-    error: MCPError,
-    expectedContext: Record<string, unknown>
-  ): void {
+  static expectErrorContext(error: MCPError, expectedContext: Record<string, unknown>): void {
     expect(error.context).toBeDefined();
-    
+
     for (const [key, value] of Object.entries(expectedContext)) {
       expect(error.context).toHaveProperty(key, value);
     }
@@ -151,7 +148,7 @@ export class ErrorAssertions {
   static expectErrorWrapping(originalError: Error, wrappedError: MCPError): void {
     expect(wrappedError).toBeInstanceOf(MCPError);
     expect(wrappedError.message).toBe(originalError.message);
-    
+
     if (originalError instanceof MCPError) {
       expect(wrappedError.type).toBe(originalError.type);
     } else {
@@ -169,14 +166,14 @@ export class ErrorAssertions {
     expectedMessageFragment?: string
   ): Promise<MCPError> {
     let thrownError: unknown;
-    
+
     try {
       await asyncFn();
       throw new Error('Expected function to throw an error, but it did not');
     } catch (error) {
       thrownError = error;
     }
-    
+
     ErrorAssertions.expectMCPError(thrownError, expectedType, expectedMessageFragment);
     return thrownError as MCPError;
   }
@@ -186,17 +183,17 @@ export class ErrorAssertions {
    */
   static expectErrorTypeChecking(errors: MCPError[]): void {
     const typeChecking = TestErrorChecker.testTypeChecking(errors);
-    
+
     // Each error should be correctly identified by at least one type checker
     for (let i = 0; i < errors.length; i++) {
       const error = errors[i];
-      const hasMatchingChecker = 
+      const hasMatchingChecker =
         (error.type === ERROR_TYPES.ENTITY_NOT_FOUND && typeChecking.isEntityNotFound[i]) ||
         (error.type === ERROR_TYPES.VALIDATION_FAILED && typeChecking.isValidationError[i]) ||
         (error.type === ERROR_TYPES.CONFIGURATION_ERROR && typeChecking.isConfigurationError[i]) ||
         (error.type === ERROR_TYPES.SECURITY_VIOLATION && typeChecking.isSecurityError[i]);
-      
+
       expect(hasMatchingChecker).toBe(true);
     }
   }
-} 
+}

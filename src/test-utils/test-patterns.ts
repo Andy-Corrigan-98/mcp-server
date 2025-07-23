@@ -21,7 +21,7 @@ export class TestPatterns {
       },
       teardown: async () => {
         // Standard teardown logic
-      }
+      },
     };
   }
 
@@ -33,7 +33,7 @@ export class TestPatterns {
       pattern: 'error-validation',
       errorType,
       expectedMessage,
-      validator: TestErrorChecker.validateMCPError
+      validator: TestErrorChecker.validateMCPError,
     };
   }
 
@@ -46,9 +46,7 @@ export class TestPatterns {
       key,
       value,
       shouldSucceed,
-      validator: shouldSucceed 
-        ? TestConfigBuilder.createValidConfig 
-        : TestConfigBuilder.createInvalidConfig
+      validator: shouldSucceed ? TestConfigBuilder.createValidConfig : TestConfigBuilder.createInvalidConfig,
     };
   }
 
@@ -60,9 +58,10 @@ export class TestPatterns {
       pattern: 'response-validation',
       responseType,
       expectedData,
-      validator: responseType === 'success' 
-        ? TestResponseValidator.validateSuccessResponse
-        : TestResponseValidator.validateErrorResponse
+      validator:
+        responseType === 'success'
+          ? TestResponseValidator.validateSuccessResponse
+          : TestResponseValidator.validateErrorResponse,
     };
   }
 
@@ -75,7 +74,7 @@ export class TestPatterns {
       toolName,
       args,
       expectedResult,
-      executor: TestToolHarness.mockToolExecution
+      executor: TestToolHarness.mockToolExecution,
     };
   }
 
@@ -93,23 +92,20 @@ export class TestPatterns {
         await operation();
         const endTime = performance.now();
         const executionTime = endTime - startTime;
-        
+
         return {
           executionTime,
           withinThreshold: executionTime <= maxExecutionTime,
-          threshold: maxExecutionTime
+          threshold: maxExecutionTime,
         };
-      }
+      },
     };
   }
 
   /**
    * Create integration testing pattern
    */
-  static createIntegrationPattern(
-    name: string, 
-    steps: Array<{ description: string; action: () => Promise<unknown> }>
-  ) {
+  static createIntegrationPattern(name: string, steps: Array<{ description: string; action: () => Promise<unknown> }>) {
     return {
       pattern: 'integration',
       name,
@@ -122,19 +118,19 @@ export class TestPatterns {
             results.push({
               description: step.description,
               success: true,
-              result
+              result,
             });
           } catch (error) {
             results.push({
               description: step.description,
               success: false,
-              error
+              error,
             });
             break; // Stop on first failure
           }
         }
         return results;
-      }
+      },
     };
   }
 
@@ -159,20 +155,16 @@ export class TestPatterns {
           input,
           isValid,
           expectedValid,
-          passed: isValid === expectedValid
+          passed: isValid === expectedValid,
         };
-      }
+      },
     };
   }
 
   /**
    * Create mock testing pattern
    */
-  static createMockPattern<T>(
-    name: string,
-    mockImplementation: () => T,
-    expectations: Record<string, unknown>
-  ) {
+  static createMockPattern<T>(name: string, mockImplementation: () => T, expectations: Record<string, unknown>) {
     return {
       pattern: 'mock',
       name,
@@ -186,11 +178,11 @@ export class TestPatterns {
             property: key,
             expected,
             actual,
-            matches: actual === expected
+            matches: actual === expected,
           });
         }
         return results;
-      }
+      },
     };
   }
 
@@ -203,32 +195,32 @@ export class TestPatterns {
         id: Math.random().toString(36).substring(7),
         name: `Test User ${Math.floor(Math.random() * 1000)}`,
         email: `test${Math.floor(Math.random() * 1000)}@example.com`,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       }),
       config: () => ({
         key: `test.config.${Math.random().toString(36).substring(7)}`,
         value: `test-value-${Math.floor(Math.random() * 1000)}`,
         type: 'string',
-        source: 'test'
+        source: 'test',
       }),
       error: () => ({
         type: 'validation',
         message: `Test error ${Math.floor(Math.random() * 1000)}`,
         context: { testField: 'testValue' },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }),
       response: () => ({
         success: Math.random() > 0.5,
         data: { id: Math.floor(Math.random() * 1000) },
-        timestamp: new Date().toISOString()
-      })
+        timestamp: new Date().toISOString(),
+      }),
     };
 
     return {
       pattern: 'data-generation',
       type,
       count,
-      generate: () => Array.from({ length: count }, () => generators[type]())
+      generate: () => Array.from({ length: count }, () => generators[type]()),
     };
   }
 
@@ -246,22 +238,22 @@ export class TestPatterns {
           try {
             // Simple execution for demonstration
             const result = { pattern: pattern.pattern, executed: true };
-            
+
             results.push({
               pattern: pattern.pattern,
               success: true,
-              result
+              result,
             });
           } catch (error) {
             results.push({
               pattern: pattern.pattern,
               success: false,
-              error
+              error,
             });
           }
         }
         return results;
-      }
+      },
     };
   }
-} 
+}

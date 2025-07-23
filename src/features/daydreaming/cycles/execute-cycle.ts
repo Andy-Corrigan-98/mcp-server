@@ -1,4 +1,9 @@
-import { DaydreamingCycleResult, ConnectionHypothesis, ConnectionEvaluation, SerendipitousInsight } from '../../../tools/daydreaming/types.js';
+import {
+  DaydreamingCycleResult,
+  ConnectionHypothesis,
+  ConnectionEvaluation,
+  SerendipitousInsight,
+} from '../../../tools/daydreaming/types.js';
 import { GuidGenerator } from '../../../utils/guid.js';
 import { loadDaydreamingConfig } from '../config/load-config.js';
 import { sampleConceptPairs } from '../sampling/sample-concepts.js';
@@ -75,9 +80,10 @@ export async function daydreamCycle(args: Record<string, unknown>): Promise<Dayd
     insightsStored,
     performance: {
       totalThinkingSteps,
-      averageConfidence: hypothesesGenerated.length > 0 
-        ? hypothesesGenerated.reduce((sum, h) => sum + h.confidence, 0) / hypothesesGenerated.length 
-        : 0,
+      averageConfidence:
+        hypothesesGenerated.length > 0
+          ? hypothesesGenerated.reduce((sum, h) => sum + h.confidence, 0) / hypothesesGenerated.length
+          : 0,
       storageRate: conceptPairs.length > 0 ? (insightsStored.length / conceptPairs.length) * 100 : 0, // eslint-disable-line no-magic-numbers
     },
     nextCycleRecommendation: {
@@ -87,4 +93,4 @@ export async function daydreamCycle(args: Record<string, unknown>): Promise<Dayd
   };
 
   return result;
-} 
+}

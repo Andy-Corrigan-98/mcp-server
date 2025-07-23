@@ -21,7 +21,7 @@ export const getSocialMemoryContext = async (args: {
   // Validate inputs
   const entityName = validateRequiredString(args.entity_name, 'entity_name', 100);
   const timePeriod = args.time_period || 'all_time';
-  
+
   const includeCreationMemories = args.include_creation_memories !== false;
   const includeLearningMemories = args.include_learning_memories !== false;
   const includeEmotionalMemories = args.include_emotional_memories !== false;
@@ -120,11 +120,20 @@ export const getSocialMemoryContext = async (args: {
     };
 
     // Categorize based on link type
-    if (includeCreationMemories && ['co_created', 'discovered_together', 'collaboration_outcome'].includes(link.relationshipType)) {
+    if (
+      includeCreationMemories &&
+      ['co_created', 'discovered_together', 'collaboration_outcome'].includes(link.relationshipType)
+    ) {
       categorizedMemories.creation.push(memoryData);
-    } else if (includeLearningMemories && ['learned_from', 'taught_to', 'mentoring_moment'].includes(link.relationshipType)) {
+    } else if (
+      includeLearningMemories &&
+      ['learned_from', 'taught_to', 'mentoring_moment'].includes(link.relationshipType)
+    ) {
       categorizedMemories.learning.push(memoryData);
-    } else if (includeEmotionalMemories && ['emotional_support', 'celebration_shared'].includes(link.relationshipType)) {
+    } else if (
+      includeEmotionalMemories &&
+      ['emotional_support', 'celebration_shared'].includes(link.relationshipType)
+    ) {
       categorizedMemories.emotional.push(memoryData);
     } else {
       categorizedMemories.other.push(memoryData);
@@ -158,35 +167,41 @@ export const getSocialMemoryContext = async (args: {
   };
 
   // Add recent high-strength memories as conversation starters
-  const recentMemories = Object.values(categorizedMemories).flat()
+  const recentMemories = Object.values(categorizedMemories)
+    .flat()
     .filter((m: any) => m.link_strength > 0.7)
     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
     .slice(0, 3);
 
-  recommendations.conversation_starters = recentMemories.map((m: any) => 
-    `Reference shared memory: ${m.key} (${m.link_type})`
+  recommendations.conversation_starters = recentMemories.map(
+    (m: any) => `Reference shared memory: ${m.key} (${m.link_type})`
   );
 
-  return ResponseBuilder.success({
-    entity: {
-      name: entity.name,
-      display_name: entity.displayName,
+  return ResponseBuilder.success(
+    {
+      entity: {
+        name: entity.name,
+        display_name: entity.displayName,
+      },
+      time_period: timePeriod,
+      memory_categories: {
+        creation_memories: categorizedMemories.creation,
+        learning_memories: categorizedMemories.learning,
+        emotional_memories: categorizedMemories.emotional,
+        other_memories: categorizedMemories.other,
+      },
+      memory_insights: insights,
+      recommendations,
+      summary: {
+        total_shared_memories: totalMemories,
+        strongest_connection_type:
+          totalMemories > 0
+            ? Object.entries(categorizedMemories).sort(
+                ([, a], [, b]) => (b as any[]).length - (a as any[]).length
+              )[0][0]
+            : 'none',
+      },
     },
-    time_period: timePeriod,
-    memory_categories: {
-      creation_memories: categorizedMemories.creation,
-      learning_memories: categorizedMemories.learning,
-      emotional_memories: categorizedMemories.emotional,
-      other_memories: categorizedMemories.other,
-    },
-    memory_insights: insights,
-    recommendations,
-    summary: {
-      total_shared_memories: totalMemories,
-      strongest_connection_type: totalMemories > 0 ? 
-        Object.entries(categorizedMemories)
-          .sort(([,a], [,b]) => (b as any[]).length - (a as any[]).length)[0][0] : 
-        'none',
-    },
-  }, `Memory context prepared for '${entityName}' (${totalMemories} shared memories)`);
-}; 
+    `Memory context prepared for '${entityName}' (${totalMemories} shared memories)`
+  );
+};

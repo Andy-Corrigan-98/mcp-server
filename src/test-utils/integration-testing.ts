@@ -17,7 +17,7 @@ export class IntegrationTestRunner {
     memoryUsage: 0,
     dbQueries: 0,
     errorCount: 0,
-    successRate: 0
+    successRate: 0,
   };
 
   constructor(options: IntegrationTestOptions = {}) {
@@ -28,7 +28,7 @@ export class IntegrationTestRunner {
       cleanupBetweenTests: true,
       maxConcurrent: 5,
       timeoutMs: 30000,
-      ...options
+      ...options,
     };
   }
 
@@ -67,45 +67,49 @@ export class IntegrationTestRunner {
 
       const totalTests = results.reduce((sum, r) => sum + r.totalTests, 0);
       const passedTests = results.reduce((sum, r) => sum + r.passedTests, 0);
-      
+
       this.metrics.executionTime = Date.now() - startTime;
       this.metrics.successRate = totalTests > 0 ? passedTests / totalTests : 0;
 
       const report = this.generateReport(results);
-      
+
       return {
         success: this.metrics.successRate > 0.95, // 95% pass rate threshold
         metrics: this.metrics,
-        report
+        report,
       };
-
     } catch (error) {
       this.metrics.errorCount++;
       this.metrics.executionTime = Date.now() - startTime;
-      
+
       return {
         success: false,
         metrics: this.metrics,
-        report: `Integration test suite failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        report: `Integration test suite failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       };
     }
   }
 
   // Error handling integration tests
-  private async runErrorIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
+  private async runErrorIntegrationTests(): Promise<{
+    phase: string;
+    totalTests: number;
+    passedTests: number;
+    details: string[];
+  }> {
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
 
     const errorData = TestDataFactory.createErrorTestData();
-    
+
     for (const [errorType, data] of Object.entries(errorData)) {
       totalTests++;
       try {
         // Test error creation and validation
         const isValid = TestErrorChecker.validateErrorType(data.type);
         const hasContext = TestErrorChecker.checkErrorContext(data.context || {});
-        
+
         if (isValid && hasContext) {
           passedTests++;
           details.push(`✅ ${errorType}: Valid error structure`);
@@ -113,7 +117,9 @@ export class IntegrationTestRunner {
           details.push(`❌ ${errorType}: Invalid error structure`);
         }
       } catch (error) {
-        details.push(`❌ ${errorType}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        details.push(
+          `❌ ${errorType}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -121,12 +127,17 @@ export class IntegrationTestRunner {
       phase: 'Error Handling',
       totalTests,
       passedTests,
-      details
+      details,
     };
   }
 
   // Configuration integration tests
-  private async runConfigurationIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
+  private async runConfigurationIntegrationTests(): Promise<{
+    phase: string;
+    totalTests: number;
+    passedTests: number;
+    details: string[];
+  }> {
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -145,7 +156,9 @@ export class IntegrationTestRunner {
           details.push(`❌ ${configName}: Configuration validation failed`);
         }
       } catch (error) {
-        details.push(`❌ ${configName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        details.push(
+          `❌ ${configName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -161,7 +174,9 @@ export class IntegrationTestRunner {
           details.push(`❌ ${configName}: Invalid configuration incorrectly accepted`);
         }
       } catch (error) {
-        details.push(`❌ ${configName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        details.push(
+          `❌ ${configName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -169,12 +184,17 @@ export class IntegrationTestRunner {
       phase: 'Configuration',
       totalTests,
       passedTests,
-      details
+      details,
     };
   }
 
   // Response handling integration tests
-  private async runResponseIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
+  private async runResponseIntegrationTests(): Promise<{
+    phase: string;
+    totalTests: number;
+    passedTests: number;
+    details: string[];
+  }> {
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -193,7 +213,9 @@ export class IntegrationTestRunner {
           details.push(`❌ ${responseName}: Invalid success response structure`);
         }
       } catch (error) {
-        details.push(`❌ ${responseName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        details.push(
+          `❌ ${responseName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -209,7 +231,9 @@ export class IntegrationTestRunner {
           details.push(`❌ ${responseName}: Invalid error response structure`);
         }
       } catch (error) {
-        details.push(`❌ ${responseName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        details.push(
+          `❌ ${responseName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -217,12 +241,17 @@ export class IntegrationTestRunner {
       phase: 'Response Handling',
       totalTests,
       passedTests,
-      details
+      details,
     };
   }
 
   // Tool execution integration tests
-  private async runToolIntegrationTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
+  private async runToolIntegrationTests(): Promise<{
+    phase: string;
+    totalTests: number;
+    passedTests: number;
+    details: string[];
+  }> {
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -241,7 +270,9 @@ export class IntegrationTestRunner {
           details.push(`❌ ${toolName}: Tool execution failed`);
         }
       } catch (error) {
-        details.push(`❌ ${toolName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        details.push(
+          `❌ ${toolName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -257,7 +288,9 @@ export class IntegrationTestRunner {
           details.push(`❌ ${toolName}: Invalid tool incorrectly accepted`);
         }
       } catch (error) {
-        details.push(`❌ ${toolName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+        details.push(
+          `❌ ${toolName}: Test execution failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -265,12 +298,17 @@ export class IntegrationTestRunner {
       phase: 'Tool Execution',
       totalTests,
       passedTests,
-      details
+      details,
     };
   }
 
   // Cross-pattern integration tests
-  private async runCrossPatternTests(): Promise<{ phase: string; totalTests: number; passedTests: number; details: string[] }> {
+  private async runCrossPatternTests(): Promise<{
+    phase: string;
+    totalTests: number;
+    passedTests: number;
+    details: string[];
+  }> {
     const details: string[] = [];
     let passedTests = 0;
     let totalTests = 0;
@@ -286,19 +324,21 @@ export class IntegrationTestRunner {
         details.push('❌ Error handling in configuration: Missing error propagation');
       }
     } catch (error) {
-      details.push(`❌ Error handling in configuration: Test failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+      details.push(
+        `❌ Error handling in configuration: Test failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     // Test response building with error factory
     totalTests++;
     try {
       const errorData = TestDataFactory.createErrorTestData();
-      
+
       const errorResponse = {
         success: false,
-        error: errorData.validationError
+        error: errorData.validationError,
       };
-      
+
       const isValid = TestResponseValidator.validateErrorResponse(errorResponse);
       if (isValid) {
         passedTests++;
@@ -307,22 +347,28 @@ export class IntegrationTestRunner {
         details.push('❌ Response building with errors: Invalid error formatting');
       }
     } catch (error) {
-      details.push(`❌ Response building with errors: Test failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+      details.push(
+        `❌ Response building with errors: Test failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     // Test tool execution with configuration
     totalTests++;
     try {
       const configData = TestDataFactory.createConfigurationTestData();
-      
-      const result = await TestToolHarness.mockToolExecution('configuration_get', { 
-        key: configData.validConfigs.stringConfig.key 
-      }, {
-        key: configData.validConfigs.stringConfig.key,
-        value: configData.validConfigs.stringConfig.value,
-        source: 'test'
-      });
-      
+
+      const result = await TestToolHarness.mockToolExecution(
+        'configuration_get',
+        {
+          key: configData.validConfigs.stringConfig.key,
+        },
+        {
+          key: configData.validConfigs.stringConfig.key,
+          value: configData.validConfigs.stringConfig.value,
+          source: 'test',
+        }
+      );
+
       if (result.success) {
         passedTests++;
         details.push('✅ Tool execution with configuration: Successful integration');
@@ -330,30 +376,34 @@ export class IntegrationTestRunner {
         details.push('❌ Tool execution with configuration: Integration failed');
       }
     } catch (error) {
-      details.push(`❌ Tool execution with configuration: Test failed - ${error instanceof Error ? error.message : 'Unknown error'}`);
+      details.push(
+        `❌ Tool execution with configuration: Test failed - ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     return {
       phase: 'Cross-Pattern Integration',
       totalTests,
       passedTests,
-      details
+      details,
     };
   }
 
   // Generate comprehensive test report
-  private generateReport(results: Array<{ phase: string; totalTests: number; passedTests: number; details: string[] }>): string {
+  private generateReport(
+    results: Array<{ phase: string; totalTests: number; passedTests: number; details: string[] }>
+  ): string {
     const lines = [];
-    
+
     lines.push('# Integration Test Report');
     lines.push(`Generated: ${new Date().toISOString()}`);
     lines.push('');
-    
+
     // Summary
     const totalTests = results.reduce((sum, r) => sum + r.totalTests, 0);
     const totalPassed = results.reduce((sum, r) => sum + r.passedTests, 0);
-    const successRate = totalTests > 0 ? (totalPassed / totalTests * 100).toFixed(2) : '0.00';
-    
+    const successRate = totalTests > 0 ? ((totalPassed / totalTests) * 100).toFixed(2) : '0.00';
+
     lines.push('## Summary');
     lines.push(`- Total Tests: ${totalTests}`);
     lines.push(`- Passed: ${totalPassed}`);
@@ -361,7 +411,7 @@ export class IntegrationTestRunner {
     lines.push(`- Success Rate: ${successRate}%`);
     lines.push(`- Execution Time: ${this.metrics.executionTime}ms`);
     lines.push('');
-    
+
     // Phase details
     lines.push('## Phase Results');
     results.forEach(result => {
@@ -371,7 +421,7 @@ export class IntegrationTestRunner {
       result.details.forEach(detail => lines.push(`- ${detail}`));
       lines.push('');
     });
-    
+
     return lines.join('\n');
   }
 
@@ -400,20 +450,20 @@ export class IntegrationTestRunner {
   async measurePerformance(iterations: number = 100): Promise<PerformanceMetrics> {
     const startTime = Date.now();
     const initialMemory = process.memoryUsage().heapUsed;
-    
+
     for (let i = 0; i < iterations; i++) {
       await this.runCrossPatternTests();
     }
-    
+
     const endTime = Date.now();
     const finalMemory = process.memoryUsage().heapUsed;
-    
+
     return {
       executionTime: endTime - startTime,
       memoryUsage: finalMemory - initialMemory,
       dbQueries: 0, // Would be tracked if database was involved
       errorCount: this.metrics.errorCount,
-      successRate: this.metrics.successRate
+      successRate: this.metrics.successRate,
     };
   }
-} 
+}

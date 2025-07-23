@@ -38,7 +38,9 @@ export const searchMemorySocialLinks = async (args: {
 
   // Filter by link types
   if (args.link_types && args.link_types.length > 0) {
-    const linkTypes = args.link_types.map(type => sanitizeString(type, 50)).filter((t): t is string => t !== undefined && t.length > 0);
+    const linkTypes = args.link_types
+      .map(type => sanitizeString(type, 50))
+      .filter((t): t is string => t !== undefined && t.length > 0);
     if (linkTypes.length > 0) {
       searchConditions.relationshipType = { in: linkTypes };
     }
@@ -46,7 +48,7 @@ export const searchMemorySocialLinks = async (args: {
 
   // Search for links and associated memories
   const results = await executeDatabase(async prisma => {
-    let query = prisma.memorySocialLink.findMany({
+    const query = prisma.memorySocialLink.findMany({
       where: searchConditions,
       include: {
         socialEntity: {
@@ -108,7 +110,7 @@ export const searchMemorySocialLinks = async (args: {
     if (keywords.length > 0) {
       filteredResults = results.filter((result: any) => {
         if (!result.memory || !result.memory.content) return false;
-        
+
         const contentStr = JSON.stringify(result.memory.content).toLowerCase();
         return keywords.some((keyword: string) => contentStr.includes(keyword.toLowerCase()));
       });
@@ -136,24 +138,29 @@ export const searchMemorySocialLinks = async (args: {
       display_name: result.entity.displayName,
       type: result.entity.entityType,
     },
-    interaction: result.interaction ? {
-      id: result.interaction.id,
-      type: result.interaction.interactionType,
-      date: result.interaction.createdAt,
-      summary: result.interaction.summary,
-    } : undefined,
+    interaction: result.interaction
+      ? {
+          id: result.interaction.id,
+          type: result.interaction.interactionType,
+          date: result.interaction.createdAt,
+          summary: result.interaction.summary,
+        }
+      : undefined,
   }));
 
-  return ResponseBuilder.success({
-    memories: formattedResults,
-    total_found: formattedResults.length,
-    search_criteria: {
-      entity_name: args.entity_name,
-      link_types: args.link_types,
-      memory_keywords: args.memory_keywords,
-      interaction_type: args.interaction_type,
-      min_strength: minStrength,
-      limit,
+  return ResponseBuilder.success(
+    {
+      memories: formattedResults,
+      total_found: formattedResults.length,
+      search_criteria: {
+        entity_name: args.entity_name,
+        link_types: args.link_types,
+        memory_keywords: args.memory_keywords,
+        interaction_type: args.interaction_type,
+        min_strength: minStrength,
+        limit,
+      },
     },
-  }, `Found ${formattedResults.length} memory-social connections`);
-}; 
+    `Found ${formattedResults.length} memory-social connections`
+  );
+};

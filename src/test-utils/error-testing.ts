@@ -20,7 +20,7 @@ export class TestErrorChecker {
       hasTimestamp: false,
       hasContext: false,
       contextValid: false,
-      messageValid: false
+      messageValid: false,
     };
 
     // Check if it's an MCPError
@@ -33,7 +33,9 @@ export class TestErrorChecker {
     if (expectedType) {
       result.hasCorrectType = error.type === expectedType;
     } else {
-      result.hasCorrectType = Object.values(ERROR_TYPES).includes(error.type as typeof ERROR_TYPES[keyof typeof ERROR_TYPES]);
+      result.hasCorrectType = Object.values(ERROR_TYPES).includes(
+        error.type as (typeof ERROR_TYPES)[keyof typeof ERROR_TYPES]
+      );
     }
 
     // Check timestamp
@@ -55,7 +57,7 @@ export class TestErrorChecker {
    * Validate that an error type is valid
    */
   static validateErrorType(errorType: string): boolean {
-    return Object.values(ERROR_TYPES).includes(errorType as typeof ERROR_TYPES[keyof typeof ERROR_TYPES]);
+    return Object.values(ERROR_TYPES).includes(errorType as (typeof ERROR_TYPES)[keyof typeof ERROR_TYPES]);
   }
 
   /**
@@ -73,39 +75,39 @@ export class TestErrorChecker {
       {
         name: 'Entity Not Found Error',
         errorType: ERROR_TYPES.ENTITY_NOT_FOUND,
-        expectedMessage: 'Test Entity \'test-id\' not found',
+        expectedMessage: "Test Entity 'test-id' not found",
         expectedContext: { entityType: 'Test Entity', identifier: 'test-id' },
         shouldHaveTimestamp: true,
-        shouldHaveStack: true
+        shouldHaveStack: true,
       },
       {
         name: 'Validation Failed Error',
         errorType: ERROR_TYPES.VALIDATION_FAILED,
-        expectedMessage: 'Field \'testField\' is required',
+        expectedMessage: "Field 'testField' is required",
         expectedContext: { fieldName: 'testField', validationType: 'required' },
-        shouldHaveTimestamp: true
+        shouldHaveTimestamp: true,
       },
       {
         name: 'Tool Not Found Error',
         errorType: ERROR_TYPES.TOOL_NOT_FOUND,
         expectedMessage: 'Unknown test tool: nonexistent_tool',
         expectedContext: { toolName: 'nonexistent_tool', category: 'test' },
-        shouldHaveTimestamp: true
+        shouldHaveTimestamp: true,
       },
       {
         name: 'Configuration Error',
         errorType: ERROR_TYPES.CONFIGURATION_ERROR,
-        expectedMessage: 'Configuration key \'test.key\' not found',
+        expectedMessage: "Configuration key 'test.key' not found",
         expectedContext: { configKey: 'test.key', errorType: 'not_found' },
-        shouldHaveTimestamp: true
+        shouldHaveTimestamp: true,
       },
       {
         name: 'Security Violation Error',
         errorType: ERROR_TYPES.SECURITY_VIOLATION,
         expectedMessage: 'Security violations detected: test violation',
         expectedContext: { violations: ['test violation'] },
-        shouldHaveTimestamp: true
-      }
+        shouldHaveTimestamp: true,
+      },
     ];
   }
 
@@ -120,14 +122,23 @@ export class TestErrorChecker {
       fieldRequired: ErrorFactory.fieldRequired('testField', 'string'),
       fieldEmpty: ErrorFactory.fieldEmpty('testField'),
       invalidValue: ErrorFactory.invalidValue('testField', 'invalid', 'number'),
-      valueOutOfRange: ErrorFactory.valueOutOfRange('testField', STRESS_TEST_ITERATIONS, 0, DEFAULT_PERFORMANCE_THRESHOLD),
+      valueOutOfRange: ErrorFactory.valueOutOfRange(
+        'testField',
+        STRESS_TEST_ITERATIONS,
+        0,
+        DEFAULT_PERFORMANCE_THRESHOLD
+      ),
       configurationNotFound: ErrorFactory.configurationNotFound('test.key'),
       configurationLoadFailed: ErrorFactory.configurationLoadFailed('test module', 'connection failed'),
       apiKeyMissing: ErrorFactory.apiKeyMissing('Test Service', 'TEST_API_KEY'),
       securityViolation: ErrorFactory.securityViolation(['test violation']),
       jsonParseFailed: ErrorFactory.jsonParseFailed('invalid json'),
-      resourceLimitExceeded: ErrorFactory.resourceLimitExceeded('memory', DEFAULT_PERFORMANCE_THRESHOLD, STRESS_TEST_ITERATIONS),
-      toolExecutionFailed: ErrorFactory.toolExecutionFailed('test_tool', 'test', new Error('test error'))
+      resourceLimitExceeded: ErrorFactory.resourceLimitExceeded(
+        'memory',
+        DEFAULT_PERFORMANCE_THRESHOLD,
+        STRESS_TEST_ITERATIONS
+      ),
+      toolExecutionFailed: ErrorFactory.toolExecutionFailed('test_tool', 'test', new Error('test error')),
     };
   }
 
@@ -142,7 +153,7 @@ export class TestErrorChecker {
     return {
       logging: ErrorFactory.formatForLogging(error),
       api: ErrorFactory.formatForApi(error),
-      user: ErrorFactory.formatForUser(error)
+      user: ErrorFactory.formatForUser(error),
     };
   }
 
@@ -154,7 +165,7 @@ export class TestErrorChecker {
       isEntityNotFound: errors.map(e => ErrorFactory.isEntityNotFound(e)),
       isValidationError: errors.map(e => ErrorFactory.isValidationError(e)),
       isConfigurationError: errors.map(e => ErrorFactory.isConfigurationError(e)),
-      isSecurityError: errors.map(e => ErrorFactory.isSecurityError(e))
+      isSecurityError: errors.map(e => ErrorFactory.isSecurityError(e)),
     };
   }
 
@@ -174,14 +185,18 @@ export class TestErrorChecker {
         createError: () => ErrorFactory.entityNotFound('User', 'user-123', { requestId: 'req-456' }),
         expectedType: ERROR_TYPES.ENTITY_NOT_FOUND,
         expectedProperties: ['entityType', 'identifier', 'requestId'],
-        contextValidation: (ctx) => ctx.entityType === 'User' && ctx.identifier === 'user-123'
+        contextValidation: ctx => ctx.entityType === 'User' && ctx.identifier === 'user-123',
       },
       {
         name: 'Validation Error with Range',
-        createError: () => ErrorFactory.valueOutOfRange('age', STRESS_TEST_ITERATIONS, 0, DEFAULT_PERFORMANCE_THRESHOLD, { field: 'user.age' }),
+        createError: () =>
+          ErrorFactory.valueOutOfRange('age', STRESS_TEST_ITERATIONS, 0, DEFAULT_PERFORMANCE_THRESHOLD, {
+            field: 'user.age',
+          }),
         expectedType: ERROR_TYPES.VALIDATION_FAILED,
         expectedProperties: ['fieldName', 'value', 'min', 'max', 'field'],
-        contextValidation: (ctx) => ctx.min === 0 && ctx.max === DEFAULT_PERFORMANCE_THRESHOLD && ctx.value === STRESS_TEST_ITERATIONS
+        contextValidation: ctx =>
+          ctx.min === 0 && ctx.max === DEFAULT_PERFORMANCE_THRESHOLD && ctx.value === STRESS_TEST_ITERATIONS,
       },
       {
         name: 'Tool Execution Error with Stack',
@@ -191,8 +206,8 @@ export class TestErrorChecker {
         },
         expectedType: ERROR_TYPES.EXTERNAL_SERVICE_ERROR,
         expectedProperties: ['toolName', 'category', 'originalError', 'userId'],
-        contextValidation: (ctx) => ctx.toolName === 'user_create' && ctx.category === 'social'
-      }
+        contextValidation: ctx => ctx.toolName === 'user_create' && ctx.category === 'social',
+      },
     ];
   }
 
@@ -211,7 +226,7 @@ export class TestErrorChecker {
 
     return {
       wrappedMCPError,
-      wrappedRegularError
+      wrappedRegularError,
     };
   }
 
@@ -249,4 +264,4 @@ export class TestErrorChecker {
       throw new Error('Expected valid timestamp in ISO format');
     }
   }
-} 
+}

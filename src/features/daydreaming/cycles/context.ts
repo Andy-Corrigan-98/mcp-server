@@ -16,4 +16,4 @@ export async function getDaydreamingContext(): Promise<DaydreamingContext> {
     activeIntentions: consciousnessContext.intentions?.map((i: any) => i.id) || [],
     lastDaydreamCycle: null, // Would track from stored metadata
   };
-} 
+}

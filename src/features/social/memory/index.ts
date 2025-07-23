@@ -10,4 +10,4 @@
 // Operations
 export { createMemorySocialLink } from './link-create.js';
 export { searchMemorySocialLinks } from './search.js';
-export { getSocialMemoryContext } from './context.js'; 
+export { getSocialMemoryContext } from './context.js';

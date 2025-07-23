@@ -165,12 +165,14 @@ async function analyzeCommunicationEffectiveness(prisma: any, whereCondition: an
 
   const avgQuality = interactions.reduce((sum: number, i: any) => sum + (i.quality || 0.5), 0) / interactions.length;
 
-  const patterns = [{
-    pattern: 'communication_effectiveness',
-    confidence: avgQuality,
-    examples: [`Average interaction quality: ${avgQuality.toFixed(2)}`],
-    impact: avgQuality > 0.7 ? 'high' : avgQuality > 0.5 ? 'medium' : 'low',
-  }];
+  const patterns = [
+    {
+      pattern: 'communication_effectiveness',
+      confidence: avgQuality,
+      examples: [`Average interaction quality: ${avgQuality.toFixed(2)}`],
+      impact: avgQuality > 0.7 ? 'high' : avgQuality > 0.5 ? 'medium' : 'low',
+    },
+  ];
 
   return { patterns, trends: [], metrics: { average_quality: avgQuality } };
 }
@@ -182,12 +184,14 @@ async function analyzeSocialGrowth(prisma: any, whereCondition: any) {
 
   const avgConfidence = learnings.reduce((sum: number, l: any) => sum + l.confidence, 0) / learnings.length;
 
-  const patterns = [{
-    pattern: 'social_learning_growth',
-    confidence: avgConfidence,
-    examples: [`${learnings.length} social learnings recorded`],
-    impact: learnings.length > 10 ? 'high' : 'medium',
-  }];
+  const patterns = [
+    {
+      pattern: 'social_learning_growth',
+      confidence: avgConfidence,
+      examples: [`${learnings.length} social learnings recorded`],
+      impact: learnings.length > 10 ? 'high' : 'medium',
+    },
+  ];
 
   return { patterns, trends: [], metrics: { total_learnings: learnings.length } };
 }
@@ -224,4 +228,4 @@ function generateRecommendations(analysisType: string, analysisData: any): strin
   }
 
   return recommendations;
-} 
+}

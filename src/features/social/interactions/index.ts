@@ -12,4 +12,4 @@ export { loadInteractionConfig, type InteractionConfig } from './load-config.js'
 
 // Operations
 export { recordInteraction } from './record.js';
-export { searchInteractions } from './search.js'; 
+export { searchInteractions } from './search.js';

@@ -7,7 +7,9 @@ const DEFAULT_DAYS_BACK = 7;
 /**
  * Get stored daydream insights with filtering
  */
-export async function getDaydreamInsights(args: Record<string, unknown>): Promise<{ insights: SerendipitousInsight[] }> {
+export async function getDaydreamInsights(
+  args: Record<string, unknown>
+): Promise<{ insights: SerendipitousInsight[] }> {
   const minScore = Math.max(0, Math.min(1, (args.min_score as number) || DEFAULT_MIN_SCORE));
   const daysBack = Math.max(1, (args.days_back as number) || DEFAULT_DAYS_BACK);
   const tags = (args.tags as string[]) || [];
@@ -28,4 +30,4 @@ export async function getDaydreamInsights(args: Record<string, unknown>): Promis
   }
 
   return { insights };
-} 
+}

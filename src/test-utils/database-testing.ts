@@ -15,7 +15,7 @@ export class DatabaseTestManager {
       seedData: false,
       enableLogging: false,
       transactionMode: 'auto',
-      ...options
+      ...options,
     };
   }
 
@@ -26,7 +26,7 @@ export class DatabaseTestManager {
     if (this.options.useTestDatabase) {
       await this.setupTestDatabase();
     }
-    
+
     if (this.options.seedData) {
       await this.seedTestData();
     }
@@ -100,14 +100,14 @@ export class DatabaseTestManager {
         id: 'test-user-123',
         name: 'Test User',
         email: 'test@example.com',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       },
       config: {
         key: 'test.config',
         value: 'test-value',
         type: 'string',
-        source: 'test'
-      }
+        source: 'test',
+      },
     };
   }
 
@@ -124,7 +124,7 @@ export class DatabaseTestManager {
       },
       teardown: async (manager: DatabaseTestManager) => {
         await manager.teardown();
-      }
+      },
     };
   }
-} 
+}

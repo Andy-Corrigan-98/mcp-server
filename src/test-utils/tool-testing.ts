@@ -11,28 +11,33 @@ export class TestToolHarness {
   /**
    * Create a mock tool executor for testing
    */
-  static createMockToolExecutor(toolHandlers: Record<string, (args: Record<string, unknown>) => Promise<unknown>>): ToolExecutor {
+  static createMockToolExecutor(
+    toolHandlers: Record<string, (args: Record<string, unknown>) => Promise<unknown>>
+  ): ToolExecutor {
     return new (class extends ToolExecutor {
       protected category = 'test';
       protected toolHandlers = toolHandlers;
 
       getTools(): Record<string, Tool> {
-        return Object.keys(toolHandlers).reduce((tools, toolName) => {
-          tools[toolName] = {
-            name: toolName,
-            description: `Test tool: ${toolName}`,
-            inputSchema: {
-              type: 'object',
-              properties: {
-                testParam: {
-                  type: 'string',
-                  description: 'Test parameter'
-                }
-              }
-            }
-          };
-          return tools;
-        }, {} as Record<string, Tool>);
+        return Object.keys(toolHandlers).reduce(
+          (tools, toolName) => {
+            tools[toolName] = {
+              name: toolName,
+              description: `Test tool: ${toolName}`,
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  testParam: {
+                    type: 'string',
+                    description: 'Test parameter',
+                  },
+                },
+              },
+            };
+            return tools;
+          },
+          {} as Record<string, Tool>
+        );
       }
     })();
   }
@@ -50,19 +55,19 @@ export class TestToolHarness {
       success: false,
       toolName,
       input,
-      executionTime: 0
+      executionTime: 0,
     };
 
     try {
       const output = await toolExecutor.execute(toolName, input);
       const endTime = Date.now();
-      
+
       result.success = true;
       result.result = output;
       result.executionTime = endTime - startTime;
     } catch (error) {
       const endTime = Date.now();
-      
+
       result.success = false;
       result.error = error instanceof MCPError ? error : ErrorFactory.wrapError(error as Error);
       result.executionTime = endTime - startTime;
@@ -114,7 +119,7 @@ export class TestToolHarness {
     return {
       valid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -127,30 +132,26 @@ export class TestToolHarness {
         name: 'Tool not found',
         toolName: 'nonexistent_tool',
         input: {},
-        expectedErrorType: ERROR_TYPES.TOOL_NOT_FOUND
+        expectedErrorType: ERROR_TYPES.TOOL_NOT_FOUND,
       },
       {
         name: 'Tool execution error',
         toolName: 'error_tool', // This would need to be added to test executor
         input: { shouldThrow: true },
-        expectedErrorType: ERROR_TYPES.EXTERNAL_SERVICE_ERROR
-      }
+        expectedErrorType: ERROR_TYPES.EXTERNAL_SERVICE_ERROR,
+      },
     ];
 
     const results = [];
     for (const testCase of testCases) {
-      const result = await TestToolHarness.executeToolWithTracking(
-        toolExecutor,
-        testCase.toolName,
-        testCase.input
-      );
+      const result = await TestToolHarness.executeToolWithTracking(toolExecutor, testCase.toolName, testCase.input);
 
       results.push({
         ...testCase,
         success: !result.success,
         actualErrorType: result.error?.type,
         errorMatches: result.error?.type === testCase.expectedErrorType,
-        executionTime: result.executionTime
+        executionTime: result.executionTime,
       });
     }
 
@@ -168,7 +169,7 @@ export class TestToolHarness {
         input: { message: 'Hello World' },
         expectedOutputShape: { success: 'boolean', result: 'string' },
         expectError: false,
-        validateExecution: true
+        validateExecution: true,
       },
       {
         name: 'Tool execution with validation error',
@@ -176,7 +177,7 @@ export class TestToolHarness {
         input: { invalidField: '' },
         expectError: true,
         expectedErrorType: ERROR_TYPES.VALIDATION_FAILED,
-        validateExecution: true
+        validateExecution: true,
       },
       {
         name: 'Tool execution with complex output',
@@ -185,10 +186,10 @@ export class TestToolHarness {
         expectedOutputShape: {
           data: 'object',
           metadata: 'object',
-          timestamp: 'string'
+          timestamp: 'string',
         },
         expectError: false,
-        validateExecution: true
+        validateExecution: true,
       },
       {
         name: 'Tool execution with async operations',
@@ -196,8 +197,8 @@ export class TestToolHarness {
         input: { delay: 100 },
         expectedOutputShape: { completed: 'boolean', duration: 'number' },
         expectError: false,
-        validateExecution: true
-      }
+        validateExecution: true,
+      },
     ];
   }
 
@@ -210,7 +211,7 @@ export class TestToolHarness {
         return {
           success: true,
           result: `Processed: ${args.message || 'default'}`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       },
 
@@ -226,26 +227,26 @@ export class TestToolHarness {
           data: {
             complexity: args.complexity,
             processed: true,
-            items: [1, 2, 3]
+            items: [1, 2, 3],
           },
           metadata: {
             processingTime: Date.now(),
-            version: '1.0.0'
+            version: '1.0.0',
           },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         };
       },
 
       test_async: async (args: Record<string, unknown>) => {
         const delay = (args.delay as number) || 50;
         const startTime = Date.now();
-        
+
         await new Promise(resolve => setTimeout(resolve, delay));
-        
+
         return {
           completed: true,
           duration: Date.now() - startTime,
-          requestedDelay: delay
+          requestedDelay: delay,
         };
       },
 
@@ -255,7 +256,7 @@ export class TestToolHarness {
 
       test_mcp_error: async () => {
         throw ErrorFactory.configurationNotFound('test.config.key');
-      }
+      },
     };
 
     return TestToolHarness.createMockToolExecutor(toolHandlers);
@@ -291,7 +292,7 @@ export class TestToolHarness {
       minTime: Math.min(...executionTimes),
       maxTime: Math.max(...executionTimes),
       successRate: successCount / iterations,
-      failureCount: iterations - successCount
+      failureCount: iterations - successCount,
     };
   }
 
@@ -305,15 +306,13 @@ export class TestToolHarness {
     concurrency: number = 5
   ) {
     const startTime = Date.now();
-    
+
     // Execute tools in batches with specified concurrency
     const results = [];
     for (let i = 0; i < inputs.length; i += concurrency) {
       const batch = inputs.slice(i, i + concurrency);
-      const batchPromises = batch.map(input => 
-        TestToolHarness.executeToolWithTracking(toolExecutor, toolName, input)
-      );
-      
+      const batchPromises = batch.map(input => TestToolHarness.executeToolWithTracking(toolExecutor, toolName, input));
+
       const batchResults = await Promise.all(batchPromises);
       results.push(...batchResults);
     }
@@ -327,7 +326,7 @@ export class TestToolHarness {
       totalTime: endTime - startTime,
       averageTime: (endTime - startTime) / inputs.length,
       successRate: successCount / inputs.length,
-      results
+      results,
     };
   }
 
@@ -363,7 +362,7 @@ export class TestToolHarness {
 
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
   }
 
@@ -382,13 +381,9 @@ export class TestToolHarness {
         for (const [toolName, toolDef] of Object.entries(tools)) {
           // Validate tool schema
           const schemaValidation = TestToolHarness.validateToolSchema(toolDef);
-          
+
           // Test basic execution with empty input
-          const executionResult = await TestToolHarness.executeToolWithTracking(
-            toolExecutor,
-            toolName,
-            {}
-          );
+          const executionResult = await TestToolHarness.executeToolWithTracking(toolExecutor, toolName, {});
 
           results.push({
             toolName,
@@ -396,7 +391,7 @@ export class TestToolHarness {
             schemaErrors: schemaValidation.errors,
             executionSuccess: executionResult.success,
             executionTime: executionResult.executionTime,
-            error: executionResult.error?.message
+            error: executionResult.error?.message,
           });
         }
 
@@ -422,9 +417,9 @@ export class TestToolHarness {
           supportedToolCount: supportedTools.length,
           consistent: Object.keys(tools).length === supportedTools.length,
           missingFromSupported: Object.keys(tools).filter(name => !supportedTools.includes(name)),
-          extraInSupported: supportedTools.filter(name => !(name in tools))
+          extraInSupported: supportedTools.filter(name => !(name in tools)),
         };
-      }
+      },
     };
   }
 
@@ -432,8 +427,8 @@ export class TestToolHarness {
    * Mock tool execution for testing
    */
   static async mockToolExecution(
-    toolName: string, 
-    args: Record<string, unknown>, 
+    toolName: string,
+    args: Record<string, unknown>,
     expectedResult?: unknown
   ): Promise<{ success: boolean; result?: unknown; error?: unknown }> {
     try {
@@ -441,20 +436,20 @@ export class TestToolHarness {
       if (expectedResult !== undefined) {
         return {
           success: true,
-          result: expectedResult
+          result: expectedResult,
         };
       }
-      
+
       // Default mock behavior
       return {
         success: true,
-        result: { toolName, args, executedAt: new Date().toISOString() }
+        result: { toolName, args, executedAt: new Date().toISOString() },
       };
     } catch (error) {
       return {
         success: false,
-        error
+        error,
       };
     }
   }
-} 
+}
