@@ -117,13 +117,8 @@ export class ConfigurationTools extends ToolExecutor {
         description: 'Get overview of all configuration categories and their purposes',
         inputSchema: {
           type: 'object',
-          properties: {
-            random_string: {
-              type: 'string',
-              description: 'Dummy parameter for no-parameter tools',
-            },
-          },
-          required: ['random_string'],
+          properties: {},
+          required: [],
         },
       },
     };
