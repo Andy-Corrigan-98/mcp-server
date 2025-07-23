@@ -4,6 +4,37 @@ import { InputValidator } from '../../validation/index.js';
 import { ConfigurationService } from '../../db/configuration-service.js';
 
 /**
+ * Interface for GenAI model with proper typing
+ */
+interface GenAIModel {
+  generateContent: (prompt: string) => Promise<{ response: { text: () => string } }>;
+}
+
+/**
+ * Interface for conversation arguments
+ */
+interface ConverseArgs {
+  question: string;
+  context?: string;
+}
+
+/**
+ * Interface for reasoning chat arguments
+ */
+interface ReasoningChatArgs {
+  question: string;
+  history?: ConversationExchange[];
+}
+
+/**
+ * Interface for conversation exchange
+ */
+interface ConversationExchange {
+  question: string;
+  response: string;
+}
+
+/**
  * Simple security patterns for prompt injection detection
  * Lightweight alternative to complex AI-based detection
  */
@@ -119,7 +150,7 @@ class SecurityGuard {
 export class ConversationalGenAITools {
   private genAI: GoogleGenerativeAI | null = null;
   private configService: ConfigurationService;
-  private model: any = null;
+  private model: GenAIModel | null = null;
 
   constructor() {
     this.configService = ConfigurationService.getInstance();
@@ -146,7 +177,7 @@ export class ConversationalGenAITools {
    * Direct conversation with Gemini - simple and natural
    * No complex prompt engineering, just secure conversation
    */
-  async converse(args: any): Promise<any> {
+  async converse(args: ConverseArgs): Promise<Record<string, unknown>> {
     // Ensure GenAI is initialized
     if (!this.genAI || !this.model) {
       await this.initializeGenAI();
@@ -189,7 +220,7 @@ export class ConversationalGenAITools {
       }
 
       // Make the API call
-      const result = await this.model.generateContent(conversation);
+      const result = await this.model!.generateContent(conversation);
       const response = await result.response;
       let aiResponse = response.text();
 
@@ -216,7 +247,7 @@ export class ConversationalGenAITools {
    * Multi-turn reasoning conversation
    * Maintains context across multiple exchanges
    */
-  async reasoningChat(args: any): Promise<any> {
+  async reasoningChat(args: ReasoningChatArgs): Promise<Record<string, unknown>> {
     if (!this.genAI || !this.model) {
       await this.initializeGenAI();
     }
@@ -227,7 +258,7 @@ export class ConversationalGenAITools {
     // Validate each part of conversation history
     const sanitizedHistory = conversationHistory
       .slice(-10) // Keep only last 10 exchanges
-      .map((exchange: any) => ({
+      .map((exchange: ConversationExchange) => ({
         question: InputValidator.sanitizeString(exchange.question || '', 1000),
         response: InputValidator.sanitizeString(exchange.response || '', 2000),
       }));
@@ -249,7 +280,7 @@ export class ConversationalGenAITools {
       // Add conversation history
       if (sanitizedHistory.length > 0) {
         conversation += '\n\nPrevious conversation:';
-        sanitizedHistory.forEach((exchange: { question: string; response: string }, index: number) => {
+        sanitizedHistory.forEach((exchange: ConversationExchange, index: number) => {
           conversation += `\nQ${index + 1}: ${exchange.question}`;
           conversation += `\nA${index + 1}: ${exchange.response}`;
         });
@@ -258,7 +289,7 @@ export class ConversationalGenAITools {
       conversation += `\n\nCurrent question: ${question}`;
       conversation += '\n\nPlease provide a thoughtful response that takes the conversation context into account.';
 
-      const result = await this.model.generateContent(conversation);
+      const result = await this.model!.generateContent(conversation);
       const response = await result.response;
       let aiResponse = response.text();
 

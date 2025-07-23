@@ -25,10 +25,16 @@ export class ConversationalGenAIToolsWrapper {
   async execute(name: string, args: Record<string, unknown>): Promise<unknown> {
     switch (name) {
       case 'genai_converse':
-        return await this.tools.converse(args);
+        return await this.tools.converse({
+          question: args.question as string,
+          context: args.context as string | undefined,
+        });
 
       case 'genai_reasoning_chat':
-        return await this.tools.reasoningChat(args);
+        return await this.tools.reasoningChat({
+          question: args.question as string,
+          history: args.history as Array<{ question: string; response: string }> | undefined,
+        });
 
       default:
         throw new Error(`Unknown conversational GenAI tool: ${name}`);
