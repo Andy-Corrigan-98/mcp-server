@@ -16,5 +16,13 @@ export const getEntityByName = async (name: string): Promise<SocialEntity | null
     });
   });
 
-  return result || null;
+  if (!result) return null;
+
+  // Transform null values to undefined to match interface
+  return {
+    ...result,
+    displayName: result.displayName ?? undefined,
+    description: result.description ?? undefined,
+    lastInteraction: result.lastInteraction ?? undefined,
+  };
 };

@@ -11,8 +11,8 @@ import { executeDatabase } from '../../../services/database.js';
  */
 export const getRelationshipByEntityId = async (entityId: number): Promise<any | null> => {
   const result = await executeDatabase(async prisma => {
-    return prisma.socialRelationship.findUnique({
-      where: { socialEntityId: entityId },
+    return prisma.socialRelationship.findFirst({
+      where: { entityId: entityId },
     });
   });
 

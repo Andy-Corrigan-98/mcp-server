@@ -30,7 +30,7 @@ export const listRelationships = async (filters?: {
     return prisma.socialRelationship.findMany({
       where,
       include: {
-        socialEntity: true,
+        entity: true,
       },
       take: filters?.limit || DEFAULT_LIMIT,
       skip: filters?.offset || DEFAULT_OFFSET,

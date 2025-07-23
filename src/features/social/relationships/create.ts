@@ -64,7 +64,7 @@ export const createRelationship = async (args: {
   const newRelationship = await executeDatabase(async prisma => {
     return prisma.socialRelationship.create({
       data: {
-        socialEntityId: entity.id,
+        entityId: entity.id,
         relationshipType: relationshipType as any,
         strength,
         trust,

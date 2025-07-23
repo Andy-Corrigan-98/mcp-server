@@ -14,7 +14,7 @@ export const listEntities = async (filters?: {
   limit?: number;
   offset?: number;
 }): Promise<SocialEntity[]> => {
-  return executeDatabase(async prisma => {
+  const results = await executeDatabase(async prisma => {
     const where: Record<string, unknown> = {};
     if (filters?.entityType) {
       where.entityType = filters.entityType;
@@ -27,4 +27,12 @@ export const listEntities = async (filters?: {
       orderBy: { createdAt: 'desc' },
     });
   });
+
+  // Transform null values to undefined to match interface
+  return results.map(result => ({
+    ...result,
+    displayName: result.displayName ?? undefined,
+    description: result.description ?? undefined,
+    lastInteraction: result.lastInteraction ?? undefined,
+  }));
 };

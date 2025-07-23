@@ -33,15 +33,15 @@ export const createMemorySocialLink = async (args: {
     throw new Error(`Social entity '${entityName}' not found`);
   }
 
-  // Check if memory exists (simplified check for now)
-  const memoryExists = await executeDatabase(async prisma => {
-    const memory = await prisma.memory.findFirst({
+  // Get the memory by key to obtain its ID
+  const memory = (await executeDatabase(async prisma => {
+    return prisma.memory.findFirst({
       where: { key: memoryKey },
+      select: { id: true },
     });
-    return !!memory;
-  });
+  })) as { id: number } | null;
 
-  if (!memoryExists) {
+  if (!memory) {
     throw new Error(`Memory with key '${memoryKey}' not found`);
   }
 
@@ -66,7 +66,7 @@ export const createMemorySocialLink = async (args: {
   const link = await executeDatabase(async prisma => {
     return prisma.memorySocialLink.create({
       data: {
-        memoryKey,
+        memoryId: memory.id,
         socialEntityId: entity.id,
         interactionId: args.interaction_id,
         relationshipType: linkType,
