@@ -6,13 +6,13 @@ This MCP server follows the **brain storage pattern**:
 - **MCP Server**: Persistent brain storage (memory, personality, context)  
 - **LLM Agent**: Real thinking engine (reasoning, creativity, decisions)
 
-**No fake consciousness generation** - the agent does authentic thinking while MCP provides persistent brain state.
+**No fake consciousness generation** - agents do authentic thinking while MCP provides persistent brain state.
 
 ## 🏗️ System Architecture
 
 ### Functional Architecture Principles
 
-The entire codebase follows **single-responsibility functional architecture**:
+The codebase follows **single-responsibility functional architecture**:
 - **One function per file** - Each module has exactly one reason to change
 - **Pure functions** - No hidden state or side effects  
 - **Shared infrastructure** - Common concerns handled by reusable modules
@@ -23,16 +23,10 @@ The entire codebase follows **single-responsibility functional architecture**:
 #### 1. **Consciousness Layer** - `src/features/consciousness/`
 ```
 consciousness/
-├── context/              # Rich context preparation for agent reflection
-│   ├── get-context.ts   # Current consciousness state retrieval
-│   └── prepare-context.ts # Enhanced context packaging
-├── insights/
-│   └── store-insight.ts # Agent insight storage with personality impact
-├── intentions/          # Long-term goal persistence
-│   ├── set-intention.ts
-│   └── update-intention.ts
-├── session/
-│   └── update-session.ts # Cognitive load and learning pattern tracking
+├── context/              # Rich context preparation
+├── insights/             # Agent insight storage with personality impact
+├── intentions/           # Long-term goal persistence
+├── session/             # Cognitive load and learning pattern tracking
 └── index.ts            # Clean composition and tool routing
 ```
 
@@ -40,13 +34,8 @@ consciousness/
 ```
 memory/
 ├── storage/             # Memory persistence operations
-│   ├── store-memory.ts
-│   └── retrieve-memory.ts
-├── search/
-│   └── search-memories.ts # Semantic search with relevance scoring
+├── search/              # Semantic search with relevance scoring
 ├── knowledge-graph/     # Relational knowledge structures
-│   ├── add-knowledge.ts
-│   └── query-knowledge.ts
 └── index.ts            # Memory tool composition
 ```
 
@@ -54,30 +43,13 @@ memory/
 ```
 social/
 ├── entities/           # Social entity management (7 modules)
-│   ├── create.ts      # Entity creation
-│   ├── update.ts      # Entity updates  
-│   ├── get-by-id.ts   # ID-based retrieval
-│   ├── get-by-name.ts # Name-based retrieval
-│   └── list.ts        # Listing and filtering
 ├── relationships/      # Relationship dynamics (8 modules)
-│   ├── create.ts      # Multi-dimensional relationship tracking
-│   ├── update.ts      # Trust, familiarity, affinity updates
-│   └── delete.ts      # Relationship cleanup
 ├── interactions/       # Social interaction tracking
-│   ├── record.ts      # Rich interaction recording
-│   └── search.ts      # Interaction history retrieval
-├── emotional/
-│   └── record.ts      # Emotional state and pattern tracking
-├── learning/
-│   └── record.ts      # Social insights and communication learning
+├── emotional/          # Emotional state and pattern tracking
+├── learning/           # Social insights and communication learning
 ├── memory/            # Memory-social integration
-│   ├── link-create.ts # Connect memories with relationships
-│   ├── search.ts      # Socially-linked memory search
-│   └── context.ts     # Shared experience context
-├── patterns/
-│   └── analyze.ts     # Social pattern analysis
-├── context/
-│   └── prepare.ts     # Social interaction context preparation
+├── patterns/          # Social pattern analysis
+├── context/           # Social interaction context preparation
 └── index.ts          # Social tool composition and routing
 ```
 
@@ -90,16 +62,8 @@ reasoning/
 │   ├── validation/    # Input validation & sanitization
 │   └── responses/     # Response parsing utilities
 ├── sequential/        # AI-powered sequential thinking
-│   ├── sequential-thinking.ts
-│   ├── prompt-builder.ts
-│   └── response-processor.ts
 ├── conversational/    # Natural dialogue management
-│   ├── simple-conversation.ts    # Direct Q&A interactions
-│   ├── multi-turn-chat.ts       # Context-aware conversations
-│   └── index.ts                 # Conversational tool composition
 ├── genai-reasoning/   # Advanced AI reasoning
-│   ├── genai-reasoning.ts
-│   └── index.ts
 └── index.ts          # Reasoning tool composition
 ```
 
@@ -108,13 +72,8 @@ reasoning/
 daydreaming/
 ├── config/           # Configuration management
 ├── sampling/         # Concept sampling strategies (4 approaches)
-│   └── strategies/   # Random, importance-weighted, cross-domain, recent-biased
 ├── exploration/      # Connection hypothesis generation
 ├── evaluation/       # AI-powered insight evaluation
-│   ├── prompt-builder.ts        # Evaluation prompt construction
-│   ├── response-processor.ts    # AI response parsing
-│   ├── fallback-evaluator.ts    # Heuristic fallback
-│   └── evaluate-insight-core.ts # Core evaluation logic
 ├── storage/          # Insight storage and retrieval
 ├── cycles/           # Cycle execution orchestration
 ├── sources/          # Knowledge graph and memory access
@@ -123,7 +82,6 @@ daydreaming/
 
 #### 6. **Configuration Layer** - `src/tools/configuration/`
 - **84+ Parameters**: Database-driven configuration system
-- **Personality Vocabulary**: Expressive consciousness language
 - **Runtime Adaptation**: Agent can modify its own parameters
 - **Evolution Tracking**: Change history with reasoning
 
@@ -159,17 +117,6 @@ Central orchestration of all consciousness tools:
 - **Full Type Safety**: 40+ 'any' types eliminated, proper interfaces throughout
 - **Path Alias Resolution**: Automated transformation via tsc-alias for clean imports
 - **ES Modules**: Modern module system with barrel exports pattern
-
-### Container Architecture
-- **Container Optimized**: Stable Docker deployment with exec-ready architecture
-- **Self-Contained Setup**: Automatically sets up database on startup
-- **MCP Communication**: Ready for stdio communication via `docker exec`
-
-### Quality & Security
-- **Quality Gates**: Automated testing, linting, and formatting
-- **SQL Injection Protection**: Prisma ORM with prepared statements
-- **Input Validation**: Multi-layer sanitization and XSS prevention
-- **Container Security**: Non-root user and minimal attack surface
 
 ## 🔄 Data Flow
 
@@ -268,11 +215,6 @@ Memory Linking → Pattern Analysis → Social Learning → Context Preparation
 - **Pattern Recognition**: Advanced social and behavioral pattern analysis
 - **Predictive Models**: Relationship and interaction outcome prediction
 - **Learning Optimization**: Adaptive learning rate and focus adjustments
-
-### Integration Capabilities
-- **External APIs**: Integration with external knowledge sources via shared patterns
-- **Webhook Support**: Real-time event processing capabilities
-- **Plugin Architecture**: Extensible tool system following functional patterns
 
 ## 🏗️ Development Guidelines
 
