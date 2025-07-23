@@ -110,20 +110,26 @@ SOCIAL CONSCIOUSNESS:
 
 ## 📚 Documentation
 
-### **Essential Guides**
-- [Installation Guide](docs/INSTALLATION.md) - Setup and deployment
-- [Architecture Overview](docs/ARCHITECTURE.md) - System design and patterns
-- [Development Guide](docs/DEVELOPMENT.md) - Development workflows
-- [Tools Reference](docs/TOOLS_REFERENCE.md) - Complete tool documentation
+### **Getting Started**
+- [Installation Guide](docs/INSTALLATION.md) - Setup and deployment  
+- [User Rules Guide](docs/reference/user-rules-guide.md) - Connection setup for AI tools
 
-### **Specialized Features**
-- [Social Consciousness](docs/SOCIAL_CONSCIOUSNESS.md) - Relationship intelligence
-- [Configuration Management](docs/CONFIGURATION.md) - Self-modification system
-- [Daydreaming System](docs/DAYDREAMING_SYSTEM.md) - Background creativity
+### **Development** - `docs/development/`
+- [Architecture](docs/development/architecture.md) - System design and patterns
+- [Development Guide](docs/development/development.md) - Development workflows  
+- [Contributing](docs/development/contributing.md) - Contribution guidelines
+- [Security](docs/development/security.md) - Security guidelines
+- [Refactoring Roadmap](docs/development/refactoring-roadmap.md) - Architectural achievements
 
-### **Community**
-- [Contributing Guidelines](docs/CONTRIBUTING.md) - Contribution process
-- [Refactoring Roadmap](docs/REFACTORING_ROADMAP.md) - Architectural achievements
+### **Features** - `docs/features/`
+- [Social Consciousness](docs/features/social-consciousness.md) - Relationship intelligence
+- [Configuration Management](docs/features/configuration.md) - Self-modification system
+- [GenAI Integration](docs/features/genai-guide.md) - AI-powered features and conversational tools
+- [Daydreaming System](docs/features/daydreaming.md) - Background creativity and insight generation
+
+### **Reference** - `docs/reference/`
+- [Tools Reference](docs/reference/tools-reference.md) - Complete tool documentation
+- [Troubleshooting](docs/reference/troubleshooting.md) - Common issues and solutions
 
 ## 🔧 Development
 
