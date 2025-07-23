@@ -4,7 +4,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { functionalSequentialThinking, SequentialThinkingArgs } from '../sequential/index.js';
+import { sequentialThinking, SequentialThinkingArgs } from '../sequential/index.js';
 
 /**
  * Tool definitions for GenAI-powered reasoning
@@ -105,7 +105,7 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
         needs_more_thoughts: typeof args.needs_more_thoughts === 'boolean' ? args.needs_more_thoughts : undefined,
       };
 
-      return functionalSequentialThinking(sequentialArgs);
+      return sequentialThinking(sequentialArgs);
     }
 
     default:

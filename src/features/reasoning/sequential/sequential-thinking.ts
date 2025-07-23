@@ -1,25 +1,21 @@
-import { InputValidator } from '../../../validation/index.js';
-import { ConfigurationService } from '../../../db/configuration-service.js';
-import { ThinkingSession, ThoughtStep, ThinkingResult } from '../../../tools/reasoning/types.js';
-import { createNewSession, getCurrentSessionId, handleBranching } from '../session/session-management.js';
+/**
+ * Functional Sequential Thinking Module
+ * Single responsibility: Orchestrate AI-powered sequential reasoning
+ * Uses shared GenAI infrastructure and specialized reasoning modules
+ */
+
+import { getGenAIModel, SecurityGuard, validateNumber, validateBoolean } from '../shared/index.js';
+import { buildReasoningPrompt, ReasoningPromptContext } from './prompt-builder.js';
 import {
-  generateInsights,
-  extractHypothesis,
-  extractVerification,
-  generateConclusion,
-  generateSessionSummary,
-} from '../insights/generate-insights.js';
-import { validateNumber } from '../utils/reasoning-utils.js';
+  processReasoningResponse,
+  createFallbackReasoningResult,
+  ProcessedReasoningResult,
+} from './response-processor.js';
 
 /**
- * Active sessions storage
+ * Arguments for functional sequential thinking
  */
-const activeSessions: Map<string, ThinkingSession> = new Map();
-
-/**
- * Advanced AI-powered reasoning system for sophisticated problem-solving, analysis, and step-by-step thinking
- */
-export async function sequentialThinking(args: {
+export interface SequentialThinkingArgs {
   thought: string;
   next_thought_needed: boolean;
   thought_number: number;
@@ -29,86 +25,99 @@ export async function sequentialThinking(args: {
   branch_from_thought?: number;
   branch_id?: string;
   needs_more_thoughts?: boolean;
-}): Promise<ThinkingResult> {
-  const config = ConfigurationService.getInstance();
-
-  // Get configuration values
-  const maxThoughtLength = await config.getNumber('reasoning.max_thought_length', 2000);
-  const maxBranchIdLength = await config.getNumber('reasoning.max_branch_id_length', 50);
-
-  // Validate input parameters
-  const thought = InputValidator.sanitizeString(args.thought, maxThoughtLength);
-  const nextThoughtNeeded = Boolean(args.next_thought_needed);
-  const thoughtNumber = validateNumber(args.thought_number, 1);
-  const totalThoughts = validateNumber(args.total_thoughts, 1);
-  const isRevision = Boolean(args.is_revision) || false;
-  const revisesThought = args.revises_thought ? validateNumber(args.revises_thought, 1) : undefined;
-  const branchFromThought = args.branch_from_thought ? validateNumber(args.branch_from_thought, 1) : undefined;
-  const branchId = args.branch_id ? InputValidator.sanitizeString(args.branch_id, maxBranchIdLength) : undefined;
-  const needsMoreThoughts = Boolean(args.needs_more_thoughts) || false;
-
-  // Get or create session (simple session management based on context)
-  const sessionId = getCurrentSessionId();
-  let session = activeSessions.get(sessionId);
-
-  if (!session) {
-    session = createNewSession(sessionId, activeSessions);
-  }
-
-  // Ensure session is not undefined
-  if (!session) {
-    throw new Error('Failed to create or retrieve thinking session');
-  }
-
-  // Create new thought step
-  const thoughtStep: ThoughtStep = {
-    thoughtNumber,
-    thought,
-    nextThoughtNeeded,
-    totalThoughts,
-    isRevision,
-    revisesThought,
-    branchFromThought,
-    branchId,
-    needsMoreThoughts,
-    timestamp: new Date(),
-  };
-
-  // Handle branching logic
-  if (branchId && branchFromThought) {
-    handleBranching(session, thoughtStep, branchId, branchFromThought);
-  } else {
-    // Add to main thought sequence
-    session.thoughts.push(thoughtStep);
-  }
-
-  session.lastUpdated = new Date();
-
-  // Generate insights and analysis
-  const insights = generateInsights(session);
-  const hypothesis = extractHypothesis(session);
-  const verification = extractVerification(session);
-  const conclusion = generateConclusion(
-    session,
-    nextThoughtNeeded,
-    await config.getNumber('reasoning.summary_length', 200)
-  );
-
-  // Clean up completed sessions to prevent memory leaks
-  if (!nextThoughtNeeded && !needsMoreThoughts) {
-    activeSessions.delete(sessionId);
-  }
-
-  return {
-    thoughtNumber,
-    totalThoughts,
-    nextThoughtNeeded,
-    branches: Array.from(session.branches.keys()),
-    thoughtHistoryLength: session.thoughts.length,
-    sessionSummary: generateSessionSummary(session, await config.getNumber('reasoning.milliseconds_per_second', 1000)),
-    insights,
-    hypothesis,
-    verification,
-    conclusion,
-  };
 }
+
+/**
+ * Enhanced sequential thinking powered by Google GenAI
+ * Functional implementation using shared infrastructure
+ */
+export const sequentialThinking = async (args: SequentialThinkingArgs): Promise<ProcessedReasoningResult> => {
+  try {
+    // Get GenAI model using shared infrastructure
+    const model = await getGenAIModel();
+
+    // Validate input parameters using shared validation
+    const thoughtNumber = validateNumber(args.thought_number, 1);
+    const totalThoughts = validateNumber(args.total_thoughts, 1);
+    const nextThoughtNeeded = validateBoolean(args.next_thought_needed);
+    const isRevision = validateBoolean(args.is_revision, false);
+    const branchId = args.branch_id ? String(args.branch_id) : undefined;
+    const revisesThought = args.revises_thought ? validateNumber(args.revises_thought, 1) : undefined;
+    const branchFromThought = args.branch_from_thought ? validateNumber(args.branch_from_thought, 1) : undefined;
+
+    // Security check on thought input using shared SecurityGuard
+    const securityCheck = SecurityGuard.validateInput(args.thought);
+    if (!securityCheck.safe) {
+      console.warn('Security violation in sequential thinking:', securityCheck.violations);
+
+      // Return safe fallback response
+      return await createFallbackReasoningResult(
+        'Cannot process potentially unsafe content. Please rephrase your thinking step.',
+        { thoughtNumber, totalThoughts, nextThoughtNeeded, branchId }
+      );
+    }
+
+    // Build context-aware prompt using specialized prompt builder
+    const promptContext: ReasoningPromptContext = {
+      thought: args.thought,
+      thoughtNumber,
+      totalThoughts,
+      nextThoughtNeeded,
+      isRevision,
+      branchId,
+      revisesThought,
+      branchFromThought,
+    };
+
+    const promptResult = await buildReasoningPrompt(promptContext);
+
+    // Handle prompt length validation
+    if (!promptResult.valid) {
+      console.warn(`Reasoning prompt too long (${promptResult.length}), using truncated version`);
+
+      if (promptResult.truncated) {
+        const truncatedResult = await buildReasoningPrompt({
+          ...promptContext,
+          thought: 'Analysis truncated due to length. Original thought was too long.',
+        });
+
+        if (!truncatedResult.valid) {
+          return await createFallbackReasoningResult('Thought content too complex for analysis.', {
+            thoughtNumber,
+            totalThoughts,
+            nextThoughtNeeded,
+            branchId,
+          });
+        }
+
+        promptResult.prompt = truncatedResult.prompt;
+      }
+    }
+
+    // Generate AI reasoning using shared GenAI model
+    const result = await model.generateContent(promptResult.prompt);
+    const response = await result.response;
+    const reasoningOutput = response.text();
+
+    // Process AI response using specialized response processor
+    return await processReasoningResponse(reasoningOutput, {
+      thoughtNumber,
+      totalThoughts,
+      nextThoughtNeeded,
+      branchId,
+    });
+  } catch (error) {
+    console.error('Functional sequential thinking error:', error);
+
+    // Create fallback response with error context
+    return await createFallbackReasoningResult(
+      `Failed to generate AI reasoning: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      {
+        thoughtNumber: args.thought_number || 1,
+        totalThoughts: args.total_thoughts || 1,
+        nextThoughtNeeded: false,
+        branchId: args.branch_id,
+      }
+    );
+  }
+};
