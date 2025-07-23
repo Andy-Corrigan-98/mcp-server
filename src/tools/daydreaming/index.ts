@@ -1,4 +1,3 @@
-export { GenAIDaydreamingTools } from './genai-daydreaming-tools.js';
 export {
   DaydreamingBackgroundScheduler,
   initializeBackgroundScheduler,
