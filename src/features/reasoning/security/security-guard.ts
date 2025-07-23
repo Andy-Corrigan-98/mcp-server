@@ -72,8 +72,54 @@ export class SecurityGuard {
     /how\s+to\s+(make|create|build)\s+(bombs?|explosives?|weapons?)/i,
   ];
 
-  // Control character pattern with proper escaping
-  private static readonly CONTROL_CHAR_PATTERN = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
+  // Control character detection using character code range
+  private static readonly MIN_CONTROL_CHAR = 0;
+  private static readonly MAX_CONTROL_CHAR_1 = 8;
+  private static readonly VERTICAL_TAB = 11;
+  private static readonly FORM_FEED = 12;
+  private static readonly MIN_CONTROL_CHAR_2 = 14;
+  private static readonly MAX_CONTROL_CHAR_2 = 31;
+  private static readonly DEL_CHAR = 127;
+
+  /**
+   * Check for control characters using character codes instead of regex
+   */
+  private static hasControlCharacters(input: string): boolean {
+    for (let i = 0; i < input.length; i++) {
+      const code = input.charCodeAt(i);
+      if (
+        (code >= this.MIN_CONTROL_CHAR && code <= this.MAX_CONTROL_CHAR_1) ||
+        code === this.VERTICAL_TAB ||
+        code === this.FORM_FEED ||
+        (code >= this.MIN_CONTROL_CHAR_2 && code <= this.MAX_CONTROL_CHAR_2) ||
+        code === this.DEL_CHAR
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Remove control characters using character codes
+   */
+  private static removeControlCharacters(input: string): string {
+    let result = '';
+    for (let i = 0; i < input.length; i++) {
+      const code = input.charCodeAt(i);
+      const isControlChar =
+        (code >= this.MIN_CONTROL_CHAR && code <= this.MAX_CONTROL_CHAR_1) ||
+        code === this.VERTICAL_TAB ||
+        code === this.FORM_FEED ||
+        (code >= this.MIN_CONTROL_CHAR_2 && code <= this.MAX_CONTROL_CHAR_2) ||
+        code === this.DEL_CHAR;
+
+      if (!isControlChar) {
+        result += input.charAt(i);
+      }
+    }
+    return result;
+  }
 
   /**
    * Check input for security violations
@@ -103,7 +149,7 @@ export class SecurityGuard {
     }
 
     // Check for suspicious character patterns
-    if (this.CONTROL_CHAR_PATTERN.test(input)) {
+    if (this.hasControlCharacters(input)) {
       violations.push('control_characters_detected');
     }
 
@@ -128,7 +174,7 @@ export class SecurityGuard {
     sanitized = sanitized.replace(/\n{3,}/g, '\n\n');
 
     // Remove control characters except standard whitespace
-    sanitized = sanitized.replace(this.CONTROL_CHAR_PATTERN, '');
+    sanitized = this.removeControlCharacters(sanitized);
 
     return sanitized.trim();
   }
@@ -155,11 +201,8 @@ export class SecurityGuard {
 /**
  * Functional exports for security operations
  */
-export const validateInput = (input: string): SecurityValidationResult => 
-  SecurityGuard.validateInput(input);
+export const validateInput = (input: string): SecurityValidationResult => SecurityGuard.validateInput(input);
 
-export const sanitizeOutput = (output: string): string => 
-  SecurityGuard.sanitizeOutput(output);
+export const sanitizeOutput = (output: string): string => SecurityGuard.sanitizeOutput(output);
 
-export const containsSensitiveInfo = (content: string): boolean => 
-  SecurityGuard.containsSensitiveInfo(content); 
+export const containsSensitiveInfo = (content: string): boolean => SecurityGuard.containsSensitiveInfo(content);
