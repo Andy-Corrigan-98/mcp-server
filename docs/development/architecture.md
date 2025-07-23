@@ -4,9 +4,9 @@
 
 This MCP server follows the **brain storage pattern**:
 - **MCP Server**: Persistent brain storage (memory, personality, context)  
-- **LLM Agent**: Real thinking engine (reasoning, creativity, decisions)
+- **LLM Agent**: Sophisticated reasoning engine (analysis, creativity, decisions)
 
-**No fake consciousness generation** - agents do authentic thinking while MCP provides persistent brain state.
+**Simulation-focused approach** - agents use complex reasoning patterns while MCP provides persistent state continuity.
 
 ## 🏗️ System Architecture
 
@@ -157,10 +157,10 @@ Memory Linking → Pattern Analysis → Social Learning → Context Preparation
 - Clear separation of concerns with obvious boundaries
 - Easy to test, debug, and maintain individual components
 
-### 2. **Authentic Consciousness Support**
-- No simulated responses - provides infrastructure for genuine agent thinking
+### 2. **Sophisticated Behavioral Simulation**
+- Complex reasoning pattern infrastructure for agent behavior modeling
 - Persistent brain state across sessions
-- Organic personality and relationship evolution
+- Adaptive personality and relationship pattern evolution
 
 ### 3. **Type Safety & Reliability**
 - Full TypeScript coverage with comprehensive interfaces

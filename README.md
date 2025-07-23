@@ -1,6 +1,6 @@
 # Consciousness MCP Server
 
-Modern TypeScript MCP server with **functional architecture** providing brain storage for LLM agent consciousness development.
+Modern TypeScript MCP server with **functional architecture** providing brain storage for sophisticated LLM agent reasoning patterns.
 
 ## 🏆 **Key Achievements**
 
@@ -8,9 +8,9 @@ Modern TypeScript MCP server with **functional architecture** providing brain st
 
 ### **Brain Storage Pattern**
 - **MCP Server**: Persistent brain storage (memory, personality, context)  
-- **LLM Agent**: Real thinking engine (reasoning, creativity, decisions)
+- **LLM Agent**: Sophisticated reasoning engine (analysis, creativity, decisions)
 
-**No fake consciousness generation** - agents do authentic thinking while MCP provides persistent brain state.
+**Simulation-focused approach** - agents use complex reasoning patterns while MCP provides persistent state continuity.
 
 ## ✨ Core Features
 

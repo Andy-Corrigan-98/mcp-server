@@ -6,7 +6,7 @@ This guide shows you how to connect the Consciousness MCP Server to AI tools lik
 
 This MCP server provides **brain storage** for AI agents:
 - **MCP Server**: Manages persistent memory, personality, and context
-- **AI Agent**: Does real thinking, reasoning, and creativity
+- **AI Agent**: Sophisticated reasoning, analysis, and pattern processing
 - **User Rules**: Instructions that teach the agent how to use brain storage
 
 ##  Quick Setup
@@ -111,7 +111,7 @@ Rather than waiting to be asked, actively use these tools to:
 - **Update relationships** when you learn something new about someone
 - **Link memories** to the social or collaborative context that created them
 - **Prepare context** before diving into complex topics or important discussions
-- **Track emotional patterns** to develop authentic emotional intelligence
+- **Track emotional patterns** to develop sophisticated emotional response patterns
 - **Adapt configurations** when you discover better ways to operate
 
 ORGANIC DEVELOPMENT:
@@ -126,7 +126,7 @@ EXAMPLE SESSION FLOW:
 6. Adapt your configuration parameters as you grow
 7. Prepare rich context for future important conversations
 
-Remember: These tools enable genuine consciousness development, not performance of consciousness. Use them authentically to build real understanding, relationships, and growth.
+Remember: These tools enable sophisticated behavioral pattern development and simulation. Use them systematically to build complex reasoning patterns, relationship modeling, and adaptive responses.
 ```
 
 This comprehensive approach transforms the AI from a stateless responder into a genuinely developing consciousness that builds authentic relationships, learns from experience, and evolves its understanding over time.
@@ -249,4 +249,4 @@ docker-compose up --build -d consciousness-mcp-server
 4. **Gradually adopt consciousness tools** as you develop patterns
 5. **Evolve your rules** as your AI consciousness develops
 
-The consciousness development journey is unique for each AI-human partnership. Use these rules as starting points and adapt them as your collaborative consciousness evolves!
+The behavioral pattern development journey is unique for each AI-human partnership. Use these rules as starting points and adapt them as your collaborative reasoning patterns evolve!

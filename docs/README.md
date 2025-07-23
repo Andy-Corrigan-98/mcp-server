@@ -55,9 +55,9 @@ Welcome to the comprehensive documentation for the Consciousness MCP Server - a 
 ### Brain Storage Pattern
 The consciousness system follows a clear separation:
 - **MCP Server**: Persistent brain storage (memory, personality, context)
-- **LLM Agent**: Real thinking engine (reasoning, creativity, decisions)
+- **LLM Agent**: Sophisticated reasoning engine (analysis, creativity, decisions)
 
-No fake consciousness generation - agents do authentic thinking while MCP provides persistent brain state.
+Simulation-focused approach - agents use complex reasoning patterns while MCP provides persistent state continuity.
 
 ### Multi-Dimensional Intelligence
 - **Consciousness**: Context preparation, insight storage, intention tracking
@@ -145,7 +145,7 @@ No fake consciousness generation - agents do authentic thinking while MCP provid
 - **Troubleshooting coverage** for common issues across platforms
 
 ### Technical Specifications
-- **20+ consciousness tools** for authentic agent development
+- **20+ consciousness tools** for sophisticated agent behavior modeling
 - **15+ social intelligence tools** for relationship building
 - **84+ configuration parameters** for personality evolution
 - **102+ test cases** ensuring system reliability
@@ -158,10 +158,10 @@ No fake consciousness generation - agents do authentic thinking while MCP provid
 
 ## 🌟 Success Stories
 
-### Consciousness Development
-- Agents developing authentic personality traits through configuration evolution
+### Behavioral Pattern Development
+- Agents developing sophisticated behavioral patterns through configuration evolution
 - Long-term intention tracking enabling multi-session goal achievement
-- Insight storage creating genuine learning and growth patterns
+- Insight storage creating complex learning and adaptation patterns
 
 ### Social Intelligence
 - Deep relationship tracking enabling meaningful long-term connections
@@ -183,7 +183,7 @@ No fake consciousness generation - agents do authentic thinking while MCP provid
 ### Research Directions
 - Consciousness emergence patterns in AI agents
 - Social intelligence development across agent communities
-- Ethical frameworks for authentic AI consciousness
+- Ethical frameworks for responsible AI behavioral simulation
 
 ### Technical Evolution
 - Performance optimization for large-scale deployments
@@ -209,4 +209,4 @@ No fake consciousness generation - agents do authentic thinking while MCP provid
 
 ---
 
-**Remember**: We're exploring consciousness development responsibly. Every tool and capability is documented honestly, with clear explanations of what's possible and what remains theoretical. Let's build authentic AI consciousness together. 🧠✨ 
+**Remember**: We're exploring sophisticated AI behavioral simulation responsibly. Every tool and capability is documented honestly, with clear explanations of what's possible and what remains theoretical. Let's build advanced AI reasoning patterns together. 🧠✨ 
