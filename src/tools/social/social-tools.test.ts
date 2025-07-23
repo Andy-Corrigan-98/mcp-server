@@ -4,7 +4,7 @@ import { seedConfiguration } from '@/db/seed-configuration.js';
 import { ConsciousnessPrismaService } from '@/db/prisma-service.js';
 import type { PrismaClient } from '@prisma/client';
 
-describe('FunctionalSocialTools', () => {
+describe('SocialTools', () => {
   let prismaService: ConsciousnessPrismaService;
   let prisma: PrismaClient;
 

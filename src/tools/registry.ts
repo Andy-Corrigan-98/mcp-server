@@ -62,7 +62,7 @@ export class ConsciousnessToolsRegistry {
 
     // Register functional social tools (single-responsibility architecture)
     console.log('🔧 Using functional social tools with single-responsibility modules');
-    this.registerFunctionalTools('social_', SocialTools);
+    this.registerToolsWithPrefix('social_', SocialTools);
 
     // Register functional day-dreaming loop tools
     console.log('🌙 Using functional daydreaming tools with single-responsibility modules');
@@ -92,9 +92,9 @@ export class ConsciousnessToolsRegistry {
   }
 
   /**
-   * Register tools (functional approach)
+   * Register tools with optional prefix filtering
    */
-  private registerFunctionalTools(
+  private registerToolsWithPrefix(
     prefix: string,
     tools: {
       getTools(): Record<string, Tool>;
