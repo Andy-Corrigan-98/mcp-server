@@ -1,36 +1,34 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { ConsciousnessTools } from './consciousness/index.js';
-import { TimeTools } from './time/index.js';
-import { MemoryTools } from './memory/index.js';
-import { ReasoningTools } from './reasoning/index.js';
+import { ConsciousnessTools } from '../features/consciousness/index.js';
+import { TimeTools } from './time/time-tools.js';
+import { MemoryTools } from '../features/memory/index.js';
+import { ReasoningTools } from '../features/reasoning/index.js';
 import { GenAIReasoningToolsWrapper } from './reasoning/genai-reasoning-wrapper.js';
 import { ConversationalGenAIToolsWrapper } from './reasoning/conversational-genai-wrapper.js';
-import { ConfigurationTools } from './configuration/index.js';
-import { SocialTools } from './social/index.js';
-import {
-  DaydreamingTools,
-  DaydreamingBackgroundScheduler,
-  initializeBackgroundScheduler,
-  recordUserActivity,
-} from './daydreaming/index.js';
+import { ConfigurationTools } from './configuration/configuration-tools.js';
+import { DaydreamingTools } from '../features/daydreaming/index.js';
+// import { initializeBackgroundScheduler } from './daydreaming/background-scheduler.js'; // TODO: Update for functional architecture
+import { SocialTools } from '../features/social/index.js';
+import type { DaydreamingBackgroundScheduler } from './daydreaming/background-scheduler.js';
 
-export interface ToolExecutor {
-  execute(args: Record<string, unknown>): Promise<unknown>;
-}
-
+/**
+ * Central registry for all consciousness tools
+ * Manages tool registration and provides unified access
+ */
 export class ConsciousnessToolsRegistry {
-  // Constants for initialization timing
-  private static readonly SCHEDULER_INIT_DELAY_MS = 5000; // 5 seconds
-
-  private tools: Map<string, { definition: Tool; executor: ToolExecutor }> = new Map();
+  private tools: Map<string, Tool> = new Map();
+  private toolExecutors: Map<string, (toolName: string, args: Record<string, unknown>) => Promise<unknown>> = new Map();
   private daydreamingScheduler: DaydreamingBackgroundScheduler | null = null;
 
   constructor() {
     this.registerTools();
   }
 
+  /**
+   * Register all available tool categories
+   */
   private registerTools(): void {
-    // Register consciousness tools
+    // Register consciousness tools (now using functional approach)
     const consciousnessTools = new ConsciousnessTools();
     this.registerToolCategory(consciousnessTools);
 
@@ -38,7 +36,7 @@ export class ConsciousnessToolsRegistry {
     const timeTools = new TimeTools();
     this.registerToolCategory(timeTools);
 
-    // Register memory tools
+    // Register memory tools (now using functional approach)
     const memoryTools = new MemoryTools();
     this.registerToolCategory(memoryTools);
 
@@ -62,64 +60,95 @@ export class ConsciousnessToolsRegistry {
     const configurationTools = new ConfigurationTools();
     this.registerToolCategory(configurationTools);
 
-    // Register social consciousness tools
-    const socialTools = new SocialTools();
-    this.registerToolCategory(socialTools);
+    // Register functional social tools (single-responsibility architecture)
+    console.log('🔧 Using functional social tools with single-responsibility modules');
+    this.registerToolsWithPrefix('social_', SocialTools);
 
-    // Register day-dreaming loop tools
+    // Register functional day-dreaming loop tools
+    console.log('🌙 Using functional daydreaming tools with single-responsibility modules');
     const daydreamingTools = new DaydreamingTools();
     this.registerToolCategory(daydreamingTools);
 
-    // Store reference for background scheduler
-    this.daydreamingScheduler = initializeBackgroundScheduler(daydreamingTools);
+    // Store reference for background scheduler (TODO: Update background scheduler for functional architecture)
+    // this.daydreamingScheduler = initializeBackgroundScheduler(daydreamingTools);
 
-    // Start the background scheduler
-    this.initializeBackgroundScheduler();
+    // Start the background scheduler (TODO: Update for functional architecture)
+    // this.initializeBackgroundScheduler();
   }
 
   /**
-   * Initialize and start the background Day-Dreaming Loop scheduler
+   * Register a tool category (class-based approach)
    */
-  private async initializeBackgroundScheduler(): Promise<void> {
-    // Start the scheduler after a brief delay to allow initialization
-    setTimeout(async () => {
-      if (this.daydreamingScheduler) {
-        await this.daydreamingScheduler.start();
-        console.log('🌙 Day-Dreaming Loop background scheduler initialized');
-      }
-    }, ConsciousnessToolsRegistry.SCHEDULER_INIT_DELAY_MS);
-  }
-
   private registerToolCategory(toolCategory: {
     getTools(): Record<string, Tool>;
-    execute(name: string, args: Record<string, unknown>): Promise<unknown>;
+    execute(toolName: string, args: Record<string, unknown>): Promise<unknown>;
   }): void {
     const tools = toolCategory.getTools();
 
-    for (const [name, definition] of Object.entries(tools)) {
-      this.tools.set(name, {
-        definition: definition as Tool,
-        executor: {
-          execute: (args: Record<string, unknown>) => toolCategory.execute(name, args),
-        },
-      });
+    Object.entries(tools).forEach(([name, tool]) => {
+      this.tools.set(name, tool);
+      this.toolExecutors.set(name, (toolName, args) => toolCategory.execute(toolName, args));
+    });
+  }
+
+  /**
+   * Register tools with optional prefix filtering
+   */
+  private registerToolsWithPrefix(
+    prefix: string,
+    tools: {
+      getTools(): Record<string, Tool>;
+      execute(toolName: string, args: Record<string, unknown>): Promise<unknown>;
+    }
+  ): void {
+    const toolDefinitions = tools.getTools();
+
+    Object.entries(toolDefinitions).forEach(([name, tool]) => {
+      if (name.startsWith(prefix) || prefix === '') {
+        this.tools.set(name, tool);
+        this.toolExecutors.set(name, (toolName, args) => tools.execute(toolName, args));
+      }
+    });
+  }
+
+  /**
+   * Get all registered tools
+   */
+  getTools(): Record<string, Tool> {
+    const result: Record<string, Tool> = {};
+    this.tools.forEach((tool, name) => {
+      result[name] = tool;
+    });
+    return result;
+  }
+
+  /**
+   * Execute a tool by name
+   */
+  async executeTool(toolName: string, args: Record<string, unknown>): Promise<unknown> {
+    const executor = this.toolExecutors.get(toolName);
+    if (!executor) {
+      throw new Error(`Tool '${toolName}' not found`);
+    }
+
+    return executor(toolName, args);
+  }
+
+  /**
+   * Initialize the background daydreaming scheduler
+   */
+  private async initializeBackgroundScheduler(): Promise<void> {
+    if (this.daydreamingScheduler) {
+      await this.daydreamingScheduler.start();
     }
   }
 
-  getAllTools(): Tool[] {
-    return Array.from(this.tools.values()).map(tool => tool.definition);
-  }
-
-  async executeTool(name: string, args: Record<string, unknown>): Promise<unknown> {
-    const tool = this.tools.get(name);
-
-    if (!tool) {
-      throw new Error(`Tool '${name}' not found`);
+  /**
+   * Cleanup method to stop background processes
+   */
+  async cleanup(): Promise<void> {
+    if (this.daydreamingScheduler) {
+      await this.daydreamingScheduler.stop();
     }
-
-    // Record user activity for the Day-Dreaming Loop scheduler
-    recordUserActivity();
-
-    return await tool.executor.execute(args);
   }
 }

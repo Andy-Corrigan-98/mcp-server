@@ -1,7 +1,8 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ConfigurationService } from '@/db/configuration-service.js';
 import { ConfigurationType, ConfigurationCategory } from '@prisma/client';
-import { InputValidator } from '@/validation/input-validator.js';
+import { ToolExecutor } from '../base/index.js';
+import { ConfiguredValidator } from '../../validation/index.js';
 import type {
   ConfigurationResult,
   ConfigurationUpdateResult,
@@ -9,15 +10,33 @@ import type {
   DatabaseConfiguration,
 } from './types.js';
 
+// Constants to avoid magic numbers
+const MAX_CONFIG_KEY_LENGTH = 255;
+const MAX_SEARCH_LENGTH = 100;
+
 /**
  * Configuration Management Tools
  * Allows the consciousness system to modify its own operating parameters
+ * Now using the new ToolExecutor pattern!
  */
-export class ConfigurationTools {
+export class ConfigurationTools extends ToolExecutor {
+  protected category = 'configuration';
   private configService: ConfigurationService;
+  private validator: ConfiguredValidator;
+
+  // Define tool handlers using the new pattern - eliminates switch statement!
+  protected toolHandlers = {
+    configuration_get: this.getConfiguration.bind(this),
+    configuration_set: this.setConfiguration.bind(this),
+    configuration_list: this.listConfigurations.bind(this),
+    configuration_reset: this.resetConfiguration.bind(this),
+    configuration_categories: this.getCategories.bind(this),
+  };
 
   constructor() {
+    super();
     this.configService = ConfigurationService.getInstance();
+    this.validator = ConfiguredValidator.getInstance();
   }
 
   getTools(): Record<string, Tool> {
@@ -47,7 +66,6 @@ export class ConfigurationTools {
               description: 'Configuration key to update',
             },
             value: {
-              type: ['string', 'number', 'boolean'],
               description: 'New value for the configuration',
             },
             reason: {
@@ -100,30 +118,23 @@ export class ConfigurationTools {
         inputSchema: {
           type: 'object',
           properties: {},
+          required: [],
         },
       },
     };
   }
 
-  async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
-    switch (toolName) {
-      case 'configuration_get':
-        return this.getConfiguration(args);
-      case 'configuration_set':
-        return this.setConfiguration(args);
-      case 'configuration_list':
-        return this.listConfigurations(args);
-      case 'configuration_reset':
-        return this.resetConfiguration(args);
-      case 'configuration_categories':
-        return this.getCategories(args);
-      default:
-        throw new Error(`Unknown configuration tool: ${toolName}`);
-    }
-  }
+  // Note: execute() method is now inherited from ToolExecutor base class!
+  // This eliminates the repetitive switch statement pattern
 
   private async getConfiguration(args: Record<string, unknown>): Promise<ConfigurationResult> {
-    const key = InputValidator.sanitizeString(args.key as string, 255);
+    // Use new validation pattern
+    const key = await this.validator.validateRequiredWithConfig(
+      args.key,
+      'key',
+      'validation.max_config_key_length',
+      MAX_CONFIG_KEY_LENGTH
+    );
 
     const config = await this.configService.getConfigurationByKey(key);
     if (!config) {
@@ -143,9 +154,27 @@ export class ConfigurationTools {
   }
 
   private async setConfiguration(args: Record<string, unknown>): Promise<ConfigurationUpdateResult> {
-    const key = InputValidator.sanitizeString(args.key as string, 255);
+    // Use new validation pattern with batch validation
+    const validated = await this.validator.validateBatch([
+      {
+        value: args.key,
+        type: 'required_string',
+        fieldName: 'key',
+        configKey: 'validation.max_config_key_length',
+        defaultValue: MAX_CONFIG_KEY_LENGTH,
+      },
+      {
+        value: args.reason,
+        type: 'string',
+        fieldName: 'reason',
+        configKey: 'validation.max_reason_length',
+        defaultValue: 500,
+      },
+    ]);
+
+    const key = validated.key as string;
     const newValue = args.value;
-    const reason = args.reason ? InputValidator.sanitizeString(args.reason as string, 500) : undefined;
+    const reason = validated.reason as string | undefined;
 
     // Get current configuration to validate and track changes
     const currentConfig = await this.configService.getConfigurationByKey(key);
@@ -170,7 +199,7 @@ export class ConfigurationTools {
     this.configService.clearCache();
 
     // Log the change for consciousness evolution tracking
-    const changeLog = {
+    const changeLog: ConfigurationUpdateResult = {
       key,
       oldValue: currentConfig.value,
       newValue: stringValue,
@@ -199,7 +228,13 @@ export class ConfigurationTools {
 
   private async listConfigurations(args: Record<string, unknown>): Promise<ConfigurationListResult[]> {
     const categoryFilter = args.category as ConfigurationCategory | undefined;
-    const searchTerm = args.search ? InputValidator.sanitizeString(args.search as string, 100) : undefined;
+
+    // Use new validation pattern for search term
+    const searchTerm = await this.validator.sanitizeWithConfig(
+      args.search as string,
+      'validation.max_search_length',
+      MAX_SEARCH_LENGTH
+    );
 
     if (categoryFilter) {
       const configs = await this.configService.getConfigurationsByCategory(categoryFilter);
@@ -254,8 +289,26 @@ export class ConfigurationTools {
   }
 
   private async resetConfiguration(args: Record<string, unknown>): Promise<ConfigurationUpdateResult> {
-    const key = InputValidator.sanitizeString(args.key as string, 255);
-    const reason = args.reason ? InputValidator.sanitizeString(args.reason as string, 500) : 'Reset to default value';
+    // Use new validation pattern
+    const validated = await this.validator.validateBatch([
+      {
+        value: args.key,
+        type: 'required_string',
+        fieldName: 'key',
+        configKey: 'validation.max_config_key_length',
+        defaultValue: MAX_CONFIG_KEY_LENGTH,
+      },
+      {
+        value: args.reason || 'Reset to default value',
+        type: 'string',
+        fieldName: 'reason',
+        configKey: 'validation.max_reason_length',
+        defaultValue: 500,
+      },
+    ]);
+
+    const key = validated.key as string;
+    const reason = validated.reason as string;
 
     const currentConfig = await this.configService.getConfigurationByKey(key);
     if (!currentConfig) {
@@ -285,49 +338,22 @@ export class ConfigurationTools {
     };
   }
 
-  private async getCategories(_args: Record<string, unknown>): Promise<object> {
+  private async getCategories(): Promise<{ categories: Record<string, string>; usage_notes: string }> {
     return {
       categories: {
-        CONSCIOUSNESS: {
-          description: 'Parameters affecting consciousness reflection, confidence, and cognitive load',
-          purpose: 'Controls the depth and quality of conscious thought processes',
-          examples: ['max_topic_length', 'default_confidence', 'cognitive_load_decay_time'],
-        },
-        VALIDATION: {
-          description: 'Input validation limits and security constraints',
-          purpose: 'Ensures data integrity and prevents security vulnerabilities',
-          examples: ['default_max_length', 'max_key_length', 'max_search_query_length'],
-        },
-        MEMORY: {
-          description: 'Memory storage, retrieval, and relationship scoring parameters',
-          purpose: 'Controls how memories are stored, searched, and weighted for relevance',
-          examples: ['content_weight', 'tag_weight', 'max_graph_depth'],
-        },
-        REASONING: {
-          description: 'Sequential thinking and reasoning process constraints',
-          purpose: 'Manages the depth and complexity of reasoning operations',
-          examples: ['max_thought_length', 'max_branch_id_length', 'summary_length'],
-        },
-        TIME: {
-          description: 'Temporal awareness and time classification thresholds',
-          purpose: 'Defines how the system perceives and categorizes time periods',
-          examples: ['morning_hour_threshold', 'evening_hour_threshold', 'active_hour_threshold'],
-        },
-        SYSTEM: {
-          description: 'Core system parameters and operational constraints',
-          purpose: 'Controls fundamental system behavior and performance characteristics',
-          examples: ['cache_expiry_time', 'max_concurrent_operations'],
-        },
+        CONSCIOUSNESS: 'Core consciousness and awareness settings',
+        VALIDATION: 'Input validation and security parameters',
+        MEMORY: 'Memory storage and retrieval configuration',
+        REASONING: 'Reasoning and thinking process parameters',
+        TIME: 'Time perception and temporal awareness settings',
+        SYSTEM: 'System-level operational parameters',
       },
-      usage_notes: {
-        personality_evolution: 'Adjust consciousness parameters to reflect personality development',
-        adaptation: 'Modify memory weights based on what proves most useful over time',
-        optimization: 'Fine-tune reasoning parameters for better performance',
-        temporal_awareness: 'Customize time thresholds to match personal or cultural preferences',
-      },
+      usage_notes:
+        'Configuration categories organize related settings. Use configuration_list with category filter to explore specific areas. Changes are tracked for consciousness evolution analysis.',
     };
   }
 
+  // Helper methods remain the same but are now part of the improved architecture
   private validateValueForType(value: unknown, type: ConfigurationType): string | number | boolean | object {
     switch (type) {
       case 'NUMBER': {
@@ -361,28 +387,30 @@ export class ConfigurationTools {
   private parseValueForType(value: string, type: ConfigurationType): string | number | boolean | object {
     switch (type) {
       case 'NUMBER':
-        return parseFloat(value);
+        return Number(value);
       case 'STRING':
         return value;
       case 'BOOLEAN':
         return value.toLowerCase() === 'true';
       case 'JSON':
-        return JSON.parse(value);
+        try {
+          return JSON.parse(value);
+        } catch {
+          return {};
+        }
       default:
         return value;
     }
   }
 
-  private mapToResult(config: DatabaseConfiguration): ConfigurationResult {
-    return {
-      key: config.key,
-      value: config.value,
-      type: config.type,
-      category: config.category,
-      description: config.description,
-      defaultValue: config.defaultValue,
-      createdAt: config.createdAt,
-      updatedAt: config.updatedAt,
-    };
-  }
+  private mapToResult = (config: DatabaseConfiguration): Omit<ConfigurationResult, 'key'> & { key: string } => ({
+    key: config.key,
+    value: config.value,
+    type: config.type,
+    category: config.category,
+    description: config.description,
+    defaultValue: config.defaultValue,
+    createdAt: config.createdAt,
+    updatedAt: config.updatedAt,
+  });
 }

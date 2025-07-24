@@ -1,5 +1,6 @@
 // Barrel exports for consciousness tools
-export { ConsciousnessTools } from './consciousness-tools.js';
+// Now using functional approach - import from features/consciousness instead
+export { ConsciousnessTools } from '../../features/consciousness/index.js';
 export { buildConsciousnessTools } from './types.js';
 export type {
   ConsciousnessState,

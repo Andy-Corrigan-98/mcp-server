@@ -1,33 +1,35 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { GenAIReasoningTools, GENAI_REASONING_TOOLS } from './genai-reasoning-tools.js';
+import { ToolExecutor } from '../base/index.js';
+import { GenAIReasoningTools } from '../../features/reasoning/genai-reasoning/index.js';
 
 /**
- * Wrapper for GenAI reasoning tools that follows the tool category pattern
+ * Wrapper for Functional GenAI Reasoning Tools
+ * Updated to use functional single-responsibility modules instead of class-based approach
  */
-export class GenAIReasoningToolsWrapper {
-  private genAITools: GenAIReasoningTools;
+export class GenAIReasoningToolsWrapper extends ToolExecutor {
+  protected category = 'genai_reasoning';
+  private tools = GenAIReasoningTools;
+
+  // Define tool handlers using the new pattern
+  protected toolHandlers = {
+    sequential_thinking: this.handleSequentialThinking.bind(this),
+  };
 
   constructor() {
-    this.genAITools = new GenAIReasoningTools();
+    super();
   }
 
   /**
    * Get available GenAI reasoning tools
    */
   getTools(): Record<string, Tool> {
-    return GENAI_REASONING_TOOLS;
+    return this.tools.getTools();
   }
 
   /**
-   * Execute a GenAI reasoning tool
+   * Handle sequential thinking tool using functional approach
    */
-  async execute(name: string, args: Record<string, unknown>): Promise<unknown> {
-    switch (name) {
-      case 'sequential_thinking':
-        return await this.genAITools.sequentialThinking(args);
-
-      default:
-        throw new Error(`Unknown GenAI reasoning tool: ${name}`);
-    }
+  private async handleSequentialThinking(args: Record<string, unknown>): Promise<unknown> {
+    return await this.tools.execute('sequential_thinking', args);
   }
 }

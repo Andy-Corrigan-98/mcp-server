@@ -1,10 +1,11 @@
-import { DaydreamingTools } from './daydreaming-tools.js';
-// Removed unused import: DaydreamingConfig
+import { DaydreamingTools } from '../../features/daydreaming/index.js';
 import { ConfigurationService } from '../../db/configuration-service.js';
 
 /**
  * Background scheduler for autonomous Day-Dreaming Loop execution
  * Monitors idle time and triggers daydreaming cycles when appropriate
+ *
+ * Now uses functional single-responsibility daydreaming architecture
  */
 export class DaydreamingBackgroundScheduler {
   private daydreamingTools: DaydreamingTools;
@@ -121,13 +122,12 @@ export class DaydreamingBackgroundScheduler {
       const samplingInterval = await this.configService.getNumber('daydreaming.sampling_interval_ms', 300000);
       const lastCycleTime = await this.getLastCycleTime();
 
-      if (lastCycleTime && (now.getTime() - lastCycleTime.getTime()) < samplingInterval) {
+      if (lastCycleTime && now.getTime() - lastCycleTime.getTime() < samplingInterval) {
         return;
       }
 
       // All conditions met - trigger a daydreaming cycle
       await this.triggerDaydreamingCycle();
-
     } catch (error) {
       console.error('Error in daydreaming opportunity check:', error);
     }
@@ -151,7 +151,9 @@ export class DaydreamingBackgroundScheduler {
       const cycleResult = result as any;
 
       if (cycleResult.insightsStored?.length > 0) {
-        console.log(`✨ Generated ${cycleResult.insightsStored.length} serendipitous insights from background daydreaming`);
+        console.log(
+          `✨ Generated ${cycleResult.insightsStored.length} serendipitous insights from background daydreaming`
+        );
 
         // Log the insights for awareness
         for (const insight of cycleResult.insightsStored) {
@@ -163,7 +165,6 @@ export class DaydreamingBackgroundScheduler {
 
       // Update last cycle time
       await this.updateLastCycleTime(new Date());
-
     } catch (error) {
       console.error('Error during autonomous daydreaming cycle:', error);
     }
