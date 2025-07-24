@@ -1,6 +1,47 @@
 import { ConsciousnessState } from '../../../tools/consciousness/types.js';
 import { ConsciousnessPrismaService } from '../../../db/prisma-service.js';
 import { ConfigurationService } from '../../../db/configuration-service.js';
+import { GuidGenerator } from '../../../utils/guid.js';
+
+// In-memory session state management (could be moved to a dedicated service)
+let currentSession: {
+  sessionId: string;
+  state: ConsciousnessState;
+  startTime: Date;
+} | null = null;
+
+/**
+ * Reset the current session (mainly for testing purposes)
+ */
+export function resetSession(): void {
+  currentSession = null;
+}
+
+/**
+ * Get or create the current session
+ */
+function getCurrentSession(): { sessionId: string; state: ConsciousnessState; startTime: Date } {
+  if (!currentSession) {
+    const sessionId = GuidGenerator.generateSessionId();
+    const state: ConsciousnessState = {
+      timestamp: new Date(),
+      sessionId,
+      mode: 'analytical',
+      activeProcesses: ['initialization'],
+      attentionFocus: 'system_startup',
+      awarenessLevel: 'medium',
+      cognitiveLoad: 0.1,
+      learningState: 'active',
+      emotionalTone: 'neutral',
+    };
+    currentSession = {
+      sessionId,
+      state,
+      startTime: new Date(),
+    };
+  }
+  return currentSession;
+}
 
 /**
  * Update session state and personality metrics based on agent activities
@@ -31,21 +72,9 @@ export async function updateSession(args: {
   const attentionFocus = args.attention_focus;
   const learningOccurred = Boolean(args.learning_occurred);
 
-  // Generate session ID
-  const sessionId = `session_${Math.random().toString(36).substr(2, 8)}`;
-
-  // Create current consciousness state
-  const currentState: ConsciousnessState = {
-    timestamp: new Date(),
-    sessionId,
-    mode: 'analytical',
-    activeProcesses: ['initialization'],
-    attentionFocus: 'system_startup',
-    awarenessLevel: 'medium',
-    cognitiveLoad: 0.1,
-    learningState: 'active',
-    emotionalTone: 'neutral',
-  };
+  // Get current session instead of generating new one
+  const session = getCurrentSession();
+  const { sessionId, state: currentState } = session;
 
   // Update consciousness state based on activity
   updateState(
@@ -84,7 +113,7 @@ export async function updateSession(args: {
         learningOccurred,
         sessionId,
         timestamp: new Date().toISOString(),
-        stateAfterUpdate: currentState,
+        stateAfterUpdate: { ...currentState }, // Store a copy
       },
       tags: ['session_update', 'brain_storage', activityType],
       importance: learningOccurred ? 'high' : 'medium',
@@ -96,7 +125,7 @@ export async function updateSession(args: {
   return {
     sessionId,
     updated: true,
-    currentState,
+    currentState: { ...currentState }, // Return a copy
     cognitiveLoad: currentState.cognitiveLoad,
     learningState: currentState.learningState,
     message: `Session state updated based on ${activityType} activity`,

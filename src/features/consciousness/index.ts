@@ -4,14 +4,14 @@ import { getContext } from './context/get-context.js';
 import { storeInsight } from './insights/store-insight.js';
 import { setIntention } from './intentions/set-intention.js';
 import { updateIntention } from './intentions/update-intention.js';
-import { updateSession } from './session/update-session.js';
+import { updateSession, resetSession } from './session/update-session.js';
 
 // Import tool builder for compatibility
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { buildConsciousnessTools } from '../../tools/consciousness/types.js';
 
 // Then export them
-export { prepareContext, getContext, storeInsight, setIntention, updateIntention, updateSession };
+export { prepareContext, getContext, storeInsight, setIntention, updateIntention, updateSession, resetSession };
 
 // Re-export types for convenience
 export type {

@@ -2,6 +2,7 @@ import { InputValidator } from '../../../validation/index.js';
 import { ConsciousnessState, ConsciousnessContext, EntityRelationship } from '../../../tools/consciousness/types.js';
 import { ConsciousnessPrismaService } from '../../../db/prisma-service.js';
 import { ConfigurationService } from '../../../db/configuration-service.js';
+import { GuidGenerator } from '../../../utils/guid.js';
 
 /**
  * Prepare rich context from brain storage for agent reflection and thinking
@@ -36,8 +37,8 @@ export async function prepareContext(args: {
     ? InputValidator.sanitizeString(args.context_note, maxContextLength)
     : undefined;
 
-  // Generate session ID for tracking
-  const sessionId = `session_${Math.random().toString(36).substr(2, 8)}`;
+  // Generate session ID for tracking using modern string methods
+  const sessionId = GuidGenerator.generateSessionId();
   const sessionStartTime = new Date();
 
   // Store the context preparation request for future reference

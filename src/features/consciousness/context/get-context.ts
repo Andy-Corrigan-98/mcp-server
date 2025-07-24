@@ -9,6 +9,7 @@ import {
 } from '../../../tools/consciousness/types.js';
 import { ConsciousnessPrismaService } from '../../../db/prisma-service.js';
 import { ConfigurationService } from '../../../db/configuration-service.js';
+import { GuidGenerator } from '../../../utils/guid.js';
 
 /**
  * Session update memory content structure
@@ -74,8 +75,8 @@ export async function getContext(args: {
   const includeIntentions = Boolean(args.include_intentions !== false);
   const includePersonality = Boolean(args.include_personality !== false);
 
-  // Generate session info
-  const sessionId = `session_${Math.random().toString(36).substr(2, 8)}`;
+  // Generate session info using modern methods
+  const sessionId = GuidGenerator.generateSessionId();
   const sessionStartTime = new Date();
 
   // Create current consciousness state for context

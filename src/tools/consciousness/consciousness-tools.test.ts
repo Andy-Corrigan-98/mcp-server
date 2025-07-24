@@ -296,6 +296,10 @@ describe('ConsciousnessTools', () => {
     });
 
     it('should handle minimal session update', async () => {
+      // Reset session to ensure test independence
+      const { resetSession } = await import('../../features/consciousness/index.js');
+      resetSession();
+
       const result = await executeConsciousnessOperation('consciousness_update_session', {
         activity_type: 'minimal_test',
       });
