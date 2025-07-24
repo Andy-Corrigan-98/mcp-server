@@ -238,35 +238,36 @@ export class TimeTools extends ToolExecutor {
 
   private async getDayPhase(date: Date): Promise<string> {
     const hour = date.getHours();
+    const config = await this.configLoader.load();
 
-    // For this method, we'll load specific config values since they're not in our TIME schema
+    // Validate hour thresholds with proper range validation (0-23 for hours)
     const restThreshold = await this.validator.validatePositiveInteger(
-      undefined,
+      config.restHourThreshold || DEFAULT_REST_THRESHOLD,
+      'rest_hour_threshold',
       'time.rest_hour_threshold',
-      'time.rest_hour_threshold',
-      DEFAULT_REST_THRESHOLD,
-      DEFAULT_REST_THRESHOLD
+      0, // minimum hour value
+      23 // maximum hour value
     );
     const awakeningThreshold = await this.validator.validatePositiveInteger(
-      undefined,
+      config.awakeningHourThreshold || DEFAULT_AWAKENING_THRESHOLD,
+      'awakening_hour_threshold',
       'time.awakening_hour_threshold',
-      'time.awakening_hour_threshold',
-      DEFAULT_AWAKENING_THRESHOLD,
-      DEFAULT_AWAKENING_THRESHOLD
+      0,
+      23
     );
     const activeThreshold = await this.validator.validatePositiveInteger(
-      undefined,
+      config.activeHourThreshold || DEFAULT_ACTIVE_THRESHOLD,
+      'active_hour_threshold',
       'time.active_hour_threshold',
-      'time.active_hour_threshold',
-      DEFAULT_ACTIVE_THRESHOLD,
-      DEFAULT_ACTIVE_THRESHOLD
+      0,
+      23
     );
     const windingDownThreshold = await this.validator.validatePositiveInteger(
-      undefined,
+      config.windingDownHourThreshold || DEFAULT_WINDING_DOWN_THRESHOLD,
+      'winding_down_hour_threshold',
       'time.winding_down_hour_threshold',
-      'time.winding_down_hour_threshold',
-      DEFAULT_WINDING_DOWN_THRESHOLD,
-      DEFAULT_WINDING_DOWN_THRESHOLD
+      0,
+      23
     );
 
     if (hour < restThreshold) return 'rest';
