@@ -338,14 +338,18 @@ export class ConfigurationTools extends ToolExecutor {
     };
   }
 
-  private async getCategories(): Promise<Record<string, string>> {
+  private async getCategories(): Promise<{ categories: Record<string, string>; usage_notes: string }> {
     return {
-      CONSCIOUSNESS: 'Core consciousness and awareness settings',
-      VALIDATION: 'Input validation and security parameters',
-      MEMORY: 'Memory storage and retrieval configuration',
-      REASONING: 'Reasoning and thinking process parameters',
-      TIME: 'Time perception and temporal awareness settings',
-      SYSTEM: 'System-level operational parameters',
+      categories: {
+        CONSCIOUSNESS: 'Core consciousness and awareness settings',
+        VALIDATION: 'Input validation and security parameters',
+        MEMORY: 'Memory storage and retrieval configuration',
+        REASONING: 'Reasoning and thinking process parameters',
+        TIME: 'Time perception and temporal awareness settings',
+        SYSTEM: 'System-level operational parameters',
+      },
+      usage_notes:
+        'Configuration categories organize related settings. Use configuration_list with category filter to explore specific areas. Changes are tracked for consciousness evolution analysis.',
     };
   }
 
