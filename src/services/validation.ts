@@ -31,6 +31,26 @@ export const validateRequiredString = (input: unknown, fieldName: string, maxLen
 };
 
 /**
+ * Validate input against an enum
+ */
+export const validateEnum = <T extends Record<string, string>>(
+  input: unknown,
+  enumObject: T,
+  fieldName: string
+): T[keyof T] => {
+  if (!input || typeof input !== 'string') {
+    throw new Error(`${fieldName} is required and must be a string`);
+  }
+
+  const validValues = Object.values(enumObject);
+  if (!validValues.includes(input as string)) {
+    throw new Error(`${fieldName} must be one of: ${validValues.join(', ')}`);
+  }
+
+  return input as T[keyof T];
+};
+
+/**
  * Validate a probability value (0.0 to 1.0)
  */
 export const validateProbability = (input: unknown, defaultValue: number): number => {
@@ -89,6 +109,7 @@ export const validateAndStringifyJson = (input: unknown): string => {
 export interface ValidationService {
   sanitizeString: (input: string | undefined, maxLength: number) => string | undefined;
   validateRequiredString: (input: unknown, fieldName: string, maxLength: number) => string;
+  validateEnum: <T extends Record<string, string>>(input: unknown, enumObject: T, fieldName: string) => T[keyof T];
   validateProbability: (input: unknown, defaultValue: number) => number;
   parseJsonSafely: <T>(input: unknown, fallback: T) => T;
   validateAndStringifyJson: (input: unknown) => string;
@@ -100,6 +121,7 @@ export interface ValidationService {
 export const createValidationService = (): ValidationService => ({
   sanitizeString,
   validateRequiredString,
+  validateEnum,
   validateProbability,
   parseJsonSafely,
   validateAndStringifyJson,

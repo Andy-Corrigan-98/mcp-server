@@ -4,6 +4,7 @@ import {
   sanitizeString,
   validateProbability,
   validateAndStringifyJson,
+  validateEnum,
 } from '../../../services/validation.js';
 import { relationshipCreatedResponse } from '../../../utils/responses.js';
 import { getEntityByName } from '../entities/index.js';
@@ -38,9 +39,25 @@ export const createRelationship = async (args: {
   const DEFAULT_FAMILIARITY = 0.1;
   const DEFAULT_AFFINITY = 0.5;
 
+  // Define the RelationshipType enum values for validation
+  const RelationshipTypeEnum = {
+    friend: 'friend',
+    close_friend: 'close_friend',
+    family: 'family',
+    colleague: 'colleague',
+    mentor: 'mentor',
+    mentee: 'mentee',
+    collaborator: 'collaborator',
+    acquaintance: 'acquaintance',
+    professional_contact: 'professional_contact',
+    creative_partner: 'creative_partner',
+    teacher: 'teacher',
+    student: 'student',
+  } as const;
+
   // Validate inputs
   const entityName = validateRequiredString(args.entity_name, 'entity_name', MAX_ENTITY_NAME_LENGTH);
-  const relationshipType = args.relationship_type;
+  const relationshipType = validateEnum(args.relationship_type, RelationshipTypeEnum, 'relationship_type');
   const strength = validateProbability(args.strength, DEFAULT_STRENGTH);
   const trust = validateProbability(args.trust, DEFAULT_TRUST);
   const familiarity = validateProbability(args.familiarity, DEFAULT_FAMILIARITY);
@@ -65,7 +82,7 @@ export const createRelationship = async (args: {
     return prisma.socialRelationship.create({
       data: {
         entityId: entity.id,
-        relationshipType: relationshipType as any,
+        relationshipType,
         strength,
         trust,
         familiarity,
