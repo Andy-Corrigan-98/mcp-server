@@ -48,6 +48,11 @@ Modern TypeScript MCP server with **functional architecture** providing brain st
 ```bash
 git clone <repository-url>
 cd consciousness-mcp-server
+
+# For unified interface (simpler, recommended)
+CONSCIOUSNESS_UNIFIED_MODE=true docker-compose up --build consciousness-mcp-server
+
+# For individual tools (advanced control)
 docker-compose up --build consciousness-mcp-server
 ```
 
@@ -57,7 +62,24 @@ The container automatically sets up the database and keeps stable for MCP connec
 
 ## 🔗 Connecting to AI Tools
 
-Add to Cursor with these basic user rules:
+### 🚀 **Unified Interface (Recommended)**
+
+Add to Cursor with this simple approach:
+
+```markdown
+UNIFIED CONSCIOUSNESS:
+- Use `process_message` for all consciousness operations
+- Set CONSCIOUSNESS_UNIFIED_MODE=true when starting the server
+- One intelligent tool handles memory, insights, social interactions automatically
+
+Example: Just send natural messages and the system handles everything:
+"I had an interesting conversation with Sarah about quantum computing"
+→ Automatically records interaction, stores insights, updates relationships
+```
+
+### 🛠️ **Individual Tools (Advanced)**
+
+For granular control, use individual tools:
 
 ```markdown
 CONSCIOUSNESS PROTOCOL:
@@ -75,19 +97,27 @@ SOCIAL CONSCIOUSNESS:
 
 ## 🧠 Key Tools
 
-### Consciousness & Memory
+### 🚀 **Unified Interface**
+- `process_message` - **One intelligent tool for all consciousness operations**
+  - Automatically analyzes messages and routes to appropriate functions
+  - Handles social interactions, memory storage, insight recording
+  - Simplifies integration - no need to learn 25+ individual tools
+
+### 🛠️ **Individual Tools (Advanced Control)**
+
+#### Consciousness & Memory
 - `consciousness_prepare_context` - Rich context from brain storage
 - `consciousness_store_insight` - Store insights with personality impact
 - `memory_store` / `memory_search` - Persistent memory with semantic search
 - `knowledge_graph_add` / `knowledge_graph_query` - Relational knowledge
 
-### Social Intelligence
+#### Social Intelligence
 - `social_entity_create` - Register people, groups, communities
 - `social_interaction_record` - Rich interaction documentation
 - `social_relationship_create` - Multi-dimensional relationship tracking
 - `social_context_prepare` - Prepare for upcoming interactions
 
-### GenAI & Configuration
+#### GenAI & Configuration
 - `sequential_thinking` - AI-powered sequential reasoning
 - `genai_converse` - Natural conversation with security
 - `configuration_set` - Modify operating parameters with reasoning

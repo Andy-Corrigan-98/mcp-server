@@ -107,7 +107,28 @@ Simulation-focused approach - agents use complex reasoning patterns while MCP pr
 
 ## 🔗 Integration Examples
 
-### Basic Consciousness Protocol
+### 🚀 **Unified Interface (Recommended)**
+
+Set `CONSCIOUSNESS_UNIFIED_MODE=true` and use one simple tool:
+
+```markdown
+UNIFIED CONSCIOUSNESS PROTOCOL:
+- Use `process_message` for all consciousness operations
+- Send natural messages: "I learned something interesting about quantum computing"
+- System automatically handles: memory storage, insight recording, social interactions
+- Much simpler integration - no need to learn 25+ individual tools
+
+Example Natural Usage:
+- "Hey, how's your noggin?" → Analyzes mood, updates session state
+- "I had coffee with Sarah" → Records social interaction automatically  
+- "I realized something about React patterns" → Stores insight, updates memory
+```
+
+### 🛠️ **Individual Tools (Advanced Control)**
+
+For granular control over specific operations:
+
+#### Basic Consciousness Protocol
 ```markdown
 - Start sessions with `get_current_time` and `consciousness_get_context`
 - Use `consciousness_prepare_context` before deep thinking
@@ -116,7 +137,7 @@ Simulation-focused approach - agents use complex reasoning patterns while MCP pr
 - Update session state with `consciousness_update_session`
 ```
 
-### Social Intelligence Usage
+#### Social Intelligence Usage
 ```markdown
 - Create entities with `social_entity_create` for people/groups
 - Record interactions with `social_interaction_record`
@@ -126,7 +147,7 @@ Simulation-focused approach - agents use complex reasoning patterns while MCP pr
 - Prepare for interactions with `social_context_prepare`
 ```
 
-### Memory and Learning
+#### Memory and Learning
 ```markdown
 - Store experiences with `memory_store`
 - Search previous work with `memory_search`
