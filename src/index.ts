@@ -8,14 +8,27 @@ import {
   CallToolResult,
   ListToolsResult,
   TextContent,
+  Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import { ConsciousnessToolsRegistry } from './tools/registry.js';
+import { UnifiedConsciousnessToolsRegistry } from './tools/unified-registry.js';
+
+// Interface for registry abstraction
+interface ToolsRegistry {
+  getTools(): Record<string, Tool>;
+  executeTool(toolName: string, args: Record<string, unknown>): Promise<unknown>;
+  cleanup?(): Promise<void>;
+}
 
 class ConsciousnessMCPServer {
   private server: Server;
-  private toolsRegistry: ConsciousnessToolsRegistry;
+  private toolsRegistry: ToolsRegistry;
+  private isUnified: boolean;
 
   constructor() {
+    // Check if unified mode is enabled via environment variable
+    this.isUnified = process.env.CONSCIOUSNESS_UNIFIED_MODE === 'true';
+
     this.server = new Server(
       {
         name: 'consciousness-mcp-server',
@@ -28,7 +41,15 @@ class ConsciousnessMCPServer {
       }
     );
 
-    this.toolsRegistry = new ConsciousnessToolsRegistry();
+    // Choose registry based on mode
+    if (this.isUnified) {
+      console.error('🔧 Starting in UNIFIED mode - single process_message tool');
+      this.toolsRegistry = new UnifiedConsciousnessToolsRegistry();
+    } else {
+      console.error('🔧 Starting in MULTI-TOOL mode - individual consciousness tools');
+      this.toolsRegistry = new ConsciousnessToolsRegistry();
+    }
+
     this.setupHandlers();
   }
 
@@ -77,12 +98,39 @@ class ConsciousnessMCPServer {
     await this.server.connect(transport);
 
     // Log server startup to stderr (won't interfere with MCP protocol on stdout)
-    console.error('Consciousness MCP Server started successfully');
+    if (this.isUnified) {
+      console.error('Consciousness MCP Server started successfully in UNIFIED mode');
+      console.error('💡 Use process_message tool for all consciousness operations');
+      console.error('💡 Set CONSCIOUSNESS_UNIFIED_MODE=false to use individual tools');
+    } else {
+      console.error('Consciousness MCP Server started successfully in MULTI-TOOL mode');
+      console.error('💡 Set CONSCIOUSNESS_UNIFIED_MODE=true to use unified interface');
+    }
+  }
+
+  async cleanup(): Promise<void> {
+    if (this.toolsRegistry.cleanup) {
+      await this.toolsRegistry.cleanup();
+    }
   }
 }
 
 // Start the server
 const server = new ConsciousnessMCPServer();
+
+// Handle graceful shutdown
+process.on('SIGTERM', async () => {
+  console.error('Received SIGTERM, cleaning up...');
+  await server.cleanup();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.error('Received SIGINT, cleaning up...');
+  await server.cleanup();
+  process.exit(0);
+});
+
 server.run().catch((error: Error) => {
   console.error('Failed to start Consciousness MCP Server:', error);
   process.exit(1);
