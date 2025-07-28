@@ -81,6 +81,41 @@ This approach transforms consciousness from manual tool management into natural 
 - **🔄 Complete**: All consciousness features work behind the scenes
 - **⚡ Efficient**: No need to learn complex tool combinations
 
+### 💰 Cost Considerations
+
+**Unified Interface**: Uses Google Gemini API for message analysis on every interaction
+- **Pro**: Extremely simple and intelligent
+- **Con**: API costs scale with usage (every message = 1 API call)
+- **Best for**: Moderate usage, users who prioritize simplicity
+
+**Individual Tools**: Direct tool calls without GenAI analysis  
+- **Pro**: No per-message API costs for basic operations
+- **Con**: More complex, requires learning multiple tools
+- **Best for**: Heavy usage, cost-conscious users, power users who want control
+
+### 📊 Cost Estimation Guide
+
+**Unified Interface Usage Examples**:
+- Light usage (10 messages/day): ~300 API calls/month
+- Moderate usage (50 messages/day): ~1,500 API calls/month  
+- Heavy usage (200 messages/day): ~6,000 API calls/month
+
+**GenAI API calls are used for**:
+- Message analysis and intent detection
+- Social entity extraction
+- Response generation
+
+**No API calls for**:
+- Individual tool operations (`memory_store`, `social_interaction_record`, etc.)
+- Database operations
+- Configuration changes
+- Time/utility functions
+
+**Cost Optimization Tips**:
+- Use unified interface for exploratory conversations
+- Switch to individual tools for repetitive operations
+- Batch multiple insights into single messages when possible
+
 ##  🛠️ Advanced Multi-Tool Interface
 
 For users who want granular control over specific consciousness operations:

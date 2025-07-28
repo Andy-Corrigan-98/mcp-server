@@ -77,6 +77,8 @@ Example: Just send natural messages and the system handles everything:
 → Automatically records interaction, stores insights, updates relationships
 ```
 
+**💰 Cost Consideration**: The unified interface uses your Google Gemini API key for message analysis on every interaction. For heavy usage, consider individual tools to minimize API costs.
+
 ### 🛠️ **Individual Tools (Advanced)**
 
 For granular control, use individual tools:

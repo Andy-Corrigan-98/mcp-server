@@ -12,6 +12,8 @@ Complete reference for consciousness, memory, social, and utility tools provided
 
 **Setup**: Start server with `CONSCIOUSNESS_UNIFIED_MODE=true`
 
+**💰 Cost Note**: Each call uses Google Gemini API for message analysis. Consider individual tools for heavy usage to minimize API costs.
+
 **Parameters**:
 - `message` (required): The message to process through consciousness systems
 - `context`: Optional additional context about the message or conversation

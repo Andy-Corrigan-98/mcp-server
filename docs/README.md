@@ -124,6 +124,8 @@ Example Natural Usage:
 - "I realized something about React patterns" → Stores insight, updates memory
 ```
 
+**💰 Cost Consideration**: The unified interface requires Google Gemini API calls for intelligent message analysis. Each `process_message` call uses your API quota. For cost-conscious usage, individual tools provide full functionality without per-message GenAI costs.
+
 ### 🛠️ **Individual Tools (Advanced Control)**
 
 For granular control over specific operations:
