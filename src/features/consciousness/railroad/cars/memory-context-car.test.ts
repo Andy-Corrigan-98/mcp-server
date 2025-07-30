@@ -3,16 +3,16 @@ import { RailroadContext } from '../types.js';
 
 // Mock the memory module
 jest.mock('../../../memory/index.js', () => ({
-  execute: jest.fn(),
+  searchMemories: jest.fn(),
 }));
 
 import * as memory from '../../../memory/index.js';
 
-const mockMemoryExecute = memory.execute as jest.MockedFunction<typeof memory.execute>;
+const mockSearchMemories = memory.searchMemories as jest.MockedFunction<typeof memory.searchMemories>;
 
 describe('Memory Context Railroad Car', () => {
   beforeEach(() => {
-    mockMemoryExecute.mockClear();
+    mockSearchMemories.mockClear();
   });
 
   describe('Memory Retrieval', () => {
@@ -40,9 +40,7 @@ describe('Memory Context Railroad Car', () => {
         { action: 'stored_insight', timestamp: '2024-01-15T09:45:00Z', topic: 'consciousness' },
       ];
 
-      mockMemoryExecute
-        .mockResolvedValueOnce({ memories: mockMemories, total: 15 }) // searchMemories
-        .mockResolvedValueOnce({ activities: mockRecentActivity }); // getRecentActivity
+      mockSearchMemories.mockResolvedValueOnce({ results: mockMemories, total: 15 }); // searchMemories
 
       const context: RailroadContext = {
         message: 'How does consciousness and learning work together?',
@@ -77,7 +75,7 @@ describe('Memory Context Railroad Car', () => {
       expect(result.operations.memories_accessed).toContain('consciousness-understanding');
       expect(result.operations.memories_accessed).toContain('learning-patterns');
 
-      expect(mockMemoryExecute).toHaveBeenCalledWith('memory_search', {
+      expect(mockSearchMemories).toHaveBeenCalledWith('memory_search', {
         query: 'consciousness learning work together',
         tags: undefined,
         importance_filter: undefined,
@@ -115,7 +113,7 @@ describe('Memory Context Railroad Car', () => {
       expect(result.memoryContext?.recentActivity).toHaveLength(0);
       expect(result.memoryContext?.searchQuery).toBeUndefined();
       expect(result.operations.performed).toContain('memory-context');
-      expect(mockMemoryExecute).not.toHaveBeenCalled();
+      expect(mockSearchMemories).not.toHaveBeenCalled();
     });
 
     it('should handle memory search with entity-specific queries', async () => {
@@ -129,8 +127,8 @@ describe('Memory Context Railroad Car', () => {
         },
       ];
 
-      mockMemoryExecute
-        .mockResolvedValueOnce({ memories: mockMemories, total: 3 })
+      mockSearchMemories
+        .mockResolvedValueOnce({ results: mockMemories, total: 3 })
         .mockResolvedValueOnce({ activities: [] });
 
       const context: RailroadContext = {
@@ -173,8 +171,8 @@ describe('Memory Context Railroad Car', () => {
         },
       ];
 
-      mockMemoryExecute
-        .mockResolvedValueOnce({ memories: highImportanceMemories, total: 1 })
+      mockSearchMemories
+        .mockResolvedValueOnce({ results: highImportanceMemories, total: 1 })
         .mockResolvedValueOnce({ activities: [] });
 
       const context: RailroadContext = {
@@ -201,7 +199,7 @@ describe('Memory Context Railroad Car', () => {
 
       const result = await memoryContextCar(context);
 
-      expect(mockMemoryExecute).toHaveBeenCalledWith('memory_search', {
+      expect(mockSearchMemories).toHaveBeenCalledWith('memory_search', {
         query: 'important things know',
         tags: undefined,
         importance_filter: 'high', // Should filter for high importance
@@ -211,7 +209,7 @@ describe('Memory Context Railroad Car', () => {
 
   describe('Error Handling', () => {
     it('should handle memory search failure gracefully', async () => {
-      mockMemoryExecute.mockRejectedValue(new Error('Memory service unavailable'));
+      mockSearchMemories.mockRejectedValue(new Error('Memory service unavailable'));
 
       const context: RailroadContext = {
         message: 'Tell me about consciousness',
@@ -244,14 +242,14 @@ describe('Memory Context Railroad Car', () => {
 
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].car).toBe('memory-context');
-      expect(result.errors[0].message).toContain('Memory service unavailable');
+      expect(result.errors[0].error).toContain('Memory service unavailable');
     });
 
     it('should handle partial memory service failures', async () => {
       const mockMemories = [{ id: 'memory-1', key: 'test', content: {}, tags: [], importance: 'medium' }];
 
-      mockMemoryExecute
-        .mockResolvedValueOnce({ memories: mockMemories, total: 1 }) // searchMemories succeeds
+      mockSearchMemories
+        .mockResolvedValueOnce({ results: mockMemories, total: 1 }) // searchMemories succeeds
         .mockRejectedValueOnce(new Error('Recent activity service down')); // getRecentActivity fails
 
       const context: RailroadContext = {
@@ -285,8 +283,8 @@ describe('Memory Context Railroad Car', () => {
     });
 
     it('should handle malformed memory responses', async () => {
-      mockMemoryExecute
-        .mockResolvedValueOnce({ memories: null }) // Invalid response
+      mockSearchMemories
+        .mockResolvedValueOnce({ results: null }) // Invalid response
         .mockResolvedValueOnce({ activities: undefined }); // Invalid response
 
       const context: RailroadContext = {
@@ -321,7 +319,7 @@ describe('Memory Context Railroad Car', () => {
 
   describe('Context Preservation', () => {
     it('should preserve existing context and operations', async () => {
-      mockMemoryExecute.mockResolvedValueOnce({ memories: [], total: 0 }).mockResolvedValueOnce({ activities: [] });
+      mockSearchMemories.mockResolvedValueOnce({ results: [], total: 0 }).mockResolvedValueOnce({ activities: [] });
 
       const context: RailroadContext = {
         message: 'Test message',
@@ -369,7 +367,7 @@ describe('Memory Context Railroad Car', () => {
 
   describe('Query Construction', () => {
     it('should build comprehensive search queries from message and entities', async () => {
-      mockMemoryExecute.mockResolvedValueOnce({ memories: [], total: 0 }).mockResolvedValueOnce({ activities: [] });
+      mockSearchMemories.mockResolvedValueOnce({ results: [], total: 0 }).mockResolvedValueOnce({ activities: [] });
 
       const context: RailroadContext = {
         message: 'How does neural network optimization work for Sarah and Tom?',
@@ -395,7 +393,7 @@ describe('Memory Context Railroad Car', () => {
 
       await memoryContextCar(context);
 
-      expect(mockMemoryExecute).toHaveBeenCalledWith('memory_search', {
+      expect(mockSearchMemories).toHaveBeenCalledWith('memory_search', {
         query: 'neural network optimization work Sarah Tom',
         tags: undefined,
         importance_filter: undefined,
@@ -403,7 +401,7 @@ describe('Memory Context Railroad Car', () => {
     });
 
     it('should handle empty or minimal messages', async () => {
-      mockMemoryExecute.mockResolvedValueOnce({ memories: [], total: 0 }).mockResolvedValueOnce({ activities: [] });
+      mockSearchMemories.mockResolvedValueOnce({ results: [], total: 0 }).mockResolvedValueOnce({ activities: [] });
 
       const context: RailroadContext = {
         message: 'Hi',
@@ -429,7 +427,7 @@ describe('Memory Context Railroad Car', () => {
 
       await memoryContextCar(context);
 
-      expect(mockMemoryExecute).toHaveBeenCalledWith('memory_search', {
+      expect(mockSearchMemories).toHaveBeenCalledWith('memory_search', {
         query: 'Hi',
         tags: undefined,
         importance_filter: undefined,

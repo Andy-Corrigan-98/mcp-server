@@ -40,6 +40,9 @@ describe('Message Analysis Railroad Car', () => {
           requires_social: false,
           requires_insight_storage: true,
         }),
+        model: 'gemini-1.5-flash',
+        timestamp: new Date().toISOString(),
+        conversation_safe: true,
       });
 
       const result = await messageAnalysisCar(context);
@@ -75,6 +78,9 @@ describe('Message Analysis Railroad Car', () => {
           requires_social: true,
           requires_insight_storage: false,
         }),
+        model: 'gemini-1.5-flash',
+        timestamp: new Date().toISOString(),
+        conversation_safe: true,
       });
 
       const result = await messageAnalysisCar(context);
@@ -109,6 +115,9 @@ describe('Message Analysis Railroad Car', () => {
           requires_social: false,
           requires_insight_storage: true,
         }),
+        model: 'gemini-1.5-flash',
+        timestamp: new Date().toISOString(),
+        conversation_safe: true,
       });
 
       const result = await messageAnalysisCar(context);
@@ -145,7 +154,7 @@ describe('Message Analysis Railroad Car', () => {
       expect(result.analysis?.emotional_context).toBe('neutral');
       expect(result.errors).toHaveLength(1);
       expect(result.errors[0].car).toBe('message-analysis');
-      expect(result.errors[0].message).toContain('GenAI service unavailable');
+      expect(result.errors[0].error).toContain('GenAI service unavailable');
     });
 
     it('should handle invalid JSON response from GenAI', async () => {
@@ -164,6 +173,9 @@ describe('Message Analysis Railroad Car', () => {
 
       mockSimpleConversation.mockResolvedValue({
         response: 'This is not valid JSON',
+        model: 'gemini-1.5-flash',
+        timestamp: new Date().toISOString(),
+        conversation_safe: true,
       });
 
       const result = await messageAnalysisCar(context);
@@ -171,7 +183,7 @@ describe('Message Analysis Railroad Car', () => {
       expect(result.analysis).toBeDefined();
       expect(result.analysis?.intent).toBe('general');
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('Failed to parse GenAI analysis');
+      expect(result.errors[0].error).toContain('Failed to parse GenAI analysis');
     });
 
     it('should handle partial analysis data from GenAI', async () => {
@@ -193,6 +205,9 @@ describe('Message Analysis Railroad Car', () => {
           intent: 'technical',
           // Missing other required fields
         }),
+        model: 'gemini-1.5-flash',
+        timestamp: new Date().toISOString(),
+        conversation_safe: true,
       });
 
       const result = await messageAnalysisCar(context);
@@ -298,6 +313,9 @@ describe('Message Analysis Railroad Car', () => {
           requires_social: false,
           requires_insight_storage: false,
         }),
+        model: 'gemini-1.5-flash',
+        timestamp: new Date().toISOString(),
+        conversation_safe: true,
       });
 
       const result = await messageAnalysisCar(context);
