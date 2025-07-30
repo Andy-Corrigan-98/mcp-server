@@ -3,12 +3,11 @@ import * as social from '../../../social/index.js';
 
 /**
  * Social Context Railroad Car
- * 
+ *
  * Adds social relationship context when entities are mentioned in the message.
  * Records interactions and retrieves relationship dynamics.
  */
 export async function socialContextCar(context: RailroadContext): Promise<RailroadContext> {
-  
   // Skip social operations if not required by analysis
   if (!context.analysis?.requires_social || !context.analysis?.entities_mentioned.length) {
     return {
@@ -17,8 +16,8 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
         activeRelationships: [],
         recentInteractions: [],
         entityMentioned: undefined,
-        relationshipDynamics: undefined
-      }
+        relationshipDynamics: undefined,
+      },
     };
   }
 
@@ -37,16 +36,16 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
           name: entityName,
           include_relationship: true,
           include_interactions: true,
-          include_shared_memories: true
+          include_shared_memories: true,
         });
 
         if (entityContext && typeof entityContext === 'object') {
-          activeRelationships.push(entityContext);
-          
+          activeRelationships.push(entityContext as Record<string, unknown>);
+
           // Set primary entity (first one found)
           if (!primaryEntity) {
             primaryEntity = entityName;
-            relationshipDynamics = entityContext;
+            relationshipDynamics = entityContext as Record<string, unknown>;
           }
         }
 
@@ -65,20 +64,20 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
         const RECENT_INTERACTIONS_LIMIT = 5;
         const recentInteractionSearch = await social.execute('social_interaction_search', {
           entity_name: entityName,
-          limit: RECENT_INTERACTIONS_LIMIT
+          limit: RECENT_INTERACTIONS_LIMIT,
         });
 
         if (recentInteractionSearch && typeof recentInteractionSearch === 'object') {
-          const interactions = (recentInteractionSearch as Record<string, unknown>).interactions as Record<string, unknown>[] || [];
+          const interactions =
+            ((recentInteractionSearch as Record<string, unknown>).interactions as Record<string, unknown>[]) || [];
           recentInteractions.push(...interactions);
         }
-
       } catch (error) {
         // If we can't find/process this entity, log but continue
         context.errors.push({
           car: 'social-context',
           error: `Failed to process entity '${entityName}': ${error instanceof Error ? error.message : 'Unknown error'}`,
-          recoverable: true
+          recoverable: true,
         });
       }
     }
@@ -90,17 +89,16 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
         activeRelationships,
         recentInteractions,
         entityMentioned: primaryEntity,
-        relationshipDynamics
+        relationshipDynamics,
       },
       operations: {
         ...context.operations,
         social_interactions: [
           ...context.operations.social_interactions,
-          ...entitiesMentioned.map(entity => `Recorded interaction with ${entity}`)
-        ]
-      }
+          ...entitiesMentioned.map(entity => `Recorded interaction with ${entity}`),
+        ],
+      },
     };
-    
   } catch (error) {
     // If social operations fail, add error but continue
     return {
@@ -109,17 +107,16 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
         activeRelationships: [],
         recentInteractions: [],
         entityMentioned: undefined,
-        relationshipDynamics: undefined
+        relationshipDynamics: undefined,
       },
       errors: [
         ...context.errors,
         {
           car: 'social-context',
           error: error instanceof Error ? error.message : 'Unknown social error',
-          recoverable: true
-        }
-      ]
+          recoverable: true,
+        },
+      ],
     };
   }
 }
-

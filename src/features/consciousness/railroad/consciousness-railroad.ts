@@ -8,7 +8,7 @@ import { RailroadResult } from './types.js';
 
 /**
  * Main Consciousness Railroad Builder
- * 
+ *
  * Creates and configures the complete consciousness context pipeline.
  * This replaces the scattered consciousness operations with a traceable,
  * testable railroad pattern.
@@ -43,7 +43,7 @@ export function createConsciousnessRailroad(): ConsciousnessRailroad {
       name: 'personality-context',
       car: personalityContextCar,
       required: false, // Personality can fall back to defaults
-    }
+    },
   ]);
 }
 
@@ -66,7 +66,7 @@ export function createLightweightRailroad(): ConsciousnessRailroad {
       name: 'personality-context',
       car: personalityContextCar,
       required: false,
-    }
+    },
   ]);
 }
 
@@ -94,7 +94,7 @@ export function createMemoryFocusedRailroad(): ConsciousnessRailroad {
       name: 'personality-context',
       car: personalityContextCar,
       required: false,
-    }
+    },
   ]);
 }
 
@@ -127,7 +127,7 @@ export function createSocialFocusedRailroad(): ConsciousnessRailroad {
       name: 'personality-context',
       car: personalityContextCar,
       required: false,
-    }
+    },
   ]);
 }
 
@@ -136,13 +136,12 @@ export function createSocialFocusedRailroad(): ConsciousnessRailroad {
  * This is the main entry point that replaces scattered consciousness operations
  */
 export async function processConsciousnessContext(
-  message: string, 
+  message: string,
   context?: string,
   railroadType: 'default' | 'lightweight' | 'memory-focused' | 'social-focused' = 'default'
 ): Promise<RailroadResult> {
-  
   let railroad: ConsciousnessRailroad;
-  
+
   switch (railroadType) {
     case 'lightweight':
       railroad = createLightweightRailroad();
@@ -157,7 +156,7 @@ export async function processConsciousnessContext(
       railroad = createConsciousnessRailroad();
       break;
   }
-  
+
   return railroad.execute(message, context);
 }
 
@@ -166,47 +165,47 @@ export async function processConsciousnessContext(
  */
 export function extractResponseContext(result: RailroadResult): string {
   const ctx = result.context;
-  
+
   const contextParts: string[] = [];
-  
+
   // Add operations performed
   if (ctx.operations.performed.length > 0) {
     contextParts.push(`Operations: ${ctx.operations.performed.join(', ')}`);
   }
-  
+
   // Add emotional context
   if (ctx.analysis?.emotional_context) {
     contextParts.push(`Emotional context: ${ctx.analysis.emotional_context}`);
   }
-  
+
   // Add entities mentioned
-  if (ctx.analysis?.entities_mentioned.length > 0) {
-    contextParts.push(`Entities: ${ctx.analysis.entities_mentioned.join(', ')}`);
+  if ((ctx.analysis?.entities_mentioned?.length ?? 0) > 0) {
+    contextParts.push(`Entities: ${ctx.analysis?.entities_mentioned?.join(', ')}`);
   }
-  
+
   // Add session info
   if (ctx.sessionContext) {
     contextParts.push(`Session mode: ${ctx.sessionContext.mode}`);
     contextParts.push(`Attention: ${ctx.sessionContext.attentionFocus}`);
   }
-  
+
   // Add personality state
   if (ctx.personalityContext?.currentPersonalityState) {
     const personality = ctx.personalityContext.currentPersonalityState;
     contextParts.push(`Personality: ${personality.mode} mode, ${personality.engagement} engagement`);
     contextParts.push(`Communication style: ${ctx.personalityContext.communicationStyle}`);
   }
-  
+
   // Add memory context
-  if (ctx.memoryContext?.relevantMemories.length > 0) {
-    contextParts.push(`Relevant memories: ${ctx.memoryContext.relevantMemories.length} found`);
+  if ((ctx.memoryContext?.relevantMemories?.length ?? 0) > 0) {
+    contextParts.push(`Relevant memories: ${ctx.memoryContext?.relevantMemories?.length} found`);
   }
-  
+
   // Add social context
   if (ctx.socialContext?.relationshipDynamics) {
-    contextParts.push(`Active relationship context available`);
+    contextParts.push('Active relationship context available');
   }
-  
+
   // Add any errors (for debugging)
   if (ctx.errors.length > 0) {
     const recoverableErrors = ctx.errors.filter(e => e.recoverable);
@@ -214,7 +213,7 @@ export function extractResponseContext(result: RailroadResult): string {
       contextParts.push(`Note: ${recoverableErrors.length} recoverable processing issues`);
     }
   }
-  
+
   return contextParts.join('\n');
 }
 
@@ -230,17 +229,25 @@ export function getPersonalityContext(result: RailroadResult): {
   memoryContext?: string;
 } {
   const ctx = result.context;
-  
+
   const DEFAULT_CONFIDENCE = 0.8;
   const VOCABULARY_STYLE_INDEX = 1; // Second priority level (gentle_nudge)
-  
+
   return {
-    vocabularyStyle: ctx.personalityContext?.vocabularyPreferences?.priorityLevels?.[VOCABULARY_STYLE_INDEX] || 'balanced',
+    vocabularyStyle:
+      ((ctx.personalityContext?.vocabularyPreferences as Record<string, unknown>)?.priorityLevels?.[
+        VOCABULARY_STYLE_INDEX
+      ] as string) || 'balanced',
     communicationTone: ctx.personalityContext?.communicationStyle || 'adaptive',
-    confidenceLevel: ctx.personalityContext?.currentPersonalityState?.confidence || DEFAULT_CONFIDENCE,
-    relationshipContext: ctx.socialContext?.relationshipDynamics ? 
-      `Active relationship with ${ctx.socialContext.entityMentioned}` : undefined,
-    memoryContext: ctx.memoryContext?.relevantMemories.length > 0 ? 
-      `${ctx.memoryContext.relevantMemories.length} relevant memories` : undefined,
+    confidenceLevel:
+      ((ctx.personalityContext?.currentPersonalityState as Record<string, unknown>)?.confidence as number) ||
+      DEFAULT_CONFIDENCE,
+    relationshipContext: ctx.socialContext?.relationshipDynamics
+      ? `Active relationship with ${ctx.socialContext.entityMentioned}`
+      : undefined,
+    memoryContext:
+      (ctx.memoryContext?.relevantMemories?.length ?? 0) > 0
+        ? `${ctx.memoryContext?.relevantMemories?.length} relevant memories`
+        : undefined,
   };
 }
