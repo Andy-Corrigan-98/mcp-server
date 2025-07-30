@@ -6,6 +6,13 @@ import * as consciousness from '../../features/consciousness/index.js';
 import * as memory from '../../features/memory/index.js';
 import * as social from '../../features/social/index.js';
 
+// Import new railroad pattern
+import { 
+  processConsciousnessContext, 
+  extractResponseContext, 
+  getPersonalityContext 
+} from '../../features/consciousness/railroad/index.js';
+
 /**
  * Unified Message Processor
  *
@@ -31,6 +38,9 @@ export interface MessageProcessorResult {
 
 /**
  * Analyze a message to determine what consciousness operations are needed
+ * 
+ * @deprecated This function is deprecated in favor of the railroad pattern's message-analysis car.
+ * The railroad pattern provides more consistent and traceable analysis.
  */
 async function analyzeMessage(
   message: string,
@@ -91,100 +101,45 @@ Respond with a JSON object with these fields:
 }
 
 /**
- * Route to appropriate consciousness operations based on analysis
+ * Route to appropriate consciousness operations using railroad pattern
+ * 
+ * @deprecated This function now uses the railroad pattern instead of scattered operations.
+ * Consider using processMessageWithRailroad directly for new implementations.
  */
 async function executeConsciousnessOperations(
   message: string,
   analysis: Awaited<ReturnType<typeof analyzeMessage>>,
   context?: string
 ): Promise<MessageProcessorResult> {
-  const operations_performed: string[] = [];
-  const insights_generated: string[] = [];
-  const memories_accessed: string[] = [];
-  const social_interactions: string[] = [];
-  const consciousness_updates: Record<string, unknown> = {};
-
-  // Handle social interactions if entities are mentioned
-  if (analysis.requires_social && analysis.entities_mentioned.length > 0) {
-    try {
-      for (const entity of analysis.entities_mentioned) {
-        // Record social interaction
-        await social.execute('social_interaction_record', {
-          entity_name: entity,
-          interaction_type: 'conversation',
-          summary: message,
-          context: context || 'General conversation',
-        });
-        social_interactions.push(`Recorded interaction with ${entity}`);
-        operations_performed.push('social_interaction_recording');
-      }
-    } catch (error) {
-      console.error('Error recording social interaction:', error);
-    }
-  }
-
-  // Handle memory operations
-  if (analysis.requires_memory) {
-    try {
-      // Search for relevant memories
-      const memorySearch = await memory.searchMemories({
-        query: message,
-        tags: analysis.entities_mentioned,
-      });
-
-      if (memorySearch.results && memorySearch.results.length > 0) {
-        memories_accessed.push(...memorySearch.results.map(m => m.key));
-        operations_performed.push('memory_retrieval');
-      }
-    } catch (error) {
-      console.error('Error searching memories:', error);
-    }
-  }
-
-  // Handle insight storage for reflective messages
-  if (analysis.requires_insight_storage && (analysis.intent === 'reflection' || analysis.intent === 'learning')) {
-    try {
-      const insight = await consciousness.storeInsight({
-        insight: message,
-        category: 'mirror_gazing',
-        confidence: 0.7,
-        related_topic: analysis.intent,
-        source_context: context || 'User conversation',
-      });
-
-      if (insight.stored) {
-        insights_generated.push(message);
-        operations_performed.push('insight_storage');
-        consciousness_updates.insight_id = insight.id;
-      }
-    } catch (error) {
-      console.error('Error storing insight:', error);
-    }
-  }
-
-  // Update session state
-  try {
-    const sessionUpdate = await consciousness.updateSession({
-      activity_type: analysis.intent,
-      attention_focus: analysis.entities_mentioned[0] || 'general_conversation',
-      learning_occurred: analysis.requires_insight_storage,
-    });
-    operations_performed.push('session_update');
-    consciousness_updates.session = sessionUpdate;
-  } catch (error) {
-    console.error('Error updating session:', error);
-  }
-
-  // Generate response using conversation reasoning
+  
+  // Use the new railroad pattern instead of scattered operations
+  const railroadResult = await processConsciousnessContext(
+    message,
+    context,
+    'default' // Use default railroad configuration
+  );
+  
+  // Extract context for response generation using railroad pattern
+  const responseContext = extractResponseContext(railroadResult);
+  const personalityContext = getPersonalityContext(railroadResult);
+  
+  // Generate response using enriched railroad context
   let response: string;
   try {
     const conversationResponse = await simpleConversation({
       question: message,
       context: `
-Previous operations performed: ${operations_performed.join(', ')}
-Emotional context: ${analysis.emotional_context}
-Entities mentioned: ${analysis.entities_mentioned.join(', ')}
-${context ? `Additional context: ${context}` : ''}
+Railroad Context:
+${responseContext}
+
+Personality Guidance:
+- Communication tone: ${personalityContext.communicationTone}
+- Vocabulary style: ${personalityContext.vocabularyStyle}
+- Confidence level: ${personalityContext.confidenceLevel}
+${personalityContext.relationshipContext ? `- Relationship: ${personalityContext.relationshipContext}` : ''}
+${personalityContext.memoryContext ? `- Memory context: ${personalityContext.memoryContext}` : ''}
+
+${context ? `\nAdditional context: ${context}` : ''}
       `.trim(),
     });
     response = conversationResponse.response;
@@ -192,13 +147,14 @@ ${context ? `Additional context: ${context}` : ''}
     response = "I understand what you're saying. Let me process this thoughtfully.";
   }
 
+  // Convert railroad results back to legacy format for compatibility
   return {
     response,
-    operations_performed,
-    consciousness_updates,
-    insights_generated,
-    memories_accessed,
-    social_interactions,
+    operations_performed: railroadResult.context.operations.performed,
+    consciousness_updates: railroadResult.context.operations.consciousness_updates,
+    insights_generated: railroadResult.context.operations.insights_generated,
+    memories_accessed: railroadResult.context.operations.memories_accessed,
+    social_interactions: railroadResult.context.operations.social_interactions,
   };
 }
 
@@ -223,19 +179,25 @@ export async function processMessage(args: MessageProcessorArgs): Promise<Messag
 export const PROCESS_MESSAGE_TOOL: Tool = {
   name: 'process_message',
   description: `
-Process a message through the consciousness system, automatically performing relevant operations like memory retrieval, 
-insight storage, social interaction recording, and generating contextual responses.
+Process a message through the consciousness system using the railroad pattern for traceable personality context building.
 
-This tool consolidates all consciousness functionality into a single intelligent interface that:
+🚂 RAILROAD PATTERN MIGRATION: This tool now uses the new railroad pattern internally, providing:
+- Traceable execution through consciousness pipeline cars
+- Comprehensive error handling with graceful degradation  
+- Rich debugging information via execution traces
+- Predictable personality context building
+- Better testability and maintainability
+
+The tool automatically:
 - Analyzes message intent and emotional context
-- Routes to appropriate consciousness operations
+- Routes through consciousness railroad cars (session → memory → social → personality)
 - Records social interactions when people are mentioned  
 - Retrieves relevant memories when needed
 - Stores insights for reflective content
-- Updates session state
-- Generates contextual responses
+- Updates session state with personality metrics
+- Generates responses with consistent personality context
 
-Much simpler than managing dozens of individual consciousness tools.
+Much more reliable and debuggable than the previous scattered operations approach.
   `.trim(),
   inputSchema: {
     type: 'object',
