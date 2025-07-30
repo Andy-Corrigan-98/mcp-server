@@ -25,7 +25,7 @@ export interface RailroadContext {
   // Session context
   sessionContext?: {
     sessionId: string;
-    currentState: any; // ConsciousnessState
+    currentState: Record<string, unknown>; // ConsciousnessState
     duration: number;
     cognitiveLoad: number;
     attentionFocus: string;
@@ -35,26 +35,26 @@ export interface RailroadContext {
   
   // Memory context
   memoryContext?: {
-    relevantMemories: any[];
+    relevantMemories: Record<string, unknown>[];
     totalMemories: number;
-    recentActivity: any[];
+    recentActivity: Record<string, unknown>[];
     searchQuery?: string;
   };
   
   // Social context
   socialContext?: {
-    activeRelationships: any[];
-    recentInteractions: any[];
+    activeRelationships: Record<string, unknown>[];
+    recentInteractions: Record<string, unknown>[];
     entityMentioned?: string;
-    relationshipDynamics?: any;
+    relationshipDynamics?: Record<string, unknown>;
   };
   
   // Personality context
   personalityContext?: {
-    vocabularyPreferences: any;
-    learningPatterns: any;
+    vocabularyPreferences: Record<string, unknown>;
+    learningPatterns: Record<string, unknown>;
     communicationStyle: string;
-    currentPersonalityState: any;
+    currentPersonalityState: Record<string, unknown>;
   };
   
   // Operations tracking

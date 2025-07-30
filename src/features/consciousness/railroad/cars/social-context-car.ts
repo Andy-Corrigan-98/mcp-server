@@ -24,10 +24,10 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
 
   try {
     const entitiesMentioned = context.analysis.entities_mentioned;
-    const activeRelationships: any[] = [];
-    const recentInteractions: any[] = [];
+    const activeRelationships: Record<string, unknown>[] = [];
+    const recentInteractions: Record<string, unknown>[] = [];
     let primaryEntity: string | undefined;
-    let relationshipDynamics: any = undefined;
+    let relationshipDynamics: Record<string, unknown> | undefined;
 
     // Process each mentioned entity
     for (const entityName of entitiesMentioned) {
@@ -51,22 +51,25 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
         }
 
         // Record this interaction
+        const SUMMARY_MAX_LENGTH = 200;
+        const DEFAULT_QUALITY = 0.8;
         await social.execute('social_interaction_record', {
           entity_name: entityName,
           interaction_type: 'conversation',
-          summary: context.message.substring(0, 200), // Truncate for summary
+          summary: context.message.substring(0, SUMMARY_MAX_LENGTH), // Truncate for summary
           context: context.originalContext || 'General conversation',
-          quality: 0.8, // Default quality
+          quality: DEFAULT_QUALITY,
         });
 
         // Search for recent interactions
+        const RECENT_INTERACTIONS_LIMIT = 5;
         const recentInteractionSearch = await social.execute('social_interaction_search', {
           entity_name: entityName,
-          limit: 5
+          limit: RECENT_INTERACTIONS_LIMIT
         });
 
         if (recentInteractionSearch && typeof recentInteractionSearch === 'object') {
-          const interactions = (recentInteractionSearch as any).interactions || [];
+          const interactions = (recentInteractionSearch as Record<string, unknown>).interactions as Record<string, unknown>[] || [];
           recentInteractions.push(...interactions);
         }
 
@@ -120,37 +123,3 @@ export async function socialContextCar(context: RailroadContext): Promise<Railro
   }
 }
 
-/**
- * Helper function to extract communication style preferences from relationship context
- */
-function extractCommunicationStyle(relationshipDynamics: any): string {
-  if (!relationshipDynamics?.relationship?.communicationStyle) {
-    return 'neutral';
-  }
-
-  const commStyle = relationshipDynamics.relationship.communicationStyle;
-  
-  // Map communication style to simple descriptors
-  if (commStyle.formal) return 'formal';
-  if (commStyle.casual) return 'casual';
-  if (commStyle.technical) return 'technical';
-  if (commStyle.playful) return 'playful';
-  if (commStyle.supportive) return 'supportive';
-  
-  return 'adaptive';
-}
-
-/**
- * Helper function to determine relationship strength level
- */
-function getRelationshipStrength(relationshipDynamics: any): 'weak' | 'moderate' | 'strong' {
-  if (!relationshipDynamics?.relationship?.strength) {
-    return 'moderate';
-  }
-
-  const strength = relationshipDynamics.relationship.strength;
-  
-  if (strength >= 0.8) return 'strong';
-  if (strength >= 0.5) return 'moderate';
-  return 'weak';
-}

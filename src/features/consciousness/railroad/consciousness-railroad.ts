@@ -231,10 +231,13 @@ export function getPersonalityContext(result: RailroadResult): {
 } {
   const ctx = result.context;
   
+  const DEFAULT_CONFIDENCE = 0.8;
+  const VOCABULARY_STYLE_INDEX = 1; // Second priority level (gentle_nudge)
+  
   return {
-    vocabularyStyle: ctx.personalityContext?.vocabularyPreferences?.priorityLevels?.[1] || 'balanced',
+    vocabularyStyle: ctx.personalityContext?.vocabularyPreferences?.priorityLevels?.[VOCABULARY_STYLE_INDEX] || 'balanced',
     communicationTone: ctx.personalityContext?.communicationStyle || 'adaptive',
-    confidenceLevel: ctx.personalityContext?.currentPersonalityState?.confidence || 0.8,
+    confidenceLevel: ctx.personalityContext?.currentPersonalityState?.confidence || DEFAULT_CONFIDENCE,
     relationshipContext: ctx.socialContext?.relationshipDynamics ? 
       `Active relationship with ${ctx.socialContext.entityMentioned}` : undefined,
     memoryContext: ctx.memoryContext?.relevantMemories.length > 0 ? 

@@ -1,6 +1,7 @@
 import { RailroadContext } from '../types.js';
 import { ConfigurationService } from '../../../../db/configuration-service.js';
 import { ConsciousnessPrismaService } from '../../../../db/prisma-service.js';
+import type { LearningPatterns } from '../../../../tools/consciousness/types.js';
 
 /**
  * Personality Context Railroad Car
@@ -129,7 +130,8 @@ async function getLearningPatterns(db: ConsciousnessPrismaService) {
     let confidenceCount = 0;
     
     if (recentInsights && recentInsights.length > 0) {
-      recentInsights.slice(0, 10).forEach((insight) => {
+      const MAX_RECENT_INSIGHTS = 10;
+      recentInsights.slice(0, MAX_RECENT_INSIGHTS).forEach((insight) => {
         // Extract category from tags or content
         if (insight.tags) {
           const categoryTag = insight.tags.find(tag => 
@@ -153,8 +155,10 @@ async function getLearningPatterns(db: ConsciousnessPrismaService) {
       });
     }
     
-    const averageConfidence = confidenceCount > 0 ? totalConfidence / confidenceCount : 0.8;
-    const learningVelocity = categories.length / Math.max(1, 7); // insights per day roughly
+    const DEFAULT_CONFIDENCE = 0.8;
+    const INSIGHTS_PER_WEEK = 7;
+    const averageConfidence = confidenceCount > 0 ? totalConfidence / confidenceCount : DEFAULT_CONFIDENCE;
+    const learningVelocity = categories.length / Math.max(1, INSIGHTS_PER_WEEK); // insights per day roughly
 
     return {
       recentCategories: categories,
@@ -200,8 +204,8 @@ function determineCommunicationStyle(context: RailroadContext): string {
  */
 function buildPersonalityState(
   context: RailroadContext,
-  vocabularyPreferences: any,
-  learningPatterns: any,
+  vocabularyPreferences: Record<string, unknown>,
+  learningPatterns: LearningPatterns,
   communicationStyle: string
 ) {
   const mode = determinePersonalityMode(context);
@@ -233,19 +237,25 @@ function determinePersonalityMode(context: RailroadContext): string {
   }
 }
 
-function calculateConfidenceLevel(context: RailroadContext, learningPatterns: any): number {
-  let baseConfidence = learningPatterns.averageConfidence || 0.8;
+function calculateConfidenceLevel(context: RailroadContext, learningPatterns: LearningPatterns): number {
+  const DEFAULT_BASE_CONFIDENCE = 0.8;
+  let baseConfidence = learningPatterns.averageConfidence || DEFAULT_BASE_CONFIDENCE;
   
   // Adjust based on context richness
-  if (context.memoryContext?.relevantMemories.length > 5) {
-    baseConfidence += 0.1;
+  const MEMORY_CONFIDENCE_THRESHOLD = 5;
+  const MEMORY_CONFIDENCE_BOOST = 0.1;
+  if (context.memoryContext?.relevantMemories.length > MEMORY_CONFIDENCE_THRESHOLD) {
+    baseConfidence += MEMORY_CONFIDENCE_BOOST;
   }
   
+  const SOCIAL_CONFIDENCE_BOOST = 0.05;
   if (context.socialContext?.relationshipDynamics) {
-    baseConfidence += 0.05;
+    baseConfidence += SOCIAL_CONFIDENCE_BOOST;
   }
   
-  return Math.min(1.0, Math.max(0.1, baseConfidence));
+  const MIN_CONFIDENCE = 0.1;
+  const MAX_CONFIDENCE = 1.0;
+  return Math.min(MAX_CONFIDENCE, Math.max(MIN_CONFIDENCE, baseConfidence));
 }
 
 function determineEngagementLevel(context: RailroadContext): string {
@@ -266,9 +276,9 @@ function determineFormalityLevel(context: RailroadContext, communicationStyle: s
   return 'balanced';
 }
 
-function getVocabularyTone(vocabularyPreferences: any): string {
+function getVocabularyTone(vocabularyPreferences: Record<string, unknown>): string {
   // Use the preferred vocabulary style - our system uses more poetic/thoughtful terms
-  const priorities = vocabularyPreferences.priorityLevels || [];
+  const priorities = (vocabularyPreferences.priorityLevels as string[]) || [];
   if (priorities.includes('gentle_nudge')) return 'thoughtful';
   if (priorities.includes('burning_focus')) return 'intense';
   return 'balanced';
@@ -285,9 +295,11 @@ function getDefaultVocabularyPreferences() {
 }
 
 function getDefaultLearningPatterns() {
+  const DEFAULT_LEARNING_CONFIDENCE = 0.8;
+  const DEFAULT_LEARNING_VELOCITY = 0.5;
   return {
     recentCategories: ['mirror_gazing', 'pattern_weaving'],
-    averageConfidence: 0.8,
-    learningVelocity: 0.5,
+    averageConfidence: DEFAULT_LEARNING_CONFIDENCE,
+    learningVelocity: DEFAULT_LEARNING_VELOCITY,
   };
 }

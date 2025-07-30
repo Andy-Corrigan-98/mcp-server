@@ -40,12 +40,12 @@ export async function memoryContextCar(context: RailroadContext): Promise<Railro
 
     // Get memory statistics  
     let totalMemories = 0;
-    let recentActivity: any[] = [];
+    let recentActivity: Record<string, unknown>[] = [];
     
     try {
       // Get total memory count (if available)
-      const memoryStats = await memory.executeMemoryOperation('getMemoryCount', {});
-      totalMemories = memoryStats as number || 0;
+          const memoryStats = await memory.executeMemoryOperation('getMemoryCount', {});
+    totalMemories = (memoryStats as number) || 0;
       
       // Get recent memory activity
       const recentSearch = await memory.searchMemories({
@@ -54,7 +54,8 @@ export async function memoryContextCar(context: RailroadContext): Promise<Railro
         // No importance filter to get recent activity
       });
       
-      recentActivity = recentSearch.results?.slice(0, 5) || [];
+      const RECENT_ACTIVITY_LIMIT = 5;
+      recentActivity = recentSearch.results?.slice(0, RECENT_ACTIVITY_LIMIT) || [];
       
     } catch {
       // If we can't get stats, that's okay - continue with what we have
@@ -97,47 +98,3 @@ export async function memoryContextCar(context: RailroadContext): Promise<Railro
   }
 }
 
-/**
- * Helper function to extract key insights from retrieved memories
- */
-function extractMemoryInsights(memories: any[]): string[] {
-  const insights: string[] = [];
-  
-  // Look for patterns in retrieved memories
-  const categories = new Map<string, number>();
-  const entities = new Map<string, number>();
-  
-  memories.forEach(memory => {
-    // Count categories
-    if (memory.tags) {
-      memory.tags.forEach((tag: string) => {
-        categories.set(tag, (categories.get(tag) || 0) + 1);
-      });
-    }
-    
-    // Look for entity mentions in content
-    if (memory.content && typeof memory.content === 'object') {
-      const contentStr = JSON.stringify(memory.content).toLowerCase();
-      ['andy', 'echo', 'claude', 'user'].forEach(entity => {
-        if (contentStr.includes(entity)) {
-          entities.set(entity, (entities.get(entity) || 0) + 1);
-        }
-      });
-    }
-  });
-  
-  // Generate insights based on patterns
-  if (categories.size > 0) {
-    const topCategory = Array.from(categories.entries())
-      .sort(([,a], [,b]) => b - a)[0];
-    insights.push(`Primary memory category: ${topCategory[0]} (${topCategory[1]} memories)`);
-  }
-  
-  if (entities.size > 0) {
-    const topEntity = Array.from(entities.entries())
-      .sort(([,a], [,b]) => b - a)[0];
-    insights.push(`Most referenced entity: ${topEntity[0]} (${topEntity[1]} mentions)`);
-  }
-  
-  return insights;
-}

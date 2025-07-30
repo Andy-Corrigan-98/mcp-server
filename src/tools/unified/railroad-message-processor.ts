@@ -5,6 +5,7 @@ import {
   extractResponseContext, 
   getPersonalityContext 
 } from '../../features/consciousness/railroad/index.js';
+import type { RailroadResult } from '../../features/consciousness/railroad/types.js';
 
 /**
  * Railroad-Powered Message Processor
@@ -48,9 +49,6 @@ export interface RailroadMessageProcessorResult {
 export async function processMessageWithRailroad(
   args: RailroadMessageProcessorArgs
 ): Promise<RailroadMessageProcessorResult> {
-  
-  const startTime = Date.now();
-  
   // Execute the consciousness railroad
   const railroadResult = await processConsciousnessContext(
     args.message,
@@ -82,7 +80,7 @@ ${args.context ? `\nAdditional context: ${args.context}` : ''}
       `.trim(),
     });
     response = conversationResponse.response;
-  } catch (error) {
+  } catch {
     // Fallback response if conversation generation fails
     response = `I understand what you're saying. Let me process this thoughtfully. (Note: Response generation encountered an issue, but consciousness processing completed successfully.)`;
   }
@@ -118,18 +116,25 @@ ${args.context ? `\nAdditional context: ${args.context}` : ''}
 /**
  * Calculate how rich/complete the consciousness context is (0-1)
  */
-function calculateContextRichness(railroadResult: any): number {
+function calculateContextRichness(railroadResult: RailroadResult): number {
+  const BASE_SUCCESS_SCORE = 0.2;
+  const ANALYSIS_SCORE = 0.2;
+  const SESSION_SCORE = 0.2;
+  const MEMORY_SCORE = 0.15;
+  const SOCIAL_SCORE = 0.15;
+  const PERSONALITY_SCORE = 0.1;
+  
   let richness = 0;
   
   // Base points for successful execution
-  if (railroadResult.success) richness += 0.2;
+  if (railroadResult.success) richness += BASE_SUCCESS_SCORE;
   
   // Points for each type of context
-  if (railroadResult.context.analysis) richness += 0.2;
-  if (railroadResult.context.sessionContext) richness += 0.2;
-  if (railroadResult.context.memoryContext?.relevantMemories.length > 0) richness += 0.15;
-  if (railroadResult.context.socialContext?.relationshipDynamics) richness += 0.15;
-  if (railroadResult.context.personalityContext) richness += 0.1;
+  if (railroadResult.context.analysis) richness += ANALYSIS_SCORE;
+  if (railroadResult.context.sessionContext) richness += SESSION_SCORE;
+  if (railroadResult.context.memoryContext?.relevantMemories.length > 0) richness += MEMORY_SCORE;
+  if (railroadResult.context.socialContext?.relationshipDynamics) richness += SOCIAL_SCORE;
+  if (railroadResult.context.personalityContext) richness += PERSONALITY_SCORE;
   
   return Math.min(1.0, richness);
 }

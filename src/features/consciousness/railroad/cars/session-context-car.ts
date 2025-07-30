@@ -10,12 +10,8 @@ import { GuidGenerator } from '../../../../utils/guid.js';
  * to the railroad context.
  */
 export async function sessionContextCar(context: RailroadContext): Promise<RailroadContext> {
-  const config = ConfigurationService.getInstance();
-  const db = ConsciousnessPrismaService.getInstance();
-
   // Generate or get current session info
   const sessionId = GuidGenerator.generateSessionId();
-  const sessionStartTime = new Date();
   
   // Create current consciousness state
   const currentState = {

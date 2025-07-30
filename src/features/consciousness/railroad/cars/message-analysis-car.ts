@@ -53,7 +53,7 @@ Respond with a JSON object with these fields:
       }
     };
     
-  } catch (error) {
+  } catch {
     // Fallback to basic analysis if GenAI fails
     const fallbackAnalysis = {
       intent: 'general',
