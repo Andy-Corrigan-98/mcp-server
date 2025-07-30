@@ -1,15 +1,15 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { simpleConversation } from '../../features/reasoning/conversation/simple-conversation.js';
-import { 
-  processConsciousnessContext, 
-  extractResponseContext, 
-  getPersonalityContext 
+import {
+  processConsciousnessContext,
+  extractResponseContext,
+  getPersonalityContext,
 } from '../../features/consciousness/railroad/index.js';
 import type { RailroadResult } from '../../features/consciousness/railroad/types.js';
 
 /**
  * Railroad-Powered Message Processor
- * 
+ *
  * This replaces the scattered consciousness operations with a clean railroad pipeline
  * that builds personality context in a traceable, testable way.
  */
@@ -50,16 +50,12 @@ export async function processMessageWithRailroad(
   args: RailroadMessageProcessorArgs
 ): Promise<RailroadMessageProcessorResult> {
   // Execute the consciousness railroad
-  const railroadResult = await processConsciousnessContext(
-    args.message,
-    args.context,
-    args.railroad_type || 'default'
-  );
-  
+  const railroadResult = await processConsciousnessContext(args.message, args.context, args.railroad_type || 'default');
+
   // Extract context for response generation
   const responseContext = extractResponseContext(railroadResult);
   const personalityContext = getPersonalityContext(railroadResult);
-  
+
   // Generate response using enriched context
   let response: string;
   try {
@@ -82,20 +78,21 @@ ${args.context ? `\nAdditional context: ${args.context}` : ''}
     response = conversationResponse.response;
   } catch {
     // Fallback response if conversation generation fails
-    response = `I understand what you're saying. Let me process this thoughtfully. (Note: Response generation encountered an issue, but consciousness processing completed successfully.)`;
+    response =
+      "I understand what you're saying. Let me process this thoughtfully. (Note: Response generation encountered an issue, but consciousness processing completed successfully.)";
   }
-  
+
   // Calculate context richness
   const contextRichness = calculateContextRichness(railroadResult);
-  
+
   // Build railroad trace for debugging
   const railroadTrace = railroadResult.executionTrace.map(trace => ({
     car: trace.car,
     duration: trace.endTime.getTime() - trace.startTime.getTime(),
     success: trace.success,
-    error: trace.error
+    error: trace.error,
   }));
-  
+
   return {
     response,
     consciousness_context: {
@@ -123,19 +120,19 @@ function calculateContextRichness(railroadResult: RailroadResult): number {
   const MEMORY_SCORE = 0.15;
   const SOCIAL_SCORE = 0.15;
   const PERSONALITY_SCORE = 0.1;
-  
+
   let richness = 0;
-  
+
   // Base points for successful execution
   if (railroadResult.success) richness += BASE_SUCCESS_SCORE;
-  
+
   // Points for each type of context
   if (railroadResult.context.analysis) richness += ANALYSIS_SCORE;
   if (railroadResult.context.sessionContext) richness += SESSION_SCORE;
-  if (railroadResult.context.memoryContext?.relevantMemories.length > 0) richness += MEMORY_SCORE;
+  if ((railroadResult.context.memoryContext?.relevantMemories?.length ?? 0) > 0) richness += MEMORY_SCORE;
   if (railroadResult.context.socialContext?.relationshipDynamics) richness += SOCIAL_SCORE;
   if (railroadResult.context.personalityContext) richness += PERSONALITY_SCORE;
-  
+
   return Math.min(1.0, richness);
 }
 
@@ -197,13 +194,13 @@ The railroad pattern makes personality consistency much more predictable and deb
 export function compareApproaches() {
   return {
     old_approach: {
-      description: "Scattered consciousness operations",
+      description: 'Scattered consciousness operations',
       problems: [
-        "Hard to trace what personality context gets included",
-        "Difficult to test individual components",
-        "Error in one operation can break everything",
-        "No visibility into execution flow",
-        "Hard to debug personality inconsistencies"
+        'Hard to trace what personality context gets included',
+        'Difficult to test individual components',
+        'Error in one operation can break everything',
+        'No visibility into execution flow',
+        'Hard to debug personality inconsistencies',
       ],
       code_pattern: `
 // Old: scattered operations
@@ -211,24 +208,24 @@ await consciousness.updateSession(...)
 const memories = await memory.searchMemories(...)  
 await social.recordInteraction(...)
 // Context gets assembled ad-hoc with unclear dependencies
-      `.trim()
+      `.trim(),
     },
     new_approach: {
-      description: "Railroad pattern with traceable pipeline",
+      description: 'Railroad pattern with traceable pipeline',
       benefits: [
         "Linear, traceable execution through each 'car'",
-        "Each car is independently testable",
-        "Graceful degradation when non-critical cars fail",
-        "Complete execution trace for debugging",
-        "Predictable personality context building",
-        "Easy to add/remove/reorder context sources"
+        'Each car is independently testable',
+        'Graceful degradation when non-critical cars fail',
+        'Complete execution trace for debugging',
+        'Predictable personality context building',
+        'Easy to add/remove/reorder context sources',
       ],
       code_pattern: `
 // New: railroad pipeline
 const result = await processConsciousnessContext(message, context, 'default');
 // Automatically flows through: analysis → session → memory → social → personality
 // Rich context available in result.context with full execution trace
-      `.trim()
-    }
+      `.trim(),
+    },
   };
 }
