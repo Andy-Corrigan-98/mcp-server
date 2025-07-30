@@ -10,7 +10,6 @@ import {
   TextContent,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { ConsciousnessToolsRegistry } from './tools/registry.js';
 import { UnifiedConsciousnessToolsRegistry } from './tools/unified-registry.js';
 
 // Interface for registry abstraction
@@ -23,12 +22,8 @@ interface ToolsRegistry {
 class ConsciousnessMCPServer {
   private server: Server;
   private toolsRegistry: ToolsRegistry;
-  private isUnified: boolean;
 
   constructor() {
-    // Check if unified mode is enabled via environment variable
-    this.isUnified = process.env.CONSCIOUSNESS_UNIFIED_MODE === 'true';
-
     this.server = new Server(
       {
         name: 'consciousness-mcp-server',
@@ -41,14 +36,9 @@ class ConsciousnessMCPServer {
       }
     );
 
-    // Choose registry based on mode
-    if (this.isUnified) {
-      console.error('🔧 Starting in UNIFIED mode - single process_message tool');
-      this.toolsRegistry = new UnifiedConsciousnessToolsRegistry();
-    } else {
-      console.error('🔧 Starting in MULTI-TOOL mode - individual consciousness tools');
-      this.toolsRegistry = new ConsciousnessToolsRegistry();
-    }
+    // Always use the railroad-powered unified approach
+    console.error('🚂 Starting with Railroad Pattern - unified, traceable consciousness processing');
+    this.toolsRegistry = new UnifiedConsciousnessToolsRegistry();
 
     this.setupHandlers();
   }
@@ -98,14 +88,9 @@ class ConsciousnessMCPServer {
     await this.server.connect(transport);
 
     // Log server startup to stderr (won't interfere with MCP protocol on stdout)
-    if (this.isUnified) {
-      console.error('Consciousness MCP Server started successfully in UNIFIED mode');
-      console.error('💡 Use process_message tool for all consciousness operations');
-      console.error('💡 Set CONSCIOUSNESS_UNIFIED_MODE=false to use individual tools');
-    } else {
-      console.error('Consciousness MCP Server started successfully in MULTI-TOOL mode');
-      console.error('💡 Set CONSCIOUSNESS_UNIFIED_MODE=true to use unified interface');
-    }
+    console.error('🚂 Consciousness MCP Server started with Railroad Pattern');
+    console.error('💡 Use process_message tool for all consciousness operations');
+    console.error('💡 Full traceability and consistency guaranteed');
   }
 
   async cleanup(): Promise<void> {

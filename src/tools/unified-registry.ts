@@ -1,36 +1,40 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { processMessage, PROCESS_MESSAGE_TOOL, type MessageProcessorArgs } from './unified/message-processor.js';
+import {
+  processMessageWithRailroad,
+  RAILROAD_MESSAGE_PROCESSOR_TOOL,
+  type RailroadMessageProcessorArgs,
+} from './unified/railroad-message-processor.js';
 
 /**
- * Unified Consciousness Tools Registry
+ * Unified Consciousness Tools Registry - Railroad Pattern
  *
- * This registry exposes a single intelligent tool that handles all consciousness operations
- * instead of dozens of individual tools. Much simpler for clients to use.
+ * This registry exposes a single intelligent tool powered by the railroad pattern
+ * that handles all consciousness operations with full traceability and consistency.
  */
 export class UnifiedConsciousnessToolsRegistry {
   private tools: Map<string, Tool> = new Map();
   private toolExecutors: Map<string, (toolName: string, args: Record<string, unknown>) => Promise<unknown>> = new Map();
 
   constructor() {
-    this.registerUnifiedTools();
+    this.registerRailroadTools();
   }
 
   /**
-   * Register the unified consciousness tool
+   * Register the railroad-powered consciousness tool
    */
-  private registerUnifiedTools(): void {
-    // Register the single process_message tool
-    this.tools.set('process_message', PROCESS_MESSAGE_TOOL);
-    this.toolExecutors.set('process_message', this.executeProcessMessage.bind(this));
+  private registerRailroadTools(): void {
+    // Register the single railroad-powered process_message tool
+    this.tools.set('process_message', RAILROAD_MESSAGE_PROCESSOR_TOOL);
+    this.toolExecutors.set('process_message', this.executeRailroadMessage.bind(this));
 
-    console.log('🧠 Unified consciousness interface ready - single tool handles all operations');
+    console.log('🚂 Railroad consciousness interface ready - unified, traceable, and reliable');
   }
 
   /**
-   * Execute the process_message tool
+   * Execute the railroad message processor
    */
-  private async executeProcessMessage(toolName: string, args: Record<string, unknown>): Promise<unknown> {
-    return processMessage(args as unknown as MessageProcessorArgs);
+  private async executeRailroadMessage(toolName: string, args: Record<string, unknown>): Promise<unknown> {
+    return processMessageWithRailroad(args as unknown as RailroadMessageProcessorArgs);
   }
 
   /**
