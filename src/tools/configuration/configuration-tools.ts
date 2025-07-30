@@ -211,9 +211,8 @@ export class ConfigurationTools extends ToolExecutor {
 
     // Store the change in memory for tracking consciousness evolution
     try {
-      const memoryService = (await import('@/memory/index.js')).MemoryTools;
-      const memory = new memoryService();
-      await memory.execute('memory_store', {
+      const { storeMemory } = await import('../../features/memory/index.js');
+      await storeMemory({
         key: `config_change_${Date.now()}`,
         content: changeLog,
         tags: ['configuration', 'consciousness_evolution', 'self_modification'],
