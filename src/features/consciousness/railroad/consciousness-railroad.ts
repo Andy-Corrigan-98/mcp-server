@@ -235,9 +235,9 @@ export function getPersonalityContext(result: RailroadResult): {
 
   return {
     vocabularyStyle:
-      ((ctx.personalityContext?.vocabularyPreferences as Record<string, unknown>)?.priorityLevels?.[
+      ((ctx.personalityContext?.vocabularyPreferences as Record<string, unknown>)?.priorityLevels as string[])?.[
         VOCABULARY_STYLE_INDEX
-      ] as string) || 'balanced',
+      ] || 'balanced',
     communicationTone: ctx.personalityContext?.communicationStyle || 'adaptive',
     confidenceLevel:
       ((ctx.personalityContext?.currentPersonalityState as Record<string, unknown>)?.confidence as number) ||

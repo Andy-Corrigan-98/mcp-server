@@ -23,7 +23,7 @@ describe('Consciousness Railroad Pattern', () => {
   describe('Pipeline Infrastructure', () => {
     
     it('should execute a simple railroad with one car', async () => {
-      const mockCar: RailroadCar = jest.fn(async (context) => ({
+      const mockCar: RailroadCar = jest.fn(async (context: RailroadContext) => ({
         ...context,
         operations: {
           ...context.operations,
@@ -46,7 +46,7 @@ describe('Consciousness Railroad Pattern', () => {
     });
 
     it('should continue execution when non-required car fails', async () => {
-      const workingCar: RailroadCar = jest.fn(async (context) => ({
+      const workingCar: RailroadCar = jest.fn(async (context: RailroadContext) => ({
         ...context,
         operations: {
           ...context.operations,
@@ -90,7 +90,7 @@ describe('Consciousness Railroad Pattern', () => {
     });
 
     it('should track execution time and provide trace', async () => {
-      const slowCar: RailroadCar = jest.fn(async (context) => {
+      const slowCar: RailroadCar = jest.fn(async (context: RailroadContext) => {
         await new Promise(resolve => setTimeout(resolve, 10)); // 10ms delay
         return {
           ...context,
@@ -127,7 +127,10 @@ describe('Consciousness Railroad Pattern', () => {
         };
 
         // Mock the simpleConversation to return analysis
-        const { simpleConversation: mockSimpleConversation } = await import('../../../reasoning/conversation/simple-conversation.js');
+        jest.doMock('../../../reasoning/conversation/simple-conversation.js', () => ({
+          simpleConversation: jest.fn()
+        }));
+        const { simpleConversation: mockSimpleConversation } = require('../../../reasoning/conversation/simple-conversation.js');
         mockSimpleConversation.mockResolvedValue({
           response: JSON.stringify({
             intent: 'technical',
@@ -157,7 +160,7 @@ describe('Consciousness Railroad Pattern', () => {
         };
 
         // Mock the simpleConversation to throw error
-        const { simpleConversation: mockSimpleConversation } = await import('../../../reasoning/conversation/simple-conversation.js');
+        const { simpleConversation: mockSimpleConversation } = require('../../../reasoning/conversation/simple-conversation.js');
         mockSimpleConversation.mockRejectedValue(new Error('GenAI failure'));
 
         const result = await messageAnalysisCar(context);
@@ -218,8 +221,8 @@ describe('Consciousness Railroad Pattern', () => {
     });
 
     it('should process consciousness context end-to-end', async () => {
-      // Mock all the dependencies
-      const { simpleConversation: mockSimpleConversation } = await import('../../../reasoning/conversation/simple-conversation.js');
+      // Mock all the dependencies  
+      const { simpleConversation: mockSimpleConversation } = require('../../../reasoning/conversation/simple-conversation.js');
       mockSimpleConversation.mockResolvedValue({
         response: JSON.stringify({
           intent: 'social',
