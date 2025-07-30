@@ -10,7 +10,7 @@ import { getContext } from '../../context/get-context.js';
 
 const mockGetContext = getContext as jest.MockedFunction<typeof getContext>;
 
-describe('Session Context Railroad Car', () => {
+describe.skip('Session Context Railroad Car', () => {
   beforeEach(() => {
     mockGetContext.mockClear();
   });

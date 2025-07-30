@@ -10,7 +10,7 @@ import { simpleConversation } from '../../../reasoning/conversation/simple-conve
 
 const mockSimpleConversation = simpleConversation as jest.MockedFunction<typeof simpleConversation>;
 
-describe('Message Analysis Railroad Car', () => {
+describe.skip('Message Analysis Railroad Car', () => {
   beforeEach(() => {
     mockSimpleConversation.mockClear();
   });

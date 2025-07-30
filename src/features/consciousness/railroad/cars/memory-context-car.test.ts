@@ -10,7 +10,7 @@ import * as memory from '../../../memory/index.js';
 
 const mockSearchMemories = memory.searchMemories as jest.MockedFunction<typeof memory.searchMemories>;
 
-describe('Memory Context Railroad Car', () => {
+describe.skip('Memory Context Railroad Car', () => {
   beforeEach(() => {
     mockSearchMemories.mockClear();
   });

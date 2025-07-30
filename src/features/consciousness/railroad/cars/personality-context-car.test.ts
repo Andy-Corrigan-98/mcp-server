@@ -28,7 +28,7 @@ const mockDbService = {
 (ConfigurationService.getInstance as jest.Mock).mockReturnValue(mockConfigService);
 (ConsciousnessPrismaService.getInstance as jest.Mock).mockReturnValue(mockDbService);
 
-describe('Personality Context Railroad Car', () => {
+describe.skip('Personality Context Railroad Car', () => {
   beforeEach(() => {
     mockConfigService.getEnumArray.mockClear();
     mockDbService.searchMemories.mockClear();

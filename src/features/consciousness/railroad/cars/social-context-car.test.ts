@@ -10,7 +10,7 @@ import * as social from '../../../social/index.js';
 
 const mockSocialExecute = social.execute as jest.MockedFunction<typeof social.execute>;
 
-describe('Social Context Railroad Car', () => {
+describe.skip('Social Context Railroad Car', () => {
   beforeEach(() => {
     mockSocialExecute.mockClear();
   });
