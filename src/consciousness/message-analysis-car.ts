@@ -1,4 +1,4 @@
-import { RailroadContext } from '../types.js';
+import { RailroadContext } from './types.js';
 import { simpleConversation } from '../reasoning/simple-conversation.js';
 import { buildMessageAnalysisPrompt } from './subconscious-prompt-builder.js';
 
@@ -12,12 +12,12 @@ export async function messageAnalysisCar(context: RailroadContext): Promise<Rail
   try {
     // Build consciousness-aware prompt using subconscious dialogue
     const promptResult = await buildMessageAnalysisPrompt(context.message, context.originalContext, {
-      mode: context.sessionState?.mode,
-      awarenessLevel: context.sessionState?.awarenessLevel,
-      emotionalTone: context.sessionState?.emotionalTone,
-      cognitiveLoad: context.sessionState?.cognitiveLoad,
-      attentionFocus: context.sessionState?.attentionFocus,
-      learningState: context.sessionState?.learningState,
+      mode: context.sessionContext?.mode,
+      awarenessLevel: context.sessionContext?.awarenessLevel,
+      emotionalTone: context.sessionContext?.currentState?.emotionalTone as string,
+      cognitiveLoad: context.sessionContext?.cognitiveLoad,
+      attentionFocus: context.sessionContext?.attentionFocus,
+      learningState: context.sessionContext?.currentState?.learningState as string,
     });
 
     if (!promptResult.valid) {

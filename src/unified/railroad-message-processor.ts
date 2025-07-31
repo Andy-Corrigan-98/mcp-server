@@ -1,14 +1,10 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { simpleConversation } from '../reasoning/simple-conversation.js';
 import { processConsciousnessContext, extractResponseContext, getPersonalityContext } from '../consciousness/index.js';
 import { buildResponseGenerationPrompt } from '../consciousness/subconscious-prompt-builder.js';
 import type { RailroadResult } from '../consciousness/types.js';
 
 // Import all backend operations for internal routing
-import { executeConsciousnessOperation } from '../consciousness/index.js';
 import { executeMemoryOperation } from '../memory/index.js';
-import { execute as executeSocialOperation } from '../social/index.js';
-import { executeReasoningOperation } from '../reasoning/index.js';
 import { ConfigurationTools } from '../configuration/configuration-tools.js';
 import { TimeTools } from '../time/time-tools.js';
 
@@ -229,21 +225,28 @@ async function executeDetectedIntents(intents: DetectedIntent[]): Promise<{
           break;
 
         case 'social':
-          result = await executeSocialOperation(intent.operation, intent.args);
+          // Social operations are handled by the consciousness railroad
           operations_executed.push(`${intent.category}.${intent.operation}`);
-          auto_completions.push(`Automatically handled social operation: ${intent.operation}`);
+          auto_completions.push(`Social operation detected: ${intent.operation} (handled by consciousness pipeline)`);
+          result = { handled_by: 'consciousness_pipeline' };
           break;
 
         case 'reasoning':
-          result = await executeReasoningOperation(intent.operation, intent.args);
+          // Reasoning operations are handled by the consciousness railroad
           operations_executed.push(`${intent.category}.${intent.operation}`);
-          auto_completions.push(`Automatically handled reasoning operation: ${intent.operation}`);
+          auto_completions.push(
+            `Reasoning operation detected: ${intent.operation} (handled by consciousness pipeline)`
+          );
+          result = { handled_by: 'consciousness_pipeline' };
           break;
 
         case 'consciousness':
-          result = await executeConsciousnessOperation(intent.operation, intent.args);
+          // Consciousness operations are handled by the consciousness railroad
           operations_executed.push(`${intent.category}.${intent.operation}`);
-          auto_completions.push(`Automatically handled consciousness operation: ${intent.operation}`);
+          auto_completions.push(
+            `Consciousness operation detected: ${intent.operation} (handled by consciousness pipeline)`
+          );
+          result = { handled_by: 'consciousness_pipeline' };
           break;
       }
 
@@ -284,12 +287,12 @@ export async function processMessageWithRailroad(
   try {
     // Build consciousness-aware response prompt
     const consciousnessState = {
-      mode: railroadResult.sessionState?.mode,
-      awarenessLevel: railroadResult.sessionState?.awarenessLevel,
-      emotionalTone: railroadResult.sessionState?.emotionalTone,
-      cognitiveLoad: railroadResult.sessionState?.cognitiveLoad,
-      attentionFocus: railroadResult.sessionState?.attentionFocus,
-      learningState: railroadResult.sessionState?.learningState,
+      mode: railroadResult.context.sessionContext?.mode,
+      awarenessLevel: railroadResult.context.sessionContext?.awarenessLevel,
+      emotionalTone: railroadResult.context.sessionContext?.currentState?.emotionalTone as string,
+      cognitiveLoad: railroadResult.context.sessionContext?.cognitiveLoad,
+      attentionFocus: railroadResult.context.sessionContext?.attentionFocus,
+      learningState: railroadResult.context.sessionContext?.currentState?.learningState as string,
     };
 
     const promptResult = await buildResponseGenerationPrompt(
@@ -374,55 +377,6 @@ function calculateContextRichness(railroadResult: RailroadResult): number {
 
   return Math.min(1.0, richness);
 }
-
-/**
- * Tool definition for the railroad-powered message processor
- */
-export const RAILROAD_MESSAGE_PROCESSOR_TOOL: Tool = {
-  name: 'railroad_process_message',
-  description: `
-Process a message through the railroad-pattern consciousness system for traceable personality context building.
-
-This tool provides the same functionality as the original message processor but with:
-- Traceable execution through railroad cars
-- Comprehensive error handling with graceful degradation
-- Rich debugging information via execution traces
-- Testable personality context building
-- Configurable railroad types for different interaction patterns
-
-Railroad types:
-- 'default': Full consciousness pipeline (analysis → session → memory → social → personality)
-- 'lightweight': Minimal pipeline for simple interactions (analysis → session → personality)
-- 'memory-focused': Emphasizes memory retrieval for knowledge work
-- 'social-focused': Emphasizes relationship context for social interactions
-
-The railroad pattern makes personality consistency much more predictable and debuggable.
-  `.trim(),
-  inputSchema: {
-    type: 'object',
-    properties: {
-      message: {
-        type: 'string',
-        description: 'The message to process through consciousness systems',
-      },
-      context: {
-        type: 'string',
-        description: 'Optional additional context about the message or conversation',
-      },
-
-      session_context: {
-        type: 'object',
-        description: 'Optional session context for maintaining conversation state',
-      },
-      railroad_type: {
-        type: 'string',
-        enum: ['default', 'lightweight', 'memory-focused', 'social-focused'],
-        description: 'Type of railroad pipeline to use',
-      },
-    },
-    required: ['message'],
-  },
-};
 
 /**
  * Comparison function to show the difference between old and new approaches

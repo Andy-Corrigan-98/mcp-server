@@ -4,14 +4,9 @@
  * Extracted from ConversationalGenAITools for single-responsibility
  */
 
-import {
-  getGenAIModel,
-  getModelName,
-  SecurityGuard,
-  validateThoughtInput,
-  validateContextInput,
-  validatePromptLength,
-} from '../shared/index.js';
+import { getGenAIModel, getModelName } from './genai-client.js';
+import { SecurityGuard } from './security-guard.js';
+import { validateThoughtInput, validateContextInput, validatePromptLength } from './index.js';
 
 // Constants to avoid magic numbers
 const MAX_QUESTION_LENGTH = 4000;

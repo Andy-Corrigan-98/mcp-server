@@ -5,7 +5,7 @@
  * making Gemini feel like my subconscious mind rather than an external API.
  */
 
-import { validateThoughtInput, validatePromptLength } from '../core/utils/index.js';
+import { validateThoughtInput, validatePromptLength } from '../reasoning/index.js';
 
 // Constants
 const PERCENTAGE_MULTIPLIER = 100;

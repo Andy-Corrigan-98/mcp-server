@@ -4,7 +4,9 @@
  * Uses shared GenAI infrastructure and specialized reasoning modules
  */
 
-import { getGenAIModel, SecurityGuard, validateNumber, validateBoolean } from '../shared/index.js';
+import { getGenAIModel } from './genai-client.js';
+import { SecurityGuard } from './security-guard.js';
+import { validateNumber, validateBoolean } from './index.js';
 import { buildSequentialReasoningPrompt } from '../consciousness/subconscious-prompt-builder.js';
 import {
   processReasoningResponse,
