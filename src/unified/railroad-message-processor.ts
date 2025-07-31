@@ -22,7 +22,6 @@ import { TimeTools } from '../time/time-tools.js';
 export interface RailroadMessageProcessorArgs {
   message: string;
   context?: string;
-  user_id?: string;
   session_context?: Record<string, unknown>;
   railroad_type?: 'default' | 'lightweight' | 'memory-focused' | 'social-focused';
 }
@@ -410,10 +409,7 @@ The railroad pattern makes personality consistency much more predictable and deb
         type: 'string',
         description: 'Optional additional context about the message or conversation',
       },
-      user_id: {
-        type: 'string',
-        description: 'Optional user identifier for personalized processing',
-      },
+
       session_context: {
         type: 'object',
         description: 'Optional session context for maintaining conversation state',
