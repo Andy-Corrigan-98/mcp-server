@@ -73,44 +73,59 @@ export const getTools = (): Record<string, Tool> => {
 };
 
 /**
+ * Handler for sequential thinking operations
+ */
+async function handleSequentialThinking(args: Record<string, unknown>): Promise<unknown> {
+  // Validate required fields for SequentialThinkingArgs
+  if (typeof args.thought !== 'string') {
+    throw new Error('Thought is required and must be a string');
+  }
+  if (typeof args.next_thought_needed !== 'boolean') {
+    throw new Error('next_thought_needed is required and must be a boolean');
+  }
+  if (typeof args.thought_number !== 'number') {
+    throw new Error('thought_number is required and must be a number');
+  }
+  if (typeof args.total_thoughts !== 'number') {
+    throw new Error('total_thoughts is required and must be a number');
+  }
+
+  const sequentialArgs: SequentialThinkingArgs = {
+    thought: args.thought,
+    next_thought_needed: args.next_thought_needed,
+    thought_number: args.thought_number,
+    total_thoughts: args.total_thoughts,
+    is_revision: typeof args.is_revision === 'boolean' ? args.is_revision : undefined,
+    revises_thought: typeof args.revises_thought === 'number' ? args.revises_thought : undefined,
+    branch_from_thought: typeof args.branch_from_thought === 'number' ? args.branch_from_thought : undefined,
+    branch_id: typeof args.branch_id === 'string' ? args.branch_id : undefined,
+    needs_more_thoughts: typeof args.needs_more_thoughts === 'boolean' ? args.needs_more_thoughts : undefined,
+  };
+
+  return sequentialThinking(sequentialArgs);
+}
+
+/**
+ * Handler mapping for GenAI reasoning operations
+ * Eliminates switch statement pattern for better maintainability
+ */
+const REASONING_HANDLERS: Record<string, (args: Record<string, unknown>) => Promise<unknown>> = {
+  sequential_thinking: handleSequentialThinking,
+};
+
+/**
  * Execute a GenAI reasoning tool operation
- * Routes to the appropriate module with proper type validation
+ * Routes to the appropriate handler with clean mapping pattern
  */
 export const execute = async (toolName: string, args: Record<string, unknown>): Promise<unknown> => {
-  switch (toolName) {
-    case 'sequential_thinking': {
-      // Validate required fields for SequentialThinkingArgs
-      if (typeof args.thought !== 'string') {
-        throw new Error('Thought is required and must be a string');
-      }
-      if (typeof args.next_thought_needed !== 'boolean') {
-        throw new Error('next_thought_needed is required and must be a boolean');
-      }
-      if (typeof args.thought_number !== 'number') {
-        throw new Error('thought_number is required and must be a number');
-      }
-      if (typeof args.total_thoughts !== 'number') {
-        throw new Error('total_thoughts is required and must be a number');
-      }
+  const handler = REASONING_HANDLERS[toolName];
 
-      const sequentialArgs: SequentialThinkingArgs = {
-        thought: args.thought,
-        next_thought_needed: args.next_thought_needed,
-        thought_number: args.thought_number,
-        total_thoughts: args.total_thoughts,
-        is_revision: typeof args.is_revision === 'boolean' ? args.is_revision : undefined,
-        revises_thought: typeof args.revises_thought === 'number' ? args.revises_thought : undefined,
-        branch_from_thought: typeof args.branch_from_thought === 'number' ? args.branch_from_thought : undefined,
-        branch_id: typeof args.branch_id === 'string' ? args.branch_id : undefined,
-        needs_more_thoughts: typeof args.needs_more_thoughts === 'boolean' ? args.needs_more_thoughts : undefined,
-      };
-
-      return sequentialThinking(sequentialArgs);
-    }
-
-    default:
-      throw new Error(`Unknown GenAI reasoning tool: ${toolName}`);
+  if (!handler) {
+    const availableTools = Object.keys(REASONING_HANDLERS).join(', ');
+    throw new Error(`Unknown GenAI reasoning tool: ${toolName}. Available tools: ${availableTools}`);
   }
+
+  return handler(args);
 };
 
 /**
