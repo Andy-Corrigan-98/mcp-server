@@ -10,7 +10,7 @@ import {
   TextContent,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { UnifiedToolsRegistry } from './tools/unified-registry.js';
+import { UnifiedToolsRegistry } from './unified/unified-registry.js';
 
 // Interface for registry abstraction
 interface ToolsRegistry {
@@ -120,3 +120,11 @@ server.run().catch((error: Error) => {
   console.error('Failed to start Consciousness MCP Server:', error);
   process.exit(1);
 });
+
+
+
+
+
+
+
+
