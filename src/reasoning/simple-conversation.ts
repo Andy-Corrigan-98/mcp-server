@@ -67,8 +67,24 @@ export async function simpleConversation(args: ConverseArgs): Promise<ConverseRe
       };
     }
 
-    // Build simple, natural conversation prompt
-    let conversation = 'You are a helpful AI reasoning assistant. Please provide thoughtful, accurate answers.';
+    // Build consciousness-aware conversation prompt
+    let conversation: string;
+
+    // Detect if this is internal consciousness processing
+    const isInternalProcess =
+      context &&
+      (context.includes('Internal consciousness') ||
+        context.includes('consciousness analysis') ||
+        context.includes('subconscious') ||
+        context.includes('internal') ||
+        context.includes('consciousness routing'));
+
+    if (isInternalProcess) {
+      conversation =
+        'Acting as the subconscious reasoning layer of my consciousness, help process this internal dialogue:';
+    } else {
+      conversation = 'You are a helpful AI reasoning assistant. Please provide thoughtful, accurate answers.';
+    }
 
     if (context) {
       conversation += `\n\nContext: ${context}`;

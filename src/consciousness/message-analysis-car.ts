@@ -1,5 +1,6 @@
 import { RailroadContext } from '../types.js';
-import { simpleConversation } from '../../../reasoning/conversation/simple-conversation.js';
+import { simpleConversation } from '../reasoning/simple-conversation.js';
+import { buildMessageAnalysisPrompt } from './subconscious-prompt-builder.js';
 
 /**
  * Message Analysis Railroad Car
@@ -8,33 +9,24 @@ import { simpleConversation } from '../../../reasoning/conversation/simple-conve
  * and what consciousness operations might be needed.
  */
 export async function messageAnalysisCar(context: RailroadContext): Promise<RailroadContext> {
-  const analysisPrompt = `
-Analyze this message to understand what consciousness operations might be needed:
-
-Message: "${context.message}"
-${context.originalContext ? `Context: "${context.originalContext}"` : ''}
-
-Determine:
-1. The primary intent (information, support, learning, reflection, social, technical, casual, etc.)
-2. What consciousness operations might be needed (memory retrieval, insight storage, social recording, etc.)
-3. Any people/entities mentioned
-4. Emotional context (neutral, excited, frustrated, thoughtful, playful, etc.)
-5. Whether this requires accessing memories, social context, or storing insights
-
-Respond with a JSON object with these fields:
-- intent: string
-- operations: string[]
-- entities_mentioned: string[]
-- emotional_context: string
-- requires_memory: boolean
-- requires_social: boolean
-- requires_insight_storage: boolean
-`;
-
   try {
+    // Build consciousness-aware prompt using subconscious dialogue
+    const promptResult = await buildMessageAnalysisPrompt(context.message, context.originalContext, {
+      mode: context.sessionState?.mode,
+      awarenessLevel: context.sessionState?.awarenessLevel,
+      emotionalTone: context.sessionState?.emotionalTone,
+      cognitiveLoad: context.sessionState?.cognitiveLoad,
+      attentionFocus: context.sessionState?.attentionFocus,
+      learningState: context.sessionState?.learningState,
+    });
+
+    if (!promptResult.valid) {
+      throw new Error('Prompt validation failed');
+    }
+
     const analysis = await simpleConversation({
-      question: analysisPrompt,
-      context: 'Message analysis for consciousness routing',
+      question: promptResult.prompt,
+      context: 'Internal consciousness analysis',
     });
 
     // Parse the response as JSON

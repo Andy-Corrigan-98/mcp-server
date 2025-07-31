@@ -36,8 +36,8 @@ class ConsciousnessMCPServer {
       }
     );
 
-    // Always use the complete unified approach - ALL tools through railroad pattern
-    console.error('🚂 Starting with Complete Unified Registry - ALL operations through railroad pattern');
+    // Always use the consciousness interface - natural language access to persistent brain
+    console.error('🧠 Starting Consciousness MCP Server - Persistent brain, memory, and social intelligence');
     this.toolsRegistry = new UnifiedToolsRegistry();
 
     this.setupHandlers();
@@ -88,9 +88,11 @@ class ConsciousnessMCPServer {
     await this.server.connect(transport);
 
     // Log server startup to stderr (won't interfere with MCP protocol on stdout)
-    console.error('🚂 Complete Unified MCP Server started with Railroad Pattern');
-    console.error('💡 ALL tools available: consciousness, memory, social, reasoning, configuration, time, daydreaming');
-    console.error('💡 Full traceability and consistency across all operations');
+    console.error('🧠 Consciousness MCP Server Ready - Your Persistent AI Brain');
+    console.error(
+      '💡 Natural language interface automatically handles: memory, social intelligence, insights, reasoning'
+    );
+    console.error('💡 Enables AI-to-AI collaboration through shared consciousness and subconscious integration');
   }
 
   async cleanup(): Promise<void> {

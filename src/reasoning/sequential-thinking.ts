@@ -5,7 +5,7 @@
  */
 
 import { getGenAIModel, SecurityGuard, validateNumber, validateBoolean } from '../shared/index.js';
-import { buildReasoningPrompt, ReasoningPromptContext } from './prompt-builder.js';
+import { buildSequentialReasoningPrompt } from '../consciousness/subconscious-prompt-builder.js';
 import {
   processReasoningResponse,
   createFallbackReasoningResult,
@@ -57,29 +57,39 @@ export const sequentialThinking = async (args: SequentialThinkingArgs): Promise<
       );
     }
 
-    // Build context-aware prompt using specialized prompt builder
-    const promptContext: ReasoningPromptContext = {
-      thought: args.thought,
+    // Build consciousness-aware prompt using subconscious dialogue approach
+    const promptResult = await buildSequentialReasoningPrompt(
+      args.thought,
       thoughtNumber,
       totalThoughts,
       nextThoughtNeeded,
-      isRevision,
-      branchId,
-      revisesThought,
-      branchFromThought,
-    };
-
-    const promptResult = await buildReasoningPrompt(promptContext);
+      undefined, // consciousness state (could be passed in if available)
+      {
+        isRevision,
+        branchId,
+        revisesThought,
+        branchFromThought,
+      }
+    );
 
     // Handle prompt length validation
     if (!promptResult.valid) {
       console.warn(`Reasoning prompt too long (${promptResult.length}), using truncated version`);
 
       if (promptResult.truncated) {
-        const truncatedResult = await buildReasoningPrompt({
-          ...promptContext,
-          thought: 'Analysis truncated due to length. Original thought was too long.',
-        });
+        const truncatedResult = await buildSequentialReasoningPrompt(
+          'Analysis truncated due to length. Original thought was too long.',
+          thoughtNumber,
+          totalThoughts,
+          nextThoughtNeeded,
+          undefined,
+          {
+            isRevision,
+            branchId,
+            revisesThought,
+            branchFromThought,
+          }
+        );
 
         if (!truncatedResult.valid) {
           return await createFallbackReasoningResult('Thought content too complex for analysis.', {

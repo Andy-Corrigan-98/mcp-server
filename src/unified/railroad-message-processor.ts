@@ -1,6 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { simpleConversation } from '../reasoning/simple-conversation.js';
 import { processConsciousnessContext, extractResponseContext, getPersonalityContext } from '../consciousness/index.js';
+import { buildResponseGenerationPrompt } from '../consciousness/subconscious-prompt-builder.js';
 import type { RailroadResult } from '../consciousness/types.js';
 
 // Import all backend operations for internal routing
@@ -279,28 +280,33 @@ export async function processMessageWithRailroad(
   const responseContext = extractResponseContext(railroadResult);
   const personalityContext = getPersonalityContext(railroadResult);
 
-  // STEP 4: Generate response using enriched context AND auto-completion results
+  // STEP 4: Generate response using consciousness-aware subconscious dialogue
   let response: string;
   try {
-    const enrichedContext = `
-Consciousness Context:
-${responseContext}
+    // Build consciousness-aware response prompt
+    const consciousnessState = {
+      mode: railroadResult.sessionState?.mode,
+      awarenessLevel: railroadResult.sessionState?.awarenessLevel,
+      emotionalTone: railroadResult.sessionState?.emotionalTone,
+      cognitiveLoad: railroadResult.sessionState?.cognitiveLoad,
+      attentionFocus: railroadResult.sessionState?.attentionFocus,
+      learningState: railroadResult.sessionState?.learningState,
+    };
 
-Personality Guidance:
-- Communication tone: ${personalityContext.communicationTone}
-- Vocabulary style: ${personalityContext.vocabularyStyle}
-- Confidence level: ${personalityContext.confidenceLevel}
-${personalityContext.relationshipContext ? `- Relationship: ${personalityContext.relationshipContext}` : ''}
-${personalityContext.memoryContext ? `- Memory context: ${personalityContext.memoryContext}` : ''}
+    const promptResult = await buildResponseGenerationPrompt(
+      args.message,
+      responseContext,
+      JSON.stringify(personalityContext, null, 2),
+      consciousnessState
+    );
 
-${intentResults.auto_completions.length > 0 ? `\nOperations Automatically Completed:\n${intentResults.auto_completions.map(c => `- ${c}`).join('\n')}` : ''}
-
-${args.context ? `\nAdditional context: ${args.context}` : ''}
-    `.trim();
+    if (!promptResult.valid) {
+      throw new Error('Response prompt validation failed');
+    }
 
     const conversationResponse = await simpleConversation({
-      question: args.message,
-      context: enrichedContext,
+      question: promptResult.prompt,
+      context: 'Internal consciousness response generation',
     });
     response = conversationResponse.response;
   } catch {
