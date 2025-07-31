@@ -1,6 +1,9 @@
 import { simpleConversation } from '../reasoning/simple-conversation.js';
 import { processConsciousnessContext, extractResponseContext, getPersonalityContext } from '../consciousness/index.js';
-import { buildResponseGenerationPrompt } from '../consciousness/subconscious-prompt-builder.js';
+import {
+  buildResponseGenerationPrompt,
+  buildIntentAnalysisPrompt,
+} from '../consciousness/subconscious-prompt-builder.js';
 import type { RailroadResult } from '../consciousness/types.js';
 
 // Import all backend operations for internal routing
@@ -79,113 +82,107 @@ function getTimeTools(): TimeTools {
 }
 
 /**
- * Intelligent message analysis to detect user intents
+ * AI-powered message analysis using Gemini to detect user intents
+ * This replaces the primitive string matching with intelligent understanding
  */
-async function analyzeMessageIntents(message: string, _context?: string): Promise<DetectedIntent[]> {
+async function analyzeMessageIntents(message: string, context?: string): Promise<DetectedIntent[]> {
+  try {
+    // STEP 1: Use Gemini to analyze what operations are needed
+    const promptResult = await buildIntentAnalysisPrompt(message, context);
+
+    if (!promptResult.valid) {
+      console.warn('Intent analysis prompt validation failed, using fallback');
+      return createFallbackIntents(message);
+    }
+
+    // STEP 2: Get AI analysis of intent
+    const aiResponse = await simpleConversation({ question: promptResult.prompt });
+
+    // STEP 3: Parse the JSON response from Gemini
+    let analysisResult;
+    try {
+      // Extract JSON from the response (handle potential markdown formatting)
+      const responseText = aiResponse.response;
+      const jsonMatch = responseText.match(/```json\n?([\s\S]*?)\n?```/) || responseText.match(/\{[\s\S]*\}/);
+      const jsonString = jsonMatch ? jsonMatch[1] || jsonMatch[0] : responseText;
+      analysisResult = JSON.parse(jsonString);
+    } catch (parseError) {
+      console.warn('Failed to parse AI intent analysis, using fallback:', parseError);
+      return createFallbackIntents(message);
+    }
+
+    // STEP 4: Convert AI analysis to DetectedIntent format
+    const intents: DetectedIntent[] = [];
+
+    if (analysisResult.operations_needed && Array.isArray(analysisResult.operations_needed)) {
+      for (const operation of analysisResult.operations_needed) {
+        const confidence = operation.priority === 'high' ? 0.9 : operation.priority === 'medium' ? 0.7 : 0.5;
+
+        intents.push({
+          category: operation.category,
+          operation: operation.operation,
+          confidence,
+          args: {
+            message,
+            extracted_entities: operation.extract_from_message?.key_entities || [],
+            action_type: operation.extract_from_message?.action_type,
+            context_clues: operation.extract_from_message?.context_clues,
+            ai_reasoning: operation.reasoning,
+          },
+        });
+      }
+    }
+
+    console.log(`🧠 AI Intent Analysis: Found ${intents.length} operations for "${message.substring(0, 50)}..."`);
+    console.log(`🎯 Primary Intent: ${analysisResult.primary_intent}`);
+    console.log(`🔄 Processing Strategy: ${analysisResult.processing_strategy}`);
+
+    return intents;
+  } catch (error) {
+    console.warn('AI intent analysis failed, using fallback:', error);
+    return createFallbackIntents(message);
+  }
+}
+
+/**
+ * Fallback intent detection for when AI analysis fails
+ * Simplified version of the old pattern matching approach
+ */
+function createFallbackIntents(message: string): DetectedIntent[] {
   const intents: DetectedIntent[] = [];
   const lowerMessage = message.toLowerCase();
 
-  // Configuration intent patterns
-  if (lowerMessage.includes('set ') || lowerMessage.includes('configure') || lowerMessage.includes('config')) {
-    if (lowerMessage.includes('timeout') || lowerMessage.includes('model') || lowerMessage.includes('setting')) {
-      intents.push({
-        category: 'configuration',
-        operation: 'configuration_set',
-        confidence: 0.8,
-        args: {
-          /* extract from message */
-        },
-      });
-    }
-  }
-
-  // Time intent patterns
-  if (lowerMessage.includes('time') || lowerMessage.includes('clock') || lowerMessage.includes('timezone')) {
-    if (lowerMessage.includes('what time') || lowerMessage.includes('current time')) {
-      intents.push({
-        category: 'time',
-        operation: 'time_current',
-        confidence: 0.9,
-        args: {},
-      });
-    } else if (lowerMessage.includes('convert')) {
-      intents.push({
-        category: 'time',
-        operation: 'time_convert',
-        confidence: 0.8,
-        args: {
-          /* extract from message */
-        },
-      });
-    }
-  }
-
-  // Memory intent patterns
+  // Basic memory intent
   if (lowerMessage.includes('remember') || lowerMessage.includes('store') || lowerMessage.includes('save')) {
     intents.push({
       category: 'memory',
       operation: 'memory_store',
-      confidence: 0.8,
-      args: {
-        /* extract from message */
-      },
+      confidence: 0.6,
+      args: { message, fallback: true },
     });
   }
 
-  if (lowerMessage.includes('what do i know') || lowerMessage.includes('recall') || lowerMessage.includes('find')) {
+  // Basic retrieval intent
+  if (lowerMessage.includes('recall') || lowerMessage.includes('find') || lowerMessage.includes('what do i know')) {
     intents.push({
       category: 'memory',
       operation: 'memory_search',
-      confidence: 0.7,
-      args: {
-        /* extract from message */
-      },
+      confidence: 0.6,
+      args: { message, fallback: true },
     });
   }
 
-  // Social intent patterns
-  if (
-    lowerMessage.includes('relationship') ||
-    lowerMessage.includes('met with') ||
-    lowerMessage.includes('interaction')
-  ) {
-    if (lowerMessage.includes('met') || lowerMessage.includes('talked') || lowerMessage.includes('conversation')) {
-      intents.push({
-        category: 'social',
-        operation: 'social_interaction_record',
-        confidence: 0.8,
-        args: {
-          /* extract from message */
-        },
-      });
-    } else if (lowerMessage.includes('how is') || lowerMessage.includes('relationship with')) {
-      intents.push({
-        category: 'social',
-        operation: 'social_entity_get',
-        confidence: 0.7,
-        args: {
-          /* extract from message */
-        },
-      });
-    }
-  }
-
-  // Reasoning intent patterns
-  if (
-    lowerMessage.includes('think') ||
-    lowerMessage.includes('analyze') ||
-    lowerMessage.includes('reason') ||
-    lowerMessage.includes('step by step') ||
-    lowerMessage.includes('problem')
-  ) {
+  // Basic reasoning intent
+  if (lowerMessage.includes('think') || lowerMessage.includes('analyze') || lowerMessage.includes('problem')) {
     intents.push({
       category: 'reasoning',
       operation: 'sequential_thinking',
-      confidence: 0.7,
-      args: { thought: message, next_thought_needed: false, thought_number: 1, total_thoughts: 1 },
+      confidence: 0.6,
+      args: { thought: message, next_thought_needed: false, thought_number: 1, total_thoughts: 1, fallback: true },
     });
   }
 
+  console.log(`⚠️  Using fallback intent detection for "${message.substring(0, 50)}..."`);
   return intents;
 }
 

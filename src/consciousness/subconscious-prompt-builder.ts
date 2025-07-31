@@ -21,7 +21,7 @@ export interface ConsciousnessState {
 }
 
 export interface SubconsciousPromptContext {
-  operation: 'analysis' | 'reasoning' | 'response' | 'reflection' | 'integration';
+  operation: 'analysis' | 'reasoning' | 'response' | 'reflection' | 'integration' | 'intent_analysis';
   content: string;
   intent?: string;
   consciousnessState?: ConsciousnessState;
@@ -68,6 +68,9 @@ export async function buildSubconsciousPrompt(context: SubconsciousPromptContext
       break;
     case 'integration':
       prompt += buildIntegrationDialogue(validatedContent, metadata);
+      break;
+    case 'intent_analysis':
+      prompt += buildIntentAnalysisDialogue(validatedContent, metadata?.context as string);
       break;
   }
 
@@ -280,5 +283,62 @@ export async function buildSequentialReasoningPrompt(
       nextThoughtNeeded,
       ...metadata,
     },
+  });
+}
+
+/**
+ * Build intent analysis dialogue for understanding what operations are needed
+ */
+function buildIntentAnalysisDialogue(message: string, context?: string): string {
+  return `Hey subconscious, I need you to analyze what I'm trying to do here so we know what information and operations I'll need.
+
+Message: "${message}"
+${context ? `Context: ${context}` : ''}
+
+Before I dive into processing this thought, help me understand:
+- What kind of information am I working with?
+- What do I need to remember or recall for this?
+- Are there relationships or social dynamics involved?
+- Do I need to think through something step by step?
+- Should I store any insights or learnings?
+- Are there any configuration or time-related needs?
+
+Think about this like you're my internal planning system - what consciousness operations do I need to engage?
+
+Respond with JSON in this format:
+{
+  "analysis": "your understanding of what I'm trying to do",
+  "operations_needed": [
+    {
+      "category": "memory|social|reasoning|consciousness|configuration|time",
+      "operation": "specific_operation_name",
+      "priority": "high|medium|low", 
+      "reasoning": "why this operation is needed",
+      "extract_from_message": {
+        "key_entities": ["relevant", "entities"],
+        "action_type": "what kind of action",
+        "context_clues": "important contextual information"
+      }
+    }
+  ],
+  "primary_intent": "the main thing I'm trying to accomplish",
+  "processing_strategy": "how you think I should approach this",
+  "confidence": 0.85
+}`;
+}
+
+/**
+ * Intent analysis with consciousness context
+ */
+export async function buildIntentAnalysisPrompt(
+  message: string,
+  context?: string,
+  consciousnessState?: ConsciousnessState
+): Promise<SubconsciousPromptResult> {
+  return buildSubconsciousPrompt({
+    operation: 'intent_analysis',
+    content: message,
+    consciousnessState,
+    metadata: { context },
   });
 }
