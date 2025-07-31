@@ -105,11 +105,3 @@ async function evaluateUsingHeuristics(hypothesis: ConnectionHypothesis): Promis
     },
   };
 }
-
-
-
-
-
-
-
-

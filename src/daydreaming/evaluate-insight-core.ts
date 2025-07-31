@@ -76,11 +76,3 @@ export const evaluateInsightCore = async (
     return await createFallbackEvaluation(fallbackHypothesis);
   }
 };
-
-
-
-
-
-
-
-

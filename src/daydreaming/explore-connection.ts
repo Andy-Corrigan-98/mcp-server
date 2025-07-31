@@ -33,11 +33,3 @@ export async function exploreConnection(args: Record<string, unknown>): Promise<
 
   return { hypothesis };
 }
-
-
-
-
-
-
-
-

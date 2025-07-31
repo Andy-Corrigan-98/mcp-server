@@ -18,11 +18,3 @@ export const getRelationshipByEntityName = async (entityName: string): Promise<a
 
   return getRelationshipByEntityId(entity.id);
 };
-
-
-
-
-
-
-
-

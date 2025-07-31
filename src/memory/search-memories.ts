@@ -132,11 +132,3 @@ function calculateRelevance(
 
   return Math.round(score * decimalPrecision) / decimalPrecision; // Round to configured precision
 }
-
-
-
-
-
-
-
-

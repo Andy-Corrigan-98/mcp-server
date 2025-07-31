@@ -18,11 +18,3 @@ export const getRelationshipByEntityId = async (entityId: number): Promise<any |
 
   return result || null;
 };
-
-
-
-
-
-
-
-

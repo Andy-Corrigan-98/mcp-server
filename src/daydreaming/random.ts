@@ -34,11 +34,3 @@ export async function randomStrategy(focusArea?: string): Promise<[ConceptPair['
 
   return [concept1, concept2];
 }
-
-
-
-
-
-
-
-

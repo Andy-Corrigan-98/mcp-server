@@ -7,11 +7,3 @@ export function validateNumber(value: number, min: number): number {
   }
   return value;
 }
-
-
-
-
-
-
-
-

@@ -1,6 +1,6 @@
 /**
  * Railroad Pattern for Consciousness Context Building
- * 
+ *
  * Each "car" in the railroad adds specific context and passes the enriched
  * context object to the next car in the pipeline.
  */
@@ -10,7 +10,7 @@ export interface RailroadContext {
   message: string;
   originalContext?: string;
   timestamp: Date;
-  
+
   // Analysis results
   analysis?: {
     intent: string;
@@ -21,7 +21,7 @@ export interface RailroadContext {
     requires_social: boolean;
     requires_insight_storage: boolean;
   };
-  
+
   // Session context
   sessionContext?: {
     sessionId: string;
@@ -32,7 +32,7 @@ export interface RailroadContext {
     mode: string;
     awarenessLevel: string;
   };
-  
+
   // Memory context
   memoryContext?: {
     relevantMemories: Record<string, unknown>[];
@@ -40,7 +40,7 @@ export interface RailroadContext {
     recentActivity: Record<string, unknown>[];
     searchQuery?: string;
   };
-  
+
   // Social context
   socialContext?: {
     activeRelationships: Record<string, unknown>[];
@@ -48,7 +48,7 @@ export interface RailroadContext {
     entityMentioned?: string;
     relationshipDynamics?: Record<string, unknown>;
   };
-  
+
   // Personality context
   personalityContext?: {
     vocabularyPreferences: Record<string, unknown>;
@@ -56,7 +56,7 @@ export interface RailroadContext {
     communicationStyle: string;
     currentPersonalityState: Record<string, unknown>;
   };
-  
+
   // Operations tracking
   operations: {
     performed: string[];
@@ -65,7 +65,7 @@ export interface RailroadContext {
     social_interactions: string[];
     consciousness_updates: Record<string, unknown>;
   };
-  
+
   // Error handling
   errors: Array<{
     car: string;
@@ -89,7 +89,7 @@ export interface RailroadConfig {
     required: boolean;
     timeout?: number;
   }>;
-  
+
   // Global config
   continueOnError: boolean;
   maxExecutionTime: number;
@@ -111,10 +111,3 @@ export interface RailroadResult {
   }>;
   totalExecutionTime: number;
 }
-
-
-
-
-
-
-

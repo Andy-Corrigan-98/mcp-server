@@ -164,11 +164,3 @@ export const searchMemorySocialLinks = async (args: {
     `Found ${formattedResults.length} memory-social connections`
   );
 };
-
-
-
-
-
-
-
-

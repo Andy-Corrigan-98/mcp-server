@@ -87,11 +87,3 @@ Please provide thoughtful, nuanced evaluation based on the actual content:`;
     truncated: validation.truncated,
   };
 };
-
-
-
-
-
-
-
-

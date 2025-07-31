@@ -2,7 +2,7 @@ import { RailroadContext, RailroadCar, RailroadConfig, RailroadResult } from './
 
 /**
  * Core Railroad Pipeline Orchestrator
- * 
+ *
  * Executes a series of railroad cars in sequence, building up consciousness context
  * with comprehensive error handling and execution tracing.
  */
@@ -19,7 +19,7 @@ export class ConsciousnessRailroad {
   async execute(initialMessage: string, context?: string): Promise<RailroadResult> {
     const startTime = new Date();
     const executionTrace: RailroadResult['executionTrace'] = [];
-    
+
     // Initialize the railroad context
     let railroadContext: RailroadContext = {
       message: initialMessage,
@@ -40,14 +40,14 @@ export class ConsciousnessRailroad {
     // Execute each car in sequence
     for (const carConfig of this.config.cars) {
       const carStartTime = new Date();
-      
+
       try {
         if (this.config.logTrace) {
           console.log(`🚂 Entering car: ${carConfig.name}`);
         }
 
         // Execute the car with timeout if specified
-        const carResult = carConfig.timeout 
+        const carResult = carConfig.timeout
           ? await this.withTimeout(carConfig.car(railroadContext), carConfig.timeout)
           : await carConfig.car(railroadContext);
 
@@ -66,11 +66,10 @@ export class ConsciousnessRailroad {
         if (this.config.logTrace) {
           console.log(`✅ Car ${carConfig.name} completed in ${carEndTime.getTime() - carStartTime.getTime()}ms`);
         }
-
       } catch (error) {
         const carEndTime = new Date();
         const errorMessage = error instanceof Error ? error.message : String(error);
-        
+
         // Record the error
         railroadContext.errors.push({
           car: carConfig.name,
@@ -98,7 +97,7 @@ export class ConsciousnessRailroad {
           overallSuccess = false;
           // Continue but mark as overall failure
         }
-        
+
         // For non-required cars, we continue regardless
       }
     }
@@ -125,7 +124,7 @@ export class ConsciousnessRailroad {
     const timeoutPromise = new Promise<never>((_, reject) =>
       setTimeout(() => reject(new Error(`Car execution timed out after ${timeoutMs}ms`)), timeoutMs)
     );
-    
+
     return Promise.race([promise, timeoutPromise]);
   }
 
@@ -135,10 +134,7 @@ export class ConsciousnessRailroad {
   addCar(name: string, car: RailroadCar, required = false, timeout?: number): ConsciousnessRailroad {
     const newConfig = {
       ...this.config,
-      cars: [
-        ...this.config.cars,
-        { name, car, required, timeout }
-      ]
+      cars: [...this.config.cars, { name, car, required, timeout }],
     };
     return new ConsciousnessRailroad(newConfig);
   }
@@ -155,10 +151,10 @@ export class ConsciousnessRailroad {
       }
       return car;
     });
-    
+
     const newConfig = {
       ...this.config,
-      cars: reorderedCars
+      cars: reorderedCars,
     };
     return new ConsciousnessRailroad(newConfig);
   }
@@ -167,20 +163,15 @@ export class ConsciousnessRailroad {
 /**
  * Utility function to create a simple railroad configuration
  */
-export function createSimpleRailroad(cars: Array<{ name: string; car: RailroadCar; required?: boolean }>): ConsciousnessRailroad {
+export function createSimpleRailroad(
+  cars: Array<{ name: string; car: RailroadCar; required?: boolean }>
+): ConsciousnessRailroad {
   const config: RailroadConfig = {
     cars: cars.map(c => ({ ...c, required: c.required ?? false })),
     continueOnError: true,
     maxExecutionTime: 30000, // 30 seconds
     logTrace: process.env.NODE_ENV === 'development',
   };
-  
+
   return new ConsciousnessRailroad(config);
 }
-
-
-
-
-
-
-

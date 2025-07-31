@@ -15,11 +15,3 @@ export { deleteRelationship } from './delete.js';
 export { getRelationshipByEntityId } from './get-by-id.js';
 export { getRelationshipByEntityName } from './get-by-name.js';
 export { listRelationships } from './list.js';
-
-
-
-
-
-
-
-

@@ -324,11 +324,3 @@ function getDefaultLearningPatterns() {
     learningVelocity: DEFAULT_LEARNING_VELOCITY,
   };
 }
-
-
-
-
-
-
-
-

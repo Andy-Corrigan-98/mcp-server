@@ -24,11 +24,3 @@ export const DEFAULT_CONFIG: RelationshipConfig = {
 export const loadRelationshipConfig = async (): Promise<RelationshipConfig> => {
   return loadConfiguration('SOCIAL', DEFAULT_CONFIG, 'social');
 };
-
-
-
-
-
-
-
-

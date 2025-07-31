@@ -83,11 +83,3 @@ export const updateRelationship = async (args: {
     message: `Relationship for '${entityName}' updated successfully`,
   };
 };
-
-
-
-
-
-
-
-

@@ -65,11 +65,3 @@ export const recordSocialLearning = async (args: {
     `Social learning '${learningType}' recorded successfully`
   );
 };
-
-
-
-
-
-
-
-

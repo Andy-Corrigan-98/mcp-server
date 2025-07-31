@@ -51,11 +51,3 @@ export function handleBranching(
   branch.push(thoughtStep);
   session.currentBranch = branchId;
 }
-
-
-
-
-
-
-
-

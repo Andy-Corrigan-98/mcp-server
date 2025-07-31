@@ -105,11 +105,3 @@ export const getModelName = async (): Promise<string> => {
   const client = GenAIClient.getInstance();
   return await client.getModelName();
 };
-
-
-
-
-
-
-
-

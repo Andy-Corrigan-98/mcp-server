@@ -12,11 +12,3 @@ export async function recentBiasedStrategy(
   // For now, fall back to random sampling
   return randomStrategy(focusArea);
 }
-
-
-
-
-
-
-
-

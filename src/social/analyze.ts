@@ -229,11 +229,3 @@ function generateRecommendations(analysisType: string, analysisData: any): strin
 
   return recommendations;
 }
-
-
-
-
-
-
-
-

@@ -91,11 +91,3 @@ Think deeply and provide sophisticated reasoning:`;
     truncated: validation.truncated,
   };
 };
-
-
-
-
-
-
-
-

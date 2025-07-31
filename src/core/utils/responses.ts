@@ -83,11 +83,3 @@ export const createResponseBuilders = (): ResponseBuilders => ({
   interactionRecorded: interactionRecordedResponse,
   error: errorResponse,
 });
-
-
-
-
-
-
-
-

@@ -82,11 +82,3 @@ function generateSemanticInsights(graphData: unknown[]): string[] {
 
   return insights;
 }
-
-
-
-
-
-
-
-

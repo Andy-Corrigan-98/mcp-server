@@ -77,11 +77,3 @@ const estimateConceptDistance = (concept1: string, concept2: string): number => 
   // Distance is inverse of overlap ratio
   return Math.max(MIN_DISTANCE, 1 - overlap / totalWords);
 };
-
-
-
-
-
-
-
-

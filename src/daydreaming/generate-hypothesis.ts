@@ -37,11 +37,3 @@ export async function generateConnectionHypothesis(pair: ConceptPair, depth: str
     thinkingSessionId: thinkingResult.sessionId,
   };
 }
-
-
-
-
-
-
-
-

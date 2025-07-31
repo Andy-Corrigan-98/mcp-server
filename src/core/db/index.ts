@@ -14,11 +14,3 @@ export type {
   KnowledgeRelationshipData,
   DatabaseConfig,
 } from './types.js';
-
-
-
-
-
-
-
-

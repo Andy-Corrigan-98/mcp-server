@@ -129,11 +129,3 @@ export function generateSessionSummary(session: ThinkingSession, millisecondsPer
     `${Math.round(duration / millisecondsPerSecond)}s duration`
   );
 }
-
-
-
-
-
-
-
-

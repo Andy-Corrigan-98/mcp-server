@@ -67,11 +67,3 @@ export class UnifiedToolsRegistry {
     // No background processes to clean up in the unified approach
   }
 }
-
-
-
-
-
-
-
-

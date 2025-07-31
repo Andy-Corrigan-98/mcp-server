@@ -75,11 +75,3 @@ export class GuidGenerator {
     return this.generatePrefixedId('insight');
   }
 }
-
-
-
-
-
-
-
-

@@ -28,11 +28,3 @@ export const deleteRelationship = async (entityName: string): Promise<void> => {
     });
   });
 };
-
-
-
-
-
-
-
-

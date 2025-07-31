@@ -95,11 +95,3 @@ export const createRelationship = async (args: {
 
   return relationshipCreatedResponse(entityName, relationshipType, newRelationship.id);
 };
-
-
-
-
-
-
-
-

@@ -92,11 +92,3 @@ function getConceptPairKey(pair: ConceptPair): string {
   const entities = [pair.concept1.entity, pair.concept2.entity].sort();
   return `${entities[0]}--${entities[1]}`;
 }
-
-
-
-
-
-
-
-

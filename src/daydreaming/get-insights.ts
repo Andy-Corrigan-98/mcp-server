@@ -31,11 +31,3 @@ export async function getDaydreamInsights(
 
   return { insights };
 }
-
-
-
-
-
-
-
-

@@ -20,11 +20,3 @@ export async function evaluateInsight(args: Record<string, unknown>): Promise<{ 
   const evaluation = await evaluateInsightCore(concept1, concept2, hypothesis, explorationContext);
   return { evaluation };
 }
-
-
-
-
-
-
-
-

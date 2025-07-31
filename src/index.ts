@@ -120,11 +120,3 @@ server.run().catch((error: Error) => {
   console.error('Failed to start Consciousness MCP Server:', error);
   process.exit(1);
 });
-
-
-
-
-
-
-
-

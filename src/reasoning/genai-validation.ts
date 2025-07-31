@@ -112,11 +112,3 @@ export const validateConversationHistory = (history: unknown, maxExchanges: numb
       response: InputValidator.sanitizeString(exchange.response as string, 2000),
     }));
 };
-
-
-
-
-
-
-
-

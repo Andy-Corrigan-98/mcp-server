@@ -1,10 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { simpleConversation } from '../reasoning/simple-conversation.js';
-import {
-  processConsciousnessContext,
-  extractResponseContext,
-  getPersonalityContext,
-} from '../consciousness/index.js';
+import { processConsciousnessContext, extractResponseContext, getPersonalityContext } from '../consciousness/index.js';
 import type { RailroadResult } from '../consciousness/types.js';
 
 // Import all backend operations for internal routing
@@ -467,11 +463,3 @@ const result = await processConsciousnessContext(message, context, 'default');
     },
   };
 }
-
-
-
-
-
-
-
-

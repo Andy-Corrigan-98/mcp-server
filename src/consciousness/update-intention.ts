@@ -86,11 +86,3 @@ export async function updateIntention(args: {
     throw new Error(`Failed to update intention: ${errorMessage}`);
   }
 }
-
-
-
-
-
-
-
-

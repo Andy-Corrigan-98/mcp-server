@@ -116,11 +116,3 @@ const shouldStoreInsight = async (novelty: number, plausibility: number, value: 
 
   return novelty >= noveltyThreshold && plausibility >= plausibilityThreshold && value >= valueThreshold;
 };
-
-
-
-
-
-
-
-

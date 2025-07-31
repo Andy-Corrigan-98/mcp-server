@@ -1,6 +1,6 @@
 /**
  * Consciousness Railroad Pattern
- * 
+ *
  * A traceable, testable pipeline for building personality context that replaces
  * scattered consciousness operations with a linear, composable flow.
  */
@@ -26,10 +26,3 @@ export {
   extractResponseContext,
   getPersonalityContext,
 } from './consciousness-railroad.js';
-
-
-
-
-
-
-

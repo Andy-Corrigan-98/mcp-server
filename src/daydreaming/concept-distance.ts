@@ -16,11 +16,3 @@ export function estimateConceptDistance(concept1: string, concept2: string): num
   // Distance is inverse of overlap ratio
   return Math.max(MIN_DISTANCE, 1 - overlap / totalWords);
 }
-
-
-
-
-
-
-
-

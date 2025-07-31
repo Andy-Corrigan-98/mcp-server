@@ -283,11 +283,3 @@ export class ConsciousnessPrismaService {
     return operation(this.prisma);
   }
 }
-
-
-
-
-
-
-
-

@@ -104,11 +104,3 @@ export interface ConfigurationUpsertData {
   description: string;
   defaultValue: string;
 }
-
-
-
-
-
-
-
-

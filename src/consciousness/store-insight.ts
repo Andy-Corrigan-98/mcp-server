@@ -170,11 +170,3 @@ async function countRelatedMemories(db: ConsciousnessPrismaService, relatedTopic
     return 0;
   }
 }
-
-
-
-
-
-
-
-

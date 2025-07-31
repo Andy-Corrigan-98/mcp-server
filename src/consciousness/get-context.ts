@@ -324,11 +324,3 @@ function calculatePersonalityEvolution(): number {
   // Simplified calculation - in reality would track personality changes over time
   return 0.15;
 }
-
-
-
-
-
-
-
-

@@ -1,7 +1,7 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { ConfigurationService } from '../core/db/configuration-service.js';
 import { ConfigurationType, ConfigurationCategory } from '@prisma/client';
-import { ToolExecutor } from '../core/utils/tool-executor-base.js';
+import { ToolExecutor } from '../core/utils/index.js';
 import { ConfiguredValidator } from '../core/validation/index.js';
 import type {
   ConfigurationResult,
@@ -211,7 +211,7 @@ export class ConfigurationTools extends ToolExecutor {
 
     // Store the change in memory for tracking consciousness evolution
     try {
-      const { storeMemory } = await import('../../features/memory/index.js');
+      const { storeMemory } = await import('../memory/index.js');
       await storeMemory({
         key: `config_change_${Date.now()}`,
         content: changeLog,
@@ -413,11 +413,3 @@ export class ConfigurationTools extends ToolExecutor {
     updatedAt: config.updatedAt,
   });
 }
-
-
-
-
-
-
-
-

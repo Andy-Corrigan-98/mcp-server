@@ -179,11 +179,3 @@ export class ConfigurationService {
     return config.value;
   }
 }
-
-
-
-
-
-
-
-

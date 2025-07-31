@@ -187,11 +187,3 @@ function determineAwarenessLevel(impact: string): ConsciousnessState['awarenessL
   };
   return levelMap[impact] || 'medium';
 }
-
-
-
-
-
-
-
-

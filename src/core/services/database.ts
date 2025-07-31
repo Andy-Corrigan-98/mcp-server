@@ -40,11 +40,3 @@ export interface DatabaseService {
 export const createDatabaseService = (): DatabaseService => ({
   execute: executeDatabase,
 });
-
-
-
-
-
-
-
-

@@ -12,11 +12,3 @@ export async function getKnowledgeGraphEntities(_focusArea?: string): Promise<un
     return [];
   }
 }
-
-
-
-
-
-
-
-
