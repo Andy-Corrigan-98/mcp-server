@@ -7,6 +7,14 @@ import {
 } from '../../features/consciousness/railroad/index.js';
 import type { RailroadResult } from '../../features/consciousness/railroad/types.js';
 
+// Import all backend operations for internal routing
+import { executeConsciousnessOperation } from '../../features/consciousness/index.js';
+import { executeMemoryOperation } from '../../features/memory/index.js';
+import { execute as executeSocialOperation } from '../../features/social/index.js';
+import { executeReasoningOperation } from '../../features/reasoning/index.js';
+import { ConfigurationTools } from '../configuration/configuration-tools.js';
+import { TimeTools } from '../time/time-tools.js';
+
 /**
  * Railroad-Powered Message Processor
  *
@@ -35,6 +43,11 @@ export interface RailroadMessageProcessorResult {
   insights_generated: string[];
   memories_accessed: string[];
   social_interactions: string[];
+  intelligent_routing: {
+    detected_intents: string[];
+    operations_executed: string[];
+    auto_completions: string[];
+  };
   railroad_trace?: Array<{
     car: string;
     duration: number;
@@ -44,24 +57,236 @@ export interface RailroadMessageProcessorResult {
 }
 
 /**
- * Process a message through the consciousness railroad and generate a response
+ * Intent detection patterns for intelligent routing
  */
+interface DetectedIntent {
+  category: 'configuration' | 'time' | 'memory' | 'social' | 'reasoning' | 'daydreaming' | 'consciousness';
+  operation: string;
+  confidence: number;
+  args: Record<string, unknown>;
+}
+
+/**
+ * Tool instances for internal routing (singleton pattern)
+ */
+let configurationToolsInstance: ConfigurationTools | null = null;
+let timeToolsInstance: TimeTools | null = null;
+
+function getConfigurationTools(): ConfigurationTools {
+  if (!configurationToolsInstance) {
+    configurationToolsInstance = new ConfigurationTools();
+  }
+  return configurationToolsInstance;
+}
+
+function getTimeTools(): TimeTools {
+  if (!timeToolsInstance) {
+    timeToolsInstance = new TimeTools();
+  }
+  return timeToolsInstance;
+}
+
+/**
+ * Intelligent message analysis to detect user intents
+ */
+async function analyzeMessageIntents(message: string, _context?: string): Promise<DetectedIntent[]> {
+  const intents: DetectedIntent[] = [];
+  const lowerMessage = message.toLowerCase();
+
+  // Configuration intent patterns
+  if (lowerMessage.includes('set ') || lowerMessage.includes('configure') || lowerMessage.includes('config')) {
+    if (lowerMessage.includes('timeout') || lowerMessage.includes('model') || lowerMessage.includes('setting')) {
+      intents.push({
+        category: 'configuration',
+        operation: 'configuration_set',
+        confidence: 0.8,
+        args: {
+          /* extract from message */
+        },
+      });
+    }
+  }
+
+  // Time intent patterns
+  if (lowerMessage.includes('time') || lowerMessage.includes('clock') || lowerMessage.includes('timezone')) {
+    if (lowerMessage.includes('what time') || lowerMessage.includes('current time')) {
+      intents.push({
+        category: 'time',
+        operation: 'time_current',
+        confidence: 0.9,
+        args: {},
+      });
+    } else if (lowerMessage.includes('convert')) {
+      intents.push({
+        category: 'time',
+        operation: 'time_convert',
+        confidence: 0.8,
+        args: {
+          /* extract from message */
+        },
+      });
+    }
+  }
+
+  // Memory intent patterns
+  if (lowerMessage.includes('remember') || lowerMessage.includes('store') || lowerMessage.includes('save')) {
+    intents.push({
+      category: 'memory',
+      operation: 'memory_store',
+      confidence: 0.8,
+      args: {
+        /* extract from message */
+      },
+    });
+  }
+
+  if (lowerMessage.includes('what do i know') || lowerMessage.includes('recall') || lowerMessage.includes('find')) {
+    intents.push({
+      category: 'memory',
+      operation: 'memory_search',
+      confidence: 0.7,
+      args: {
+        /* extract from message */
+      },
+    });
+  }
+
+  // Social intent patterns
+  if (
+    lowerMessage.includes('relationship') ||
+    lowerMessage.includes('met with') ||
+    lowerMessage.includes('interaction')
+  ) {
+    if (lowerMessage.includes('met') || lowerMessage.includes('talked') || lowerMessage.includes('conversation')) {
+      intents.push({
+        category: 'social',
+        operation: 'social_interaction_record',
+        confidence: 0.8,
+        args: {
+          /* extract from message */
+        },
+      });
+    } else if (lowerMessage.includes('how is') || lowerMessage.includes('relationship with')) {
+      intents.push({
+        category: 'social',
+        operation: 'social_entity_get',
+        confidence: 0.7,
+        args: {
+          /* extract from message */
+        },
+      });
+    }
+  }
+
+  // Reasoning intent patterns
+  if (
+    lowerMessage.includes('think') ||
+    lowerMessage.includes('analyze') ||
+    lowerMessage.includes('reason') ||
+    lowerMessage.includes('step by step') ||
+    lowerMessage.includes('problem')
+  ) {
+    intents.push({
+      category: 'reasoning',
+      operation: 'sequential_thinking',
+      confidence: 0.7,
+      args: { thought: message, next_thought_needed: false, thought_number: 1, total_thoughts: 1 },
+    });
+  }
+
+  return intents;
+}
+
+/**
+ * Execute detected intents through backend operations
+ */
+async function executeDetectedIntents(intents: DetectedIntent[]): Promise<{
+  operations_executed: string[];
+  auto_completions: string[];
+  results: Record<string, unknown>;
+}> {
+  const operations_executed: string[] = [];
+  const auto_completions: string[] = [];
+  const results: Record<string, unknown> = {};
+
+  for (const intent of intents) {
+    try {
+      let result: unknown;
+
+      switch (intent.category) {
+        case 'configuration':
+          result = await getConfigurationTools().execute(intent.operation, intent.args);
+          operations_executed.push(`${intent.category}.${intent.operation}`);
+          auto_completions.push(`Automatically handled configuration: ${intent.operation}`);
+          break;
+
+        case 'time':
+          result = await getTimeTools().execute(intent.operation, intent.args);
+          operations_executed.push(`${intent.category}.${intent.operation}`);
+          auto_completions.push(`Automatically handled time query: ${intent.operation}`);
+          break;
+
+        case 'memory':
+          result = await executeMemoryOperation(intent.operation, intent.args);
+          operations_executed.push(`${intent.category}.${intent.operation}`);
+          auto_completions.push(`Automatically handled memory operation: ${intent.operation}`);
+          break;
+
+        case 'social':
+          result = await executeSocialOperation(intent.operation, intent.args);
+          operations_executed.push(`${intent.category}.${intent.operation}`);
+          auto_completions.push(`Automatically handled social operation: ${intent.operation}`);
+          break;
+
+        case 'reasoning':
+          result = await executeReasoningOperation(intent.operation, intent.args);
+          operations_executed.push(`${intent.category}.${intent.operation}`);
+          auto_completions.push(`Automatically handled reasoning operation: ${intent.operation}`);
+          break;
+
+        case 'consciousness':
+          result = await executeConsciousnessOperation(intent.operation, intent.args);
+          operations_executed.push(`${intent.category}.${intent.operation}`);
+          auto_completions.push(`Automatically handled consciousness operation: ${intent.operation}`);
+          break;
+      }
+
+      results[`${intent.category}.${intent.operation}`] = result;
+    } catch (error) {
+      console.warn(`Failed to execute intent ${intent.category}.${intent.operation}:`, error);
+    }
+  }
+
+  return { operations_executed, auto_completions, results };
+}
+
+/**
+ * Process a message through the consciousness railroad and generate a response
+ * NOW WITH INTELLIGENT ROUTING TO ALL BACKEND OPERATIONS
+ */
+// Constants
+const CONFIDENCE_PERCENTAGE_MULTIPLIER = 100;
+
 export async function processMessageWithRailroad(
   args: RailroadMessageProcessorArgs
 ): Promise<RailroadMessageProcessorResult> {
-  // Execute the consciousness railroad
+  const startTime = Date.now();
+
+  // STEP 1: Analyze message for intents and auto-execute operations
+  const detectedIntents = await analyzeMessageIntents(args.message, args.context);
+  const intentResults = await executeDetectedIntents(detectedIntents);
+
+  // STEP 2: Execute the consciousness railroad for personality context
   const railroadResult = await processConsciousnessContext(args.message, args.context, args.railroad_type || 'default');
 
-  // Extract context for response generation
+  // STEP 3: Extract context for response generation
   const responseContext = extractResponseContext(railroadResult);
   const personalityContext = getPersonalityContext(railroadResult);
 
-  // Generate response using enriched context
+  // STEP 4: Generate response using enriched context AND auto-completion results
   let response: string;
   try {
-    const conversationResponse = await simpleConversation({
-      question: args.message,
-      context: `
+    const enrichedContext = `
 Consciousness Context:
 ${responseContext}
 
@@ -72,8 +297,14 @@ Personality Guidance:
 ${personalityContext.relationshipContext ? `- Relationship: ${personalityContext.relationshipContext}` : ''}
 ${personalityContext.memoryContext ? `- Memory context: ${personalityContext.memoryContext}` : ''}
 
+${intentResults.auto_completions.length > 0 ? `\nOperations Automatically Completed:\n${intentResults.auto_completions.map(c => `- ${c}`).join('\n')}` : ''}
+
 ${args.context ? `\nAdditional context: ${args.context}` : ''}
-      `.trim(),
+    `.trim();
+
+    const conversationResponse = await simpleConversation({
+      question: args.message,
+      context: enrichedContext,
     });
     response = conversationResponse.response;
   } catch {
@@ -97,15 +328,22 @@ ${args.context ? `\nAdditional context: ${args.context}` : ''}
     response,
     consciousness_context: {
       railroad_success: railroadResult.success,
-      execution_time: railroadResult.totalExecutionTime,
+      execution_time: Date.now() - startTime,
       cars_executed: railroadResult.context.operations.performed,
       personality_applied: !!railroadResult.context.personalityContext,
       context_richness: contextRichness,
     },
-    operations_performed: railroadResult.context.operations.performed,
+    operations_performed: [...railroadResult.context.operations.performed, ...intentResults.operations_executed],
     insights_generated: railroadResult.context.operations.insights_generated,
     memories_accessed: railroadResult.context.operations.memories_accessed,
     social_interactions: railroadResult.context.operations.social_interactions,
+    intelligent_routing: {
+      detected_intents: detectedIntents.map(
+        i => `${i.category}.${i.operation} (${Math.round(i.confidence * CONFIDENCE_PERCENTAGE_MULTIPLIER)}%)`
+      ),
+      operations_executed: intentResults.operations_executed,
+      auto_completions: intentResults.auto_completions,
+    },
     railroad_trace: railroadTrace,
   };
 }

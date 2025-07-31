@@ -10,7 +10,7 @@ import {
   TextContent,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { UnifiedConsciousnessToolsRegistry } from './tools/unified-registry.js';
+import { UnifiedToolsRegistry } from './tools/unified-registry.js';
 
 // Interface for registry abstraction
 interface ToolsRegistry {
@@ -36,9 +36,9 @@ class ConsciousnessMCPServer {
       }
     );
 
-    // Always use the railroad-powered unified approach
-    console.error('🚂 Starting with Railroad Pattern - unified, traceable consciousness processing');
-    this.toolsRegistry = new UnifiedConsciousnessToolsRegistry();
+    // Always use the complete unified approach - ALL tools through railroad pattern
+    console.error('🚂 Starting with Complete Unified Registry - ALL operations through railroad pattern');
+    this.toolsRegistry = new UnifiedToolsRegistry();
 
     this.setupHandlers();
   }
@@ -88,9 +88,9 @@ class ConsciousnessMCPServer {
     await this.server.connect(transport);
 
     // Log server startup to stderr (won't interfere with MCP protocol on stdout)
-    console.error('🚂 Consciousness MCP Server started with Railroad Pattern');
-    console.error('💡 Use process_message tool for all consciousness operations');
-    console.error('💡 Full traceability and consistency guaranteed');
+    console.error('🚂 Complete Unified MCP Server started with Railroad Pattern');
+    console.error('💡 ALL tools available: consciousness, memory, social, reasoning, configuration, time, daydreaming');
+    console.error('💡 Full traceability and consistency across all operations');
   }
 
   async cleanup(): Promise<void> {
