@@ -14,7 +14,7 @@ import { TimeTools } from '../time/time-tools.js';
 /**
  * Railroad-Powered Message Processor
  *
- * A clean railroad pipeline that builds personality context in a traceable, 
+ * A clean railroad pipeline that builds personality context in a traceable,
  * testable way through sequential processing cars.
  */
 
@@ -323,7 +323,7 @@ export async function processMessageWithRailroad(
   } as RailroadResult);
 
   // Build railroad trace for debugging
-  const railroadTrace = (railroadResult.errors || []).map((error, index) => ({
+  const railroadTrace = (railroadResult.errors || []).map((error, _index) => ({
     car: error.car || 'unknown',
     duration: 0,
     success: !error.error,
@@ -379,5 +379,3 @@ function calculateContextRichness(railroadResult: RailroadResult): number {
 
   return Math.min(1.0, richness);
 }
-
-
