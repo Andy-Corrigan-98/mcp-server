@@ -22,12 +22,13 @@ export const prepareSocialContext = async (args: {
 }): Promise<object> => {
   // Validate inputs
   const entityName = validateRequiredString(args.entity_name, 'entity_name', 100);
-  // Interaction type and context could be used for enhanced preparation in future versions
+  const interactionType = args.interaction_type || 'conversation';
+  const context = args.context || '';
 
   const includeEmotionalPrep = args.include_emotional_prep !== false;
   const includeConversationTips = args.include_conversation_tips !== false;
   const includeRelationshipAnalysis = args.include_relationship_analysis !== false;
-  // Shared memories integration available when memory-social linking is configured
+  const includeSharedMemories = args.include_shared_memories !== false;
 
   // Get the entity
   const entity = await getEntityByName(entityName);
@@ -63,17 +64,52 @@ export const prepareSocialContext = async (args: {
       take: 5,
     });
 
+    // Get shared memories if requested
+    let sharedMemories: any[] = [];
+    if (includeSharedMemories) {
+      const memoryLinks = await prisma.memorySocialLink.findMany({
+        where: { socialEntityId: entity.data.id },
+        include: {
+          memory: {
+            select: {
+              key: true,
+              content: true,
+              tags: true,
+              importance: true,
+              storedAt: true,
+              socialContext: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      sharedMemories = memoryLinks.map(link => ({
+        ...link.memory,
+        linkType: link.relationshipType,
+        linkStrength: link.strength,
+        linkContext: link.context,
+      }));
+    }
+
     return {
       entity,
       relationship,
       recentInteractions,
       emotionalContexts,
       socialLearnings,
+      sharedMemories,
     };
   });
 
   // Build response
   const response: any = {
+    interaction_context: {
+      type: interactionType,
+      context: context,
+      prepared_at: new Date().toISOString(),
+    },
     entity: {
       name: entity.data.name,
       display_name: entity.data.displayName,
@@ -94,6 +130,19 @@ export const prepareSocialContext = async (args: {
       confidence: learning.confidence,
       applicability: learning.applicability,
     })),
+    shared_memories: includeSharedMemories
+      ? (socialContext.data?.sharedMemories || []).map((memory: any) => ({
+          key: memory.key,
+          content: memory.content,
+          tags: memory.tags,
+          importance: memory.importance,
+          stored_at: memory.storedAt,
+          link_type: memory.linkType,
+          link_strength: memory.linkStrength,
+          link_context: memory.linkContext,
+          social_context: memory.socialContext,
+        }))
+      : [],
     recommendations: {
       communication_tips: [],
       emotional_prep: [],
@@ -126,33 +175,118 @@ export const prepareSocialContext = async (args: {
     response.emotional_patterns = Array.from(emotionalPatterns.entries()).map(([state, frequency]) => ({
       state,
       frequency,
-      triggers: socialContext.data?.emotionalContexts || []
-        .filter((ec: any) => ec.emotionalState === state && ec.trigger)
-        .map((ec: any) => ec.trigger!)
-        .slice(0, 3),
+      triggers:
+        socialContext.data?.emotionalContexts ||
+        []
+          .filter((ec: any) => ec.emotionalState === state && ec.trigger)
+          .map((ec: any) => ec.trigger!)
+          .slice(0, 3),
     }));
   }
 
-  // Generate recommendations
-  if (includeConversationTips && socialContext.data?.relationship) {
-    response.recommendations.communication_tips.push(
-      `Relationship strength: ${socialContext.data.relationship.strength}/1.0`,
-      `Trust level: ${socialContext.data.relationship.trust}/1.0`,
-      `Familiarity: ${socialContext.data.relationship.familiarity}/1.0`
-    );
+  // Generate interaction-specific recommendations
+  if (includeConversationTips) {
+    // Base relationship tips
+    if (socialContext.data?.relationship) {
+      response.recommendations.communication_tips.push(
+        `Relationship strength: ${socialContext.data.relationship.strength}/1.0`,
+        `Trust level: ${socialContext.data.relationship.trust}/1.0`,
+        `Familiarity: ${socialContext.data.relationship.familiarity}/1.0`
+      );
+    }
+
+    // Interaction-specific tips
+    switch (interactionType) {
+      case 'meeting':
+      case 'project_work':
+        response.recommendations.communication_tips.push(
+          'Focus on collaborative outcomes and shared goals',
+          'Reference previous project successes if available'
+        );
+        break;
+      case 'casual_chat':
+      case 'social':
+        response.recommendations.communication_tips.push(
+          'Keep tone light and personal',
+          'Ask about their current interests and activities'
+        );
+        break;
+      case 'problem_solving':
+        response.recommendations.communication_tips.push(
+          'Listen actively and ask clarifying questions',
+          'Build on their ideas and previous solutions'
+        );
+        break;
+      case 'creative_session':
+      case 'brainstorming':
+        response.recommendations.communication_tips.push(
+          'Encourage creative thinking and wild ideas',
+          'Reference past creative collaborations'
+        );
+        break;
+    }
+
+    // Context-specific recommendations
+    if (context) {
+      response.recommendations.communication_tips.push(`Context: ${context} - tailor conversation accordingly`);
+    }
   }
 
-  if (includeEmotionalPrep && socialContext.data?.emotionalContexts && Array.isArray(socialContext.data.emotionalContexts) && socialContext.data.emotionalContexts.length > 0) {
+  // Enhanced emotional preparation
+  if (
+    includeEmotionalPrep &&
+    socialContext.data?.emotionalContexts &&
+    Array.isArray(socialContext.data.emotionalContexts) &&
+    socialContext.data.emotionalContexts.length > 0
+  ) {
     const lastEmotional = socialContext.data?.emotionalContexts?.[0];
+    const emotionalTrends = socialContext.data.emotionalContexts.slice(0, 5);
+
     response.recommendations.emotional_prep
       .push(
         `Last emotional state: ${lastEmotional.emotionalState}`,
-        lastEmotional.response ? `Previous response: ${lastEmotional.response}` : ''
+        lastEmotional.response ? `Previous response: ${lastEmotional.response}` : '',
+        `Recent emotional pattern: ${emotionalTrends.map(ec => ec.emotionalState).join(' → ')}`
       )
       .filter(Boolean);
+
+    // Add emotional triggers awareness
+    const triggers = emotionalTrends
+      .filter(ec => ec.trigger)
+      .map(ec => ec.trigger)
+      .slice(0, 3);
+
+    if (triggers.length > 0) {
+      response.recommendations.emotional_prep.push(`Be mindful of triggers: ${triggers.join(', ')}`);
+    }
   }
 
-  // Shared memories integration can be enabled via memory-social linking configuration
+  // Memory-based recommendations
+  if (includeSharedMemories && socialContext.data?.sharedMemories && socialContext.data.sharedMemories.length > 0) {
+    const highImportanceMemories = socialContext.data.sharedMemories
+      .filter((memory: any) => memory.importance === 'high' || memory.importance === 'critical')
+      .slice(0, 3);
 
-  return ResponseBuilder.success(response, `Social context prepared for interaction with '${entityName}'`);
+    if (highImportanceMemories.length > 0) {
+      response.recommendations.memory_reminders = highImportanceMemories.map((memory: any) => ({
+        key: memory.key,
+        summary:
+          typeof memory.content === 'string' ? memory.content.substring(0, 100) + '...' : 'Important shared memory',
+        importance: memory.importance,
+        link_context: memory.linkContext,
+      }));
+    }
+
+    // Generate conversation starters from memories
+    const recentMemories = socialContext.data.sharedMemories
+      .filter((memory: any) => memory.tags && memory.tags.length > 0)
+      .slice(0, 3);
+
+    response.recommendations.conversation_starters = recentMemories.map((memory: any) => {
+      const tags = Array.isArray(memory.tags) ? memory.tags : JSON.parse(memory.tags || '[]');
+      return `Ask about ${tags[0]} (from your shared memory: ${memory.key})`;
+    });
+  }
+
+  return ResponseBuilder.success(response, `Social context prepared for ${interactionType} with '${entityName}'`);
 };

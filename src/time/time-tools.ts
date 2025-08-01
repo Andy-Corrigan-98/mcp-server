@@ -3,6 +3,8 @@ import { ToolExecutor } from '../core/utils/index.js';
 import { ConfiguredValidator } from '../core/validation/index.js';
 import { ConfigurationSchema } from '../core/utils/index.js';
 import type { TimeResult, TimeConversionResult, TimeAwarenessResult } from './types.js';
+import { zonedTimeToUtc, utcToZonedTime, format } from 'date-fns-tz';
+import { parseISO, isValid } from 'date-fns';
 
 // Constants to avoid magic numbers
 const MAX_TIMEZONE_LENGTH = 50;
@@ -175,21 +177,49 @@ export class TimeTools extends ToolExecutor {
         MAX_TIMEZONE_LENGTH
       )) || config.defaultTimezone;
 
-    // Basic time conversion using JavaScript Date (timezone library integration available if needed)
-    const inputDate = new Date(timeInput);
+    // Parse the input time string
+    let inputDate: Date;
+
+    // Try parsing as ISO string first, then fall back to time-only format
+    if (timeInput.includes('T') || timeInput.includes('-')) {
+      inputDate = parseISO(timeInput);
+    } else {
+      // Handle HH:MM format by creating a date with today's date
+      const today = new Date();
+      const [hours, minutes] = timeInput.split(':').map(Number);
+      inputDate = new Date(today.getFullYear(), today.getMonth(), today.getDate(), hours, minutes);
+    }
+
+    if (!isValid(inputDate)) {
+      throw new Error(
+        `Invalid time format: ${timeInput}. Use ISO format (e.g., '2023-12-25T15:30:00') or HH:MM format.`
+      );
+    }
+
+    // Convert using proper timezone library
+    const utcTime = zonedTimeToUtc(inputDate, fromTimezone);
+    const convertedTime = utcToZonedTime(utcTime, toTimezone);
 
     return {
       original: {
         time: timeInput,
         timezone: fromTimezone,
+        formatted: format(inputDate, 'yyyy-MM-dd HH:mm:ss zzz', { timeZone: fromTimezone }),
       },
       converted: {
-        time: inputDate.toISOString(),
+        time: convertedTime.toISOString(),
         timezone: toTimezone,
-        human_readable: inputDate.toLocaleString('en-US', { timeZone: toTimezone }),
+        formatted: format(convertedTime, 'yyyy-MM-dd HH:mm:ss zzz', { timeZone: toTimezone }),
+        local_time: format(convertedTime, 'HH:mm', { timeZone: toTimezone }),
+      },
+      conversion_info: {
+        utc_time: utcTime.toISOString(),
+        offset_from: format(inputDate, 'xxx', { timeZone: fromTimezone }),
+        offset_to: format(convertedTime, 'xxx', { timeZone: toTimezone }),
+        dst_aware: true,
       },
       conversion_timestamp: new Date().toISOString(),
-      consciousness_note: 'Temporal conversion completed with awareness of context shift',
+      consciousness_note: 'Temporal conversion completed with timezone-aware precision',
     };
   }
 

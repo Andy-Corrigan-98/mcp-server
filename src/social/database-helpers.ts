@@ -19,16 +19,16 @@ export function extractDatabaseResult<T>(result: { success: boolean; data?: T; e
  * Helper to get entity context with proper data extraction
  */
 export async function getEntityContext(entityName: string) {
-  const result = await executeDatabase(async (prisma) => {
+  const result = await executeDatabase(async prisma => {
     const entity = await prisma.socialEntity.findUnique({
       where: { name: entityName },
       include: {
         relationships: true,
         interactions: {
           orderBy: { createdAt: 'desc' },
-          take: 10
-        }
-      }
+          take: 10,
+        },
+      },
     });
 
     if (!entity) {
@@ -45,14 +45,28 @@ export async function getEntityContext(entityName: string) {
         interactionType: true,
         summary: true,
         quality: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
 
-    // Emotional contexts available when emotional analysis features are enabled
-    const emotionalContexts: any[] = [];
+    // Get emotional contexts with enhanced analysis
+    const emotionalContexts = await prisma.emotionalContext.findMany({
+      where: { entityId: entity.id },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        emotionalState: true,
+        intensity: true,
+        trigger: true,
+        response: true,
+        learning: true,
+        context: true,
+        createdAt: true,
+      },
+    });
 
-    // Get social learnings  
+    // Get social learnings
     const socialLearnings = await prisma.socialLearning.findMany({
       where: { entityId: entity.id },
       orderBy: { createdAt: 'desc' },
@@ -62,8 +76,8 @@ export async function getEntityContext(entityName: string) {
         learningType: true,
         insight: true,
         confidence: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
 
     return {
@@ -71,7 +85,7 @@ export async function getEntityContext(entityName: string) {
       relationship: entity.relationships[0] || null,
       recentInteractions,
       emotionalContexts,
-      socialLearnings
+      socialLearnings,
     };
   });
 
@@ -82,11 +96,11 @@ export async function getEntityContext(entityName: string) {
  * Helper to create memory link with proper data extraction
  */
 export async function createMemoryLink(memoryKey: string, entityId: number, linkType: string, context?: string) {
-  return executeDatabase(async (prisma) => {
+  return executeDatabase(async prisma => {
     // First find the memory
     const memory = await prisma.memory.findFirst({
       where: { key: memoryKey },
-      select: { id: true }
+      select: { id: true },
     });
 
     if (!memory) {
@@ -100,8 +114,8 @@ export async function createMemoryLink(memoryKey: string, entityId: number, link
         socialEntityId: entityId,
         relationshipType: linkType as any, // Cast to enum type
         strength: 0.7, // Default strength
-        context: context || null
-      }
+        context: context || null,
+      },
     });
   });
 }
