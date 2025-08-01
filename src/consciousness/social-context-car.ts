@@ -60,8 +60,7 @@ async function socialContextProcess(context: RailroadContext): Promise<RailroadC
         activeRelationships: [],
         recentInteractions: [],
         contextualLearnings: [],
-        // V2 simplified - interface compliant
-        // entityMentioned removed - not in interface
+            // Interface compliant result format
       }
     };
   }

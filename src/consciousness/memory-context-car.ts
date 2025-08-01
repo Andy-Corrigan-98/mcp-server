@@ -58,7 +58,7 @@ async function memoryContextProcess(context: RailroadContext): Promise<RailroadC
         totalMemories: 0,
         recentActivity: [],
         searchQuery: ''
-        // V2 simplified - interface compliant,
+        // Interface compliant result format
       }
     };
   }
@@ -101,7 +101,7 @@ async function searchRelevantMemories(searchTerms: string[], limit: number) {
         where: {
           key: { contains: searchTerms[0] || '' }
         },
-        // orderBy: { updatedAt: 'desc' }, // V2 simplified
+        // Default ordering for memory relevance
         take: limit,
         select: {
           id: true,
@@ -129,7 +129,7 @@ async function getRecentMemoryActivity(limit: number) {
   try {
     const result = await executeDatabase(async (prisma) => {
       return prisma.memory.findMany({
-        // orderBy: { updatedAt: 'desc' }, // V2 simplified
+        // Default ordering for memory relevance
         take: limit,
         select: {
           key: true,

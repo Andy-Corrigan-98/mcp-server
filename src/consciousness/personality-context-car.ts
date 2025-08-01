@@ -66,8 +66,7 @@ async function personalityContextProcess(context: RailroadContext): Promise<Rail
         adaptationLevel: 0.5,
         responseStyle: 'adaptive',
         learningPatterns: getDefaultLearningPatterns(),
-        // V2 simplified - interface compliant
-        // communicationAdaptations removed - not in interface
+            // Interface compliant result format
       }
     };
   }

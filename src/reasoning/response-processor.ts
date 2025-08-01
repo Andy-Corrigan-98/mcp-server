@@ -64,11 +64,10 @@ export const processReasoningResponse = async (
   }
 ): Promise<ProcessedReasoningResult> => {
   // Parse AI response with fallback handling
-  const parsed = parseAIResponse(aiOutput) as ReasoningResponse; // V2 simplified
-  // V2 simplified - use parsed response directly
+  const parsed = parseAIResponse(aiOutput) as ReasoningResponse;
 
   // Get current model name
-  const modelName = process.env.GOOGLE_GENAI_MODEL || 'gemini-2.5-flash'; // V2 environment-based
+  const modelName = process.env.GOOGLE_GENAI_MODEL || 'gemini-2.5-flash';
 
   return {
     thoughtNumber: context.thoughtNumber,

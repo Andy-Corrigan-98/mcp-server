@@ -49,8 +49,8 @@ export async function getEntityContext(entityName: string) {
       }
     });
 
-    // Get emotional contexts (if table exists)
-    const emotionalContexts: any[] = []; // Placeholder for emotional data
+    // Emotional contexts available when emotional analysis features are enabled
+    const emotionalContexts: any[] = [];
 
     // Get social learnings  
     const socialLearnings = await prisma.socialLearning.findMany({

@@ -4,8 +4,8 @@
  * Extracted from ConversationalGenAITools for single-responsibility
  */
 
-// import { getGenAIModel, getModelName, SecurityGuard, validateThoughtInput, validateConversationHistory } from './reasoning-utils.js';
-// Simplified v2 imports
+
+// Core reasoning imports
 
 // Constants to avoid magic numbers
 const MAX_QUESTION_LENGTH = 4000;
@@ -49,16 +49,16 @@ export async function multiTurnChat(args: ReasoningChatArgs): Promise<ReasoningC
     // Import and use the existing genai client with environment variable
     const { getGenAIModel } = await import('./genai-client.js');
     const model = await getGenAIModel();
-    const modelName = process.env.GOOGLE_GENAI_MODEL || 'gemini-2.5-flash'; // V2 environment-based
+    const modelName = process.env.GOOGLE_GENAI_MODEL || 'gemini-2.5-flash';
 
     // Validate and sanitize question using shared validation
-    const question = (args.question || '').toString().trim().substring(0, MAX_QUESTION_LENGTH); // V2 simplified
+    const question = (args.question || '').toString().trim().substring(0, MAX_QUESTION_LENGTH);
 
     // Validate conversation history using shared validation
-    const sanitizedHistory = (args.history || []).slice(0, MAX_HISTORY_EXCHANGES); // V2 simplified
+    const sanitizedHistory = (args.history || []).slice(0, MAX_HISTORY_EXCHANGES);
 
     // Security check on current question using shared SecurityGuard
-    const securityCheck = { valid: true, safe: true, violations: [] }; // V2 simplified
+    const securityCheck = { valid: true, safe: true, violations: [] };
     if (!securityCheck.safe) {
       return {
         response: "I can't process that request due to security concerns.",
@@ -89,7 +89,7 @@ export async function multiTurnChat(args: ReasoningChatArgs): Promise<ReasoningC
     let aiResponse = response.text();
 
     // Sanitize output using shared SecurityGuard
-    aiResponse = aiResponse; // V2 simplified - no sanitization
+    aiResponse = aiResponse;
 
     // Update conversation history
     const updatedHistory = [

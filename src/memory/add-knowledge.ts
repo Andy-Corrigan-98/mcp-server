@@ -34,8 +34,7 @@ export async function addToKnowledgeGraph(args: {
   const properties = args.properties || {};
   const relationships = args.relationships || [];
 
-  // Add the entity
-  // V2 simplified - direct database call
+  // Add the entity to knowledge graph
   await db.addEntity({ name: entityName, type: entityType, properties: properties as any } as any); // V2 type cast
 
   // Entity creation handled by relationship creation

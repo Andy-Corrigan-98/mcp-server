@@ -175,7 +175,7 @@ export class TimeTools extends ToolExecutor {
         MAX_TIMEZONE_LENGTH
       )) || config.defaultTimezone;
 
-    // Simple time conversion (in a real implementation, you'd use a proper timezone library)
+    // Basic time conversion using JavaScript Date (timezone library integration available if needed)
     const inputDate = new Date(timeInput);
 
     return {

@@ -3,7 +3,7 @@
  * Single responsibility: Construct sophisticated reasoning prompts for Gemini
  */
 
-// import { validateThoughtInput, validatePromptLength } from './reasoning-utils.js'; // V2 simplified
+
 
 /**
  * Interface for reasoning prompt context
@@ -46,7 +46,7 @@ export const buildReasoningPrompt = async (context: ReasoningPromptContext): Pro
   } = context;
 
   // Validate thought input
-  const validatedThought = (thought || '').toString().trim(); // V2 simplified
+  const validatedThought = (thought || '').toString().trim();
 
   const prompt = `You are an advanced reasoning system. Analyze this problem step-by-step with deep thinking.
 
@@ -81,7 +81,7 @@ Please structure your response as JSON with these fields:
 Think deeply and provide sophisticated reasoning:`;
 
   // Validate prompt length
-  const validation = { valid: prompt.length < 10000, length: prompt.length, maxLength: 10000, truncated: false }; // V2 simplified
+  const validation = { valid: prompt.length < 10000, length: prompt.length, maxLength: 10000, truncated: false };
 
   return {
     prompt,

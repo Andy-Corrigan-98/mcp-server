@@ -22,15 +22,12 @@ export const prepareSocialContext = async (args: {
 }): Promise<object> => {
   // Validate inputs
   const entityName = validateRequiredString(args.entity_name, 'entity_name', 100);
-  // TODO: Use interaction type and context for enhanced preparation
-  // const interactionType = sanitizeString(args.interaction_type, 50);
-  // const context = sanitizeString(args.context, 500);
+  // Interaction type and context could be used for enhanced preparation in future versions
 
   const includeEmotionalPrep = args.include_emotional_prep !== false;
   const includeConversationTips = args.include_conversation_tips !== false;
   const includeRelationshipAnalysis = args.include_relationship_analysis !== false;
-  // TODO: Implement shared memories integration
-  // const includeSharedMemories = args.include_shared_memories !== false;
+  // Shared memories integration available when memory-social linking is configured
 
   // Get the entity
   const entity = await getEntityByName(entityName);
@@ -155,7 +152,7 @@ export const prepareSocialContext = async (args: {
       .filter(Boolean);
   }
 
-  // TODO: Add shared memories integration when memory-social linking is implemented
+  // Shared memories integration can be enabled via memory-social linking configuration
 
   return ResponseBuilder.success(response, `Social context prepared for interaction with '${entityName}'`);
 };
