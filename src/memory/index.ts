@@ -5,8 +5,7 @@ import { searchMemories } from './search-memories.js';
 import { addToKnowledgeGraph } from './add-knowledge.js';
 import { queryKnowledgeGraph } from './query-knowledge.js';
 
-// Import tool builder for unified registry
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+
 
 
 // Then export them
@@ -27,13 +26,7 @@ export type { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationsh
  * and have no hidden side effects.
  */
 
-/**
- * Get all available memory tools with proper schemas
- * This function provides integration with the unified tool registration system
- */
-export function getMemoryTools(): Record<string, Tool> {
-  return {}; // Tool registration handled by unified registry
-}
+
 
 /**
  * Execute a memory operation by name
@@ -85,16 +78,4 @@ export async function executeMemoryOperation(operationName: string, args: Record
   }
 }
 
-/**
- * Memory Tools Wrapper
- * Provides a clean function-based interface for memory operations
- */
-export class MemoryTools {
-  getTools(): Record<string, Tool> {
-    return getMemoryTools();
-  }
 
-  async execute(toolName: string, args: Record<string, unknown>): Promise<unknown> {
-    return executeMemoryOperation(toolName, args);
-  }
-}

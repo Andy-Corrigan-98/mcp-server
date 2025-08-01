@@ -380,27 +380,4 @@ function calculateContextRichness(railroadResult: RailroadResult): number {
   return Math.min(1.0, richness);
 }
 
-/**
- * Documentation function showing railroad pattern architecture and benefits
- */
-export function getRailroadPatternInfo() {
-  return {
-    railroad_pattern: {
-      description: 'Sequential consciousness processing pipeline',
-      benefits: [
-        "Linear, traceable execution through each 'car'",
-        'Each car is independently testable',
-        'Graceful degradation when non-critical cars fail',
-        'Complete execution trace for debugging',
-        'Predictable personality context building',
-        'Easy to add/remove/reorder context sources',
-      ],
-      code_pattern: `
-// Railroad pipeline processing
-const result = await processConsciousnessContext(message, context, 'default');
-// Automatically flows through: analysis → session → memory → social → personality
-// Rich context available in result.context with full execution trace
-      `.trim(),
-    },
-  };
-}
+

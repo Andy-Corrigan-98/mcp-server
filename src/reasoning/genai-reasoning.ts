@@ -128,11 +128,4 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
   return handler(args);
 };
 
-/**
- * Export the GenAI reasoning tools interface
- * This provides a clean interface for GenAI reasoning operations
- */
-export const GenAIReasoningTools = {
-  getTools,
-  execute,
-};
+
