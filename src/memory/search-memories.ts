@@ -68,7 +68,7 @@ export async function searchMemories(args: { query?: string; tags?: string[]; im
     .map(memory => ({
       ...memory,
       relevance_score: calculateRelevance(
-        memory,
+        memory as any,
         query,
         relevanceConfig,
         importanceScores,
@@ -127,7 +127,7 @@ function calculateRelevance(
   score += importanceScores[memory.importance] * relevanceConfig.importanceWeight;
 
   // Access frequency (normalized)
-  const accessScore = Math.min(memory.accessCount / maxAccessCountNormalization, 1.0);
+  const accessScore = Math.min(((memory as any).accessCount || 0) / maxAccessCountNormalization, 1.0);
   score += accessScore * relevanceConfig.accessWeight;
 
   return Math.round(score * decimalPrecision) / decimalPrecision; // Round to configured precision

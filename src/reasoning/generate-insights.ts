@@ -1,9 +1,9 @@
-import { ThinkingSession, ThoughtStep } from '../reasoning/types.js';
+// import { ThinkingSession, ThoughtStep } from '../reasoning/types.js'; // V1 legacy - simplified
 
 /**
  * Get all thoughts from a session (main thoughts + branch thoughts)
  */
-function getAllThoughts(session: ThinkingSession): ThoughtStep[] {
+function getAllThoughts(session: any): any[] { // V2 simplified
   const allThoughts = [...session.thoughts];
 
   // Add thoughts from all branches
@@ -23,7 +23,7 @@ function getAllThoughts(session: ThinkingSession): ThoughtStep[] {
 /**
  * Generate insights from thinking session patterns
  */
-export function generateInsights(session: ThinkingSession): string[] {
+export function generateInsights(session: any): string[] { // V2 simplified
   const insights: string[] = [];
   const allThoughts = getAllThoughts(session);
 
@@ -52,7 +52,7 @@ export function generateInsights(session: ThinkingSession): string[] {
 /**
  * Extract hypothesis from thinking session
  */
-export function extractHypothesis(session: ThinkingSession): string | undefined {
+export function extractHypothesis(session: any): string | undefined { // V2 simplified
   const allThoughts = getAllThoughts(session);
 
   // Look for hypothesis-related keywords
@@ -73,7 +73,7 @@ export function extractHypothesis(session: ThinkingSession): string | undefined 
 /**
  * Extract verification attempts from thinking session
  */
-export function extractVerification(session: ThinkingSession): string | undefined {
+export function extractVerification(session: any): string | undefined { // V2 simplified
   const allThoughts = getAllThoughts(session);
 
   // Look for verification-related keywords
@@ -96,7 +96,7 @@ export function extractVerification(session: ThinkingSession): string | undefine
  * Generate conclusion from thinking session
  */
 export function generateConclusion(
-  session: ThinkingSession,
+  session: any, // V2 simplified
   nextThoughtNeeded: boolean,
   summaryLength: number
 ): string | undefined {
@@ -120,7 +120,7 @@ export function generateConclusion(
 /**
  * Generate session summary with statistics
  */
-export function generateSessionSummary(session: ThinkingSession, millisecondsPerSecond: number): string {
+export function generateSessionSummary(session: any, millisecondsPerSecond: number): string { // V2 simplified
   const allThoughts = getAllThoughts(session);
   const duration = session.lastUpdated.getTime() - session.startedAt.getTime();
 

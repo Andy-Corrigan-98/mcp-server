@@ -24,7 +24,9 @@ export class ConsciousnessRailroad {
     let railroadContext: RailroadContext = {
       message: initialMessage,
       originalContext: context,
-      timestamp: startTime,
+      timestamp: startTime.toISOString(),
+      sessionId: 'railroad-' + Date.now(),
+      userId: 'system',
       operations: {
         performed: [],
         insights_generated: [],
@@ -48,8 +50,8 @@ export class ConsciousnessRailroad {
 
         // Execute the car with timeout if specified
         const carResult = carConfig.timeout
-          ? await this.withTimeout(carConfig.car(railroadContext), carConfig.timeout)
-          : await carConfig.car(railroadContext);
+          ? await this.withTimeout(carConfig.car.process(railroadContext), carConfig.timeout)
+          : await carConfig.car.process(railroadContext);
 
         railroadContext = carResult;
         railroadContext.operations.performed.push(carConfig.name);

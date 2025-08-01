@@ -1,4 +1,4 @@
-import { ConsciousnessState } from '../consciousness/types.js';
+import { ConsciousnessState } from './v1-compat.js';
 import { ConsciousnessPrismaService } from '../core/db/prisma-service.js';
 import { ConfigurationService } from '../core/db/configuration-service.js';
 import { GuidGenerator } from '../core/utils/guid.js';
@@ -24,10 +24,10 @@ function getCurrentSession(): { sessionId: string; state: ConsciousnessState; st
   if (!currentSession) {
     const sessionId = GuidGenerator.generateSessionId();
     const state: ConsciousnessState = {
-      timestamp: new Date(),
+      // timestamp: new Date().toISOString(), // V2 simplified - not in interface
       sessionId,
       mode: 'analytical',
-      activeProcesses: ['initialization'],
+      // activeProcesses: ['initialization'], // V2 simplified - not in interface
       attentionFocus: 'system_startup',
       awarenessLevel: 'medium',
       cognitiveLoad: 0.1,
@@ -142,9 +142,9 @@ function updateState(
   awarenessLevel: ConsciousnessState['awarenessLevel']
 ): void {
   currentState.mode = mode;
-  currentState.activeProcesses = processes;
+  // currentState.activeProcesses = processes; // V2 simplified - not in interface
   currentState.awarenessLevel = awarenessLevel;
-  currentState.timestamp = new Date();
+  if ('timestamp' in currentState) currentState.timestamp = new Date();
 }
 
 /**

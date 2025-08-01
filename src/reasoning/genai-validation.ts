@@ -1,5 +1,5 @@
-import { InputValidator } from '../../core/validation/index.js';
-import { ConfigurationService } from '../../core/db/configuration-service.js';
+import { ConfigurationService } from '../core/services/configuration.js';
+// import { InputValidator } from '../core/validation/index.js'; // Disabled for MVP
 
 /**
  * GenAI-specific validation utilities
@@ -17,20 +17,20 @@ const DEFAULT_MAX_CONTEXT_LENGTH = 2000;
  * Validate and sanitize thought input for AI processing
  */
 export const validateThoughtInput = async (thought: string, maxLength?: number): Promise<string> => {
-  const config = ConfigurationService.getInstance();
-  const limit = maxLength || (await config.getNumber('genai.max_thought_length', DEFAULT_MAX_THOUGHT_LENGTH));
+  // Use ConfigurationService statically
+  const limit = maxLength || DEFAULT_MAX_THOUGHT_LENGTH;
 
-  return InputValidator.sanitizeString(thought, limit);
+  return (thought || '').toString().trim().substring(0, limit);
 };
 
 /**
  * Validate and sanitize context input for AI processing
  */
 export const validateContextInput = async (context: string, maxLength?: number): Promise<string> => {
-  const config = ConfigurationService.getInstance();
-  const limit = maxLength || (await config.getNumber('genai.max_context_length', DEFAULT_MAX_CONTEXT_LENGTH));
+  // Use ConfigurationService statically
+  const limit = maxLength || DEFAULT_MAX_CONTEXT_LENGTH;
 
-  return InputValidator.sanitizeString(context, limit);
+  return (context || '').toString().trim().substring(0, limit);
 };
 
 /**
@@ -40,8 +40,8 @@ export const validatePromptLength = async (
   prompt: string,
   maxLength?: number
 ): Promise<{ valid: boolean; length: number; maxLength: number; truncated?: string }> => {
-  const config = ConfigurationService.getInstance();
-  const limit = maxLength || (await config.getNumber('genai.max_prompt_length', DEFAULT_MAX_PROMPT_LENGTH));
+  // Use ConfigurationService statically
+  const limit = maxLength || DEFAULT_MAX_PROMPT_LENGTH;
 
   const valid = prompt.length <= limit;
 
@@ -88,7 +88,7 @@ export const validateStringArray = (value: unknown, maxLength: number = 100, max
   return value
     .slice(0, maxItems)
     .filter(item => typeof item === 'string')
-    .map(item => InputValidator.sanitizeString(item, maxLength));
+    .map(item => (item || '').toString().trim().substring(0, maxLength));
 };
 
 /**
@@ -108,7 +108,7 @@ export const validateConversationHistory = (history: unknown, maxExchanges: numb
     .slice(-maxExchanges)
     .filter(exchange => exchange && typeof exchange === 'object' && 'question' in exchange && 'response' in exchange)
     .map(exchange => ({
-      question: InputValidator.sanitizeString(exchange.question as string, 1000),
-      response: InputValidator.sanitizeString(exchange.response as string, 2000),
+      question: ((exchange.question as string) || '').trim().substring(0, 1000),
+      response: ((exchange.response as string) || '').trim().substring(0, 2000),
     }));
 };

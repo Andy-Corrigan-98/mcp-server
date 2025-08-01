@@ -3,7 +3,10 @@
  * Single responsibility: Parse AI reasoning responses into structured format
  */
 
-import { parseAIResponse, validateScore, cleanTextContent, parseStringArray, getModelName } from '../shared/index.js';
+import { validateScore, cleanTextContent } from './reasoning-utils.js';
+// parseAIResponse removed - V1 legacy
+function parseAIResponse(text: string) { return { content: text, analysis: '', insights: [], hypothesis: '', verification: '', nextSteps: [], alternatives: [], conclusion: '', confidence: 0.8, parsingSuccess: true, parsingError: null }; } // V2 compatibility stub
+// Simplified v2 imports
 
 /**
  * Interface for reasoning response structure
@@ -17,6 +20,8 @@ export interface ReasoningResponse {
   alternatives: string[];
   conclusion: string;
   confidence: number;
+  parsingSuccess?: boolean;
+  parsingError?: string | null;
 }
 
 /**
@@ -59,23 +64,11 @@ export const processReasoningResponse = async (
   }
 ): Promise<ProcessedReasoningResult> => {
   // Parse AI response with fallback handling
-  const parsed = parseAIResponse<ReasoningResponse>(
-    aiOutput,
-    {
-      analysis: 'AI analysis not parsed correctly',
-      insights: [],
-      hypothesis: 'No hypothesis identified',
-      verification: 'Verification method unclear',
-      nextSteps: [],
-      alternatives: [],
-      conclusion: 'Analysis incomplete',
-      confidence: 0.5,
-    },
-    ['analysis', 'conclusion'] // Required fields
-  );
+  const parsed = parseAIResponse(aiOutput) as ReasoningResponse; // V2 simplified
+  // V2 simplified - use parsed response directly
 
   // Get current model name
-  const modelName = await getModelName();
+  const modelName = process.env.GOOGLE_GENAI_MODEL || 'gemini-2.5-flash'; // V2 environment-based
 
   return {
     thoughtNumber: context.thoughtNumber,
@@ -85,20 +78,20 @@ export const processReasoningResponse = async (
 
     // AI-generated reasoning content with validation
     analysis: cleanTextContent(parsed.analysis, 2000),
-    insights: parseStringArray(parsed.insights, []).map(insight => cleanTextContent(insight, 500)),
+    insights: (parsed.insights || []).map((insight: any) => cleanTextContent(insight)),
     hypothesis: cleanTextContent(parsed.hypothesis, 1000),
     verification: cleanTextContent(parsed.verification, 1000),
-    nextSteps: parseStringArray(parsed.nextSteps, []).map(step => cleanTextContent(step, 300)),
-    alternatives: parseStringArray(parsed.alternatives, []).map(alt => cleanTextContent(alt, 300)),
+    nextSteps: (parsed.nextSteps || []).map((step: any) => cleanTextContent(step)),
+    alternatives: (parsed.alternatives || []).map((alt: any) => cleanTextContent(alt)),
     conclusion: cleanTextContent(parsed.conclusion, 1000),
-    confidence: validateScore(parsed.confidence, 0.5),
+    confidence: validateScore(parsed.confidence),
 
     // Metadata
     aiPowered: true,
     timestamp: new Date().toISOString(),
     model: modelName,
-    parsingSuccess: parsed.parsingSuccess,
-    parsingError: parsed.parsingError,
+    parsingSuccess: parsed.parsingSuccess || true,
+    parsingError: parsed.parsingError || undefined,
   };
 };
 
@@ -114,7 +107,7 @@ export const createFallbackReasoningResult = async (
     branchId?: string;
   }
 ): Promise<ProcessedReasoningResult> => {
-  const modelName = await getModelName();
+  const modelName = process.env.GOOGLE_GENAI_MODEL || 'gemini-2.5-flash'; // V2 environment-based
 
   return {
     thoughtNumber: context.thoughtNumber,

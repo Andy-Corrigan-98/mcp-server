@@ -1,5 +1,5 @@
-import { RailroadContext } from '../types.js';
-import { GuidGenerator } from '../../core/utils/guid.js';
+import { RailroadContext, RailroadCar } from './types.js';
+import { GuidGenerator } from '../core/utils/guid.js';
 
 /**
  * Session Context Railroad Car
@@ -7,7 +7,7 @@ import { GuidGenerator } from '../../core/utils/guid.js';
  * Adds current session state, consciousness metrics, and session-specific context
  * to the railroad context.
  */
-export async function sessionContextCar(context: RailroadContext): Promise<RailroadContext> {
+async function sessionContextProcess(context: RailroadContext): Promise<RailroadContext> {
   // Generate or get current session info
   const sessionId = GuidGenerator.generateSessionId();
 
@@ -25,7 +25,7 @@ export async function sessionContextCar(context: RailroadContext): Promise<Railr
   };
 
   // Get session duration (for now, just time since railroad started)
-  const duration = Date.now() - context.timestamp.getTime();
+  const duration = Date.now() - new Date(context.timestamp).getTime();
 
   // Add session context to railroad
   return {
@@ -94,3 +94,11 @@ function mapEmotionalContext(emotionalContext: string): string {
     return 'neutral';
   }
 }
+
+/**
+ * Export as RailroadCar object
+ */
+export const sessionContextCar: RailroadCar = {
+  name: 'session-context',
+  process: sessionContextProcess
+};

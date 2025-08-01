@@ -6,7 +6,7 @@ import {
   Intention,
   Insight,
   LearningPatterns,
-} from '../consciousness/types.js';
+} from './v1-compat.js';
 import { ConsciousnessPrismaService } from '../core/db/prisma-service.js';
 import { ConfigurationService } from '../core/db/configuration-service.js';
 import { GuidGenerator } from '../core/utils/guid.js';
@@ -81,10 +81,8 @@ export async function getContext(args: {
 
   // Create current consciousness state for context
   const currentState: ConsciousnessState = {
-    timestamp: new Date(),
     sessionId,
     mode: 'analytical',
-    activeProcesses: ['state_assessment', 'context_compilation'],
     attentionFocus: 'system_startup',
     awarenessLevel: 'medium',
     cognitiveLoad: 0.1,
@@ -99,7 +97,34 @@ export async function getContext(args: {
     currentState,
   };
 
-  const result: ConsciousnessContextResult = { ...baseContext };
+  // Initialize result with required properties
+  const result: ConsciousnessContextResult = {
+    ...baseContext,
+    brainMetrics: {
+      memoryUtilization: 0,
+      learningRate: 0,
+      sessionActivity: 0,
+      personalityEvolution: 0,
+      attentionPatterns: {},
+      memoryAccessPatterns: {},
+      totalMemories: 0,
+      totalInsights: 0,
+      totalIntentions: 0,
+    },
+    memoryState: {
+      totalMemories: 0,
+      recentActivity: [],
+    },
+    intentions: [],
+    personalityProfile: {
+      vocabularyPreferences: {},
+      learningPatterns: {
+        recentCategories: [],
+        averageConfidence: 0.5,
+        learningVelocity: 0,
+      },
+    },
+  };
 
   if (includeMetrics) {
     result.brainMetrics = await calculateBrainMetrics(db, sessionStartTime);
@@ -111,20 +136,30 @@ export async function getContext(args: {
       const recentMemories = await db.searchMemories('', [], undefined);
       result.memoryState = {
         totalMemories: memoryCount,
-        recentActivity: recentMemories.slice(0, maxMemorySlice).map((m: MemoryResult) => ({
+        recentActivity: recentMemories.slice(0, maxMemorySlice).map((m: any) => ({
           key: m.key,
-          tags: m.tags,
+          tags: m.tags || [],
           importance: m.importance,
-          timestamp: m.storedAt,
+          timestamp: m.createdAt || new Date().toISOString(),
         })),
       };
     } catch {
-      result.memoryState = { status: 'unavailable' };
+      result.memoryState = {
+        totalMemories: 0,
+        recentActivity: [],
+      };
     }
   }
 
   if (includeIntentions) {
-    result.intentions = await getActiveIntentions(db, intentionStatuses);
+    const intentions = await getActiveIntentions(db, intentionStatuses);
+    result.intentions = intentions.map(intention => ({
+      ...intention,
+      context: intention.context || '',
+      successCriteria: intention.successCriteria || '',
+      priority: intention.priority.toString(),
+      duration: intention.duration.toString(),
+    }));
   }
 
   if (includePersonality) {
@@ -188,7 +223,21 @@ async function getActiveIntentions(db: ConsciousnessPrismaService, intentionStat
   try {
     const memories = await db.searchMemories('', ['intention'], undefined);
     return memories
-      .map((m: MemoryResult) => m.content as Intention)
+      .map((m: any) => {
+        const content = m.content as any;
+        return {
+          id: content.id || 'unknown',
+          description: content.description || 'No description',
+          priority: content.priority || 'medium',
+          context: content.context || '',
+          duration: content.duration || 'unknown',
+          successCriteria: content.successCriteria || '',
+          status: content.status || 'pending',
+          createdAt: content.createdAt || new Date().toISOString(),
+          updatedAt: content.updatedAt || new Date().toISOString(),
+          progressNotes: content.progressNotes || [],
+        } as Intention;
+      })
       .filter(intention => intention && intention.status === intentionStatuses[0])
       .slice(0, 10); // Limit to 10 active intentions
   } catch {
@@ -221,12 +270,18 @@ async function getLearningPatterns(db: ConsciousnessPrismaService, sessionStartT
     const learningVelocity = insights.length / Math.max(1, Date.now() - sessionStartTime.getTime());
 
     return {
+      categoryDistribution: {},
+      preferredInsightTypes: [],
+      confidenceTrends: [],
       recentCategories: recentInsights,
       averageConfidence,
       learningVelocity,
     };
   } catch {
     return {
+      categoryDistribution: {},
+      preferredInsightTypes: [],
+      confidenceTrends: [],
       recentCategories: [],
       averageConfidence: 0,
       learningVelocity: 0,

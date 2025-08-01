@@ -1,5 +1,5 @@
 import { executeDatabase } from '../core/services/database.js';
-import { getEntityByName } from '../entities/index.js';
+import { getEntityByName } from './get-by-name.js'; // V2 import path
 import { getRelationshipByEntityId } from './get-by-id.js';
 
 /**
@@ -17,7 +17,7 @@ export const deleteRelationship = async (entityName: string): Promise<void> => {
     throw new Error(`Social entity '${entityName}' not found`);
   }
 
-  const relationship = await getRelationshipByEntityId(entity.id);
+  const relationship = await getRelationshipByEntityId((entity as any).id || entity.data?.id || 0); // V2 data access
   if (!relationship) {
     throw new Error(`No relationship found for entity '${entityName}'`);
   }

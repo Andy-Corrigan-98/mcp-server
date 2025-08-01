@@ -1,7 +1,7 @@
 import { executeDatabase } from '../core/services/database.js';
 import { validateRequiredString, sanitizeString, validateAndStringifyJson } from '../core/services/validation.js';
 import { ResponseBuilder } from '../core/utils/response-builder.js';
-import { getEntityByName } from '../entities/get-by-name.js';
+import { getEntityByName } from './get-by-name.js';
 import type { SocialLearningType } from '@prisma/client';
 
 /**
@@ -21,20 +21,20 @@ export const recordSocialLearning = async (args: {
   examples?: Record<string, unknown>;
 }): Promise<object> => {
   // Validate inputs
-  const learningType = validateRequiredString(args.learning_type, 'learning_type', 50) as SocialLearningType;
-  const insight = validateRequiredString(args.insight, 'insight', 1000);
+  const learningType = validateRequiredString(args.learning_type, 'learning_type') as SocialLearningType;
+  const insight = validateRequiredString(args.insight, 'insight');
   const confidence = Math.max(0, Math.min(1, args.confidence ?? 0.8));
-  const applicability = sanitizeString(args.applicability, 500);
+  const applicability = sanitizeString(args.applicability || '', 500);
   const examples = validateAndStringifyJson(args.examples);
 
   // Get entity if specified
   let entityId: number | undefined;
   if (args.entity_name) {
     const entity = await getEntityByName(args.entity_name);
-    if (!entity) {
+    if (!entity.success || !entity.data) {
       throw new Error(`Social entity '${args.entity_name}' not found`);
     }
-    entityId = entity.id;
+    entityId = entity.data.id;
   }
 
   // Create social learning record
@@ -54,12 +54,12 @@ export const recordSocialLearning = async (args: {
   return ResponseBuilder.success(
     {
       learning_record: {
-        id: learningRecord.id,
+        id: learningRecord.data?.id,
         learning_type: learningType,
         insight,
         confidence,
         entity_name: args.entity_name,
-        created_at: learningRecord.createdAt,
+        created_at: learningRecord.data?.createdAt,
       },
     },
     `Social learning '${learningType}' recorded successfully`

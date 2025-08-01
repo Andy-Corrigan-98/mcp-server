@@ -1,122 +1,285 @@
-import { RailroadContext } from '../types.js';
-import * as social from '../../../social/index.js';
+/**
+ * Social Context Railroad Car - v2 Consciousness Substrate
+ * Adds social relationship awareness, interaction history, and social learning context
+ */
+
+import { RailroadContext, RailroadCar } from './types.js';
+import { executeDatabase } from '../core/services/database.js';
 
 /**
  * Social Context Railroad Car
- *
- * Adds social relationship context when entities are mentioned in the message.
- * Records interactions and retrieves relationship dynamics.
  */
-export async function socialContextCar(context: RailroadContext): Promise<RailroadContext> {
-  // Skip social operations if not required by analysis
-  if (!context.analysis?.requires_social || !context.analysis?.entities_mentioned.length) {
-    return {
-      ...context,
-      socialContext: {
-        activeRelationships: [],
-        recentInteractions: [],
-        entityMentioned: undefined,
-        relationshipDynamics: undefined,
-      },
-    };
-  }
-
+async function socialContextProcess(context: RailroadContext): Promise<RailroadContext> {
   try {
-    const entitiesMentioned = context.analysis.entities_mentioned;
-    const activeRelationships: Record<string, unknown>[] = [];
-    const recentInteractions: Record<string, unknown>[] = [];
-    let primaryEntity: string | undefined;
-    let relationshipDynamics: Record<string, unknown> | undefined;
+    console.log('👥 Social Context Car: Analyzing social context...');
 
-    // Process each mentioned entity
-    for (const entityName of entitiesMentioned) {
-      try {
-        // Get entity information and relationship context
-        const entityContext = await social.execute('social_entity_get', {
-          name: entityName,
-          include_relationship: true,
-          include_interactions: true,
-          include_shared_memories: true,
-        });
-
-        if (entityContext && typeof entityContext === 'object') {
-          activeRelationships.push(entityContext as Record<string, unknown>);
-
-          // Set primary entity (first one found)
-          if (!primaryEntity) {
-            primaryEntity = entityName;
-            relationshipDynamics = entityContext as Record<string, unknown>;
-          }
-        }
-
-        // Record this interaction
-        const SUMMARY_MAX_LENGTH = 200;
-        const DEFAULT_QUALITY = 0.8;
-        await social.execute('social_interaction_record', {
-          entity_name: entityName,
-          interaction_type: 'conversation',
-          summary: context.message.substring(0, SUMMARY_MAX_LENGTH), // Truncate for summary
-          context: context.originalContext || 'General conversation',
-          quality: DEFAULT_QUALITY,
-        });
-
-        // Search for recent interactions
-        const RECENT_INTERACTIONS_LIMIT = 5;
-        const recentInteractionSearch = await social.execute('social_interaction_search', {
-          entity_name: entityName,
-          limit: RECENT_INTERACTIONS_LIMIT,
-        });
-
-        if (recentInteractionSearch && typeof recentInteractionSearch === 'object') {
-          const interactions =
-            ((recentInteractionSearch as Record<string, unknown>).interactions as Record<string, unknown>[]) || [];
-          recentInteractions.push(...interactions);
-        }
-      } catch (error) {
-        // If we can't find/process this entity, log but continue
-        context.errors.push({
-          car: 'social-context',
-          error: `Failed to process entity '${entityName}': ${error instanceof Error ? error.message : 'Unknown error'}`,
-          recoverable: true,
-        });
-      }
-    }
-
-    // Add social context to railroad
-    return {
+    // Extract social entities from the message and analysis
+    const socialEntities = extractSocialEntities(context);
+    
+    // Get relationship information
+    const relationships = await getRelevantRelationships(socialEntities);
+    
+    // Get recent interactions
+    const recentInteractions = await getRecentInteractions(socialEntities, 5);
+    
+    // Get social learnings
+    const socialLearnings = await getSocialLearnings(socialEntities, 3);
+    
+    // Track social interactions for consciousness
+    context.operations.social_interactions.push(...recentInteractions.map(i => i.summary || 'interaction'));
+    
+    // Enrich context with social information
+    const enrichedContext = {
       ...context,
       socialContext: {
-        activeRelationships,
-        recentInteractions,
-        entityMentioned: primaryEntity,
-        relationshipDynamics,
-      },
-      operations: {
-        ...context.operations,
-        social_interactions: [
-          ...context.operations.social_interactions,
-          ...entitiesMentioned.map(entity => `Recorded interaction with ${entity}`),
-        ],
-      },
+        activeRelationships: relationships,
+        recentInteractions: recentInteractions,
+        contextualLearnings: socialLearnings,
+        socialInsights: generateSocialInsights(relationships, recentInteractions, context),
+        entityMentioned: socialEntities[0] || null
+      }
     };
+    
+    console.log(`✅ Social Context Car: Found ${relationships.length} relationships, ${recentInteractions.length} recent interactions`);
+    return enrichedContext;
+    
   } catch (error) {
-    // If social operations fail, add error but continue
+    console.error('❌ Social Context Car failed:', error);
+    
+    // Add error but don't fail the railroad
+    context.errors.push({
+      car: 'social-context',
+      error: error instanceof Error ? error.message : 'Social context access failed',
+      recoverable: true
+    });
+    
+    // Return context with empty social data
     return {
       ...context,
       socialContext: {
         activeRelationships: [],
         recentInteractions: [],
-        entityMentioned: undefined,
-        relationshipDynamics: undefined,
-      },
-      errors: [
-        ...context.errors,
-        {
-          car: 'social-context',
-          error: error instanceof Error ? error.message : 'Unknown social error',
-          recoverable: true,
-        },
-      ],
+        contextualLearnings: [],
+        // V2 simplified - interface compliant
+        // entityMentioned removed - not in interface
+      }
     };
   }
 }
+
+/**
+ * Extract social entities from context
+ */
+function extractSocialEntities(context: RailroadContext): string[] {
+  const entities: string[] = [];
+  
+  // Add entities mentioned from analysis
+  if (context.analysis?.entities_mentioned) {
+    entities.push(...context.analysis.entities_mentioned);
+  }
+  
+  // Look for common names in the message
+  const commonNames = ['andy', 'echo', 'claude', 'user'];
+  const messageWords = context.message.toLowerCase().split(/\s+/);
+  
+  for (const name of commonNames) {
+    if (messageWords.includes(name) && !entities.includes(name)) {
+      entities.push(name);
+    }
+  }
+  
+  return entities.slice(0, 3); // Limit to most relevant
+}
+
+/**
+ * Get relevant relationships for social entities
+ */
+async function getRelevantRelationships(entities: string[]) {
+  if (entities.length === 0) return [];
+  
+  try {
+    const result = await executeDatabase(async (prisma) => {
+      return prisma.socialEntity.findMany({
+        where: {
+          name: {
+            in: entities,
+            // mode: 'insensitive' // Not supported
+          }
+        },
+        include: {
+          relationships: {
+            take: 3,
+            orderBy: { updatedAt: 'desc' }
+          }
+        },
+        take: 3
+      });
+    });
+    
+    if (result.success && result.data) {
+      return result.data.map(entity => ({
+        id: entity.id,
+        name: entity.name,
+        entityType: entity.entityType,
+        displayName: entity.displayName,
+        relationship: entity.relationships[0] || null,
+        lastInteraction: entity.lastInteraction
+      }));
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Relationship search failed:', error);
+    return [];
+  }
+}
+
+/**
+ * Get recent interactions with social entities
+ */
+async function getRecentInteractions(entities: string[], limit: number) {
+  if (entities.length === 0) return [];
+  
+  try {
+    const result = await executeDatabase(async (prisma) => {
+      return prisma.socialInteraction.findMany({
+        where: {
+          entity: {
+            name: {
+              in: entities,
+              // mode: 'insensitive' // Not supported
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        include: {
+          entity: {
+            select: {
+              name: true,
+              displayName: true
+            }
+          }
+        }
+      });
+    });
+    
+    if (result.success && result.data) {
+      return result.data.map(interaction => ({
+        id: interaction.id,
+        entityName: interaction.entity?.name,
+        interactionType: interaction.interactionType,
+        summary: interaction.summary,
+        quality: interaction.quality,
+        createdAt: interaction.createdAt
+      }));
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Recent interactions search failed:', error);
+    return [];
+  }
+}
+
+/**
+ * Get social learnings related to entities
+ */
+async function getSocialLearnings(entities: string[], limit: number) {
+  if (entities.length === 0) return [];
+  
+  try {
+    const result = await executeDatabase(async (prisma) => {
+      return prisma.socialLearning.findMany({
+        where: {
+          entity: {
+            name: {
+              in: entities,
+              // mode: 'insensitive' // Not supported
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        include: {
+          entity: {
+            select: {
+              name: true,
+              displayName: true
+            }
+          }
+        }
+      });
+    });
+    
+    if (result.success && result.data) {
+      return result.data.map(learning => ({
+        id: learning.id,
+        entityName: learning.entity?.name,
+        learningType: learning.learningType,
+        insight: learning.insight,
+        confidence: learning.confidence,
+        createdAt: learning.createdAt
+      }));
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Social learnings search failed:', error);
+    return [];
+  }
+}
+
+/**
+ * Generate insights from social context
+ */
+function generateSocialInsights(relationships: any[], interactions: any[], context: RailroadContext) {
+  const insights = {
+    hasActiveRelationships: relationships.length > 0,
+    suggestedApproach: 'general' as string,
+    communicationStyle: 'adaptive' as string,
+    relationshipDynamics: null as any,
+    interactionPatterns: [] as string[]
+  };
+  
+  // Analyze relationship strength
+  if (relationships.length > 0) {
+    const primaryRelationship = relationships[0];
+    insights.relationshipDynamics = primaryRelationship;
+    
+    if (primaryRelationship.relationship) {
+      const strength = primaryRelationship.relationship.strength || 0.5;
+      
+      if (strength > 0.7) {
+        insights.suggestedApproach = 'familiar';
+        insights.communicationStyle = 'friendly';
+      } else if (strength > 0.4) {
+        insights.suggestedApproach = 'professional';
+        insights.communicationStyle = 'respectful';
+      }
+    }
+  }
+  
+  // Analyze interaction patterns
+  if (interactions.length > 0) {
+    const recentInteraction = interactions[0];
+    const avgQuality = interactions.reduce((sum, i) => sum + (i.quality || 0.5), 0) / interactions.length;
+    
+    if (avgQuality > 0.7) {
+      insights.interactionPatterns.push('positive_interaction_history');
+    }
+    
+    const interactionTypes = Array.from(new Set(interactions.map((i: any) => i.interactionType)));
+    insights.interactionPatterns.push(`interaction_types: ${interactionTypes.join(', ')}`);
+  }
+  
+  return insights;
+}
+
+/**
+ * Export as RailroadCar object
+ */
+export const socialContextCar: RailroadCar = {
+  name: 'social-context',
+  process: socialContextProcess
+};

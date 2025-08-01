@@ -1,7 +1,7 @@
 import { executeDatabase } from '../core/services/database.js';
 import { validateRequiredString } from '../core/services/validation.js';
 import { ResponseBuilder } from '../core/utils/response-builder.js';
-import { getEntityByName } from '../entities/get-by-name.js';
+import { getEntityByName } from './get-by-name.js';
 
 /**
  * Social memory context
@@ -28,9 +28,9 @@ export const getSocialMemoryContext = async (args: {
 
   // Get the entity
   const entity = await getEntityByName(entityName);
-  if (!entity) {
-    throw new Error(`Social entity '${entityName}' not found`);
-  }
+        if (!entity.success || !entity.data) {
+        throw new Error(`Social entity '${entityName}' not found`);
+      }
 
   // Calculate date range
   const now = new Date();
@@ -56,7 +56,7 @@ export const getSocialMemoryContext = async (args: {
   const memoryContext = await executeDatabase(async prisma => {
     const links = await prisma.memorySocialLink.findMany({
       where: {
-        socialEntityId: entity.id,
+        socialEntityId: entity.data?.id,
         createdAt: { gte: startDate },
       },
       include: {
@@ -103,8 +103,8 @@ export const getSocialMemoryContext = async (args: {
     other: [],
   };
 
-  memoryContext.links.forEach((link: any) => {
-    const memory = memoryContext.memories.get(link.memoryKey);
+  (memoryContext.data?.links || []).forEach((link: any) => {
+    const memory = memoryContext.data?.memories?.get(link.memoryKey);
     if (!memory) return;
 
     const memoryData = {
@@ -180,8 +180,8 @@ export const getSocialMemoryContext = async (args: {
   return ResponseBuilder.success(
     {
       entity: {
-        name: entity.name,
-        display_name: entity.displayName,
+        name: entity.data?.name,
+        display_name: entity.data?.displayName,
       },
       time_period: timePeriod,
       memory_categories: {

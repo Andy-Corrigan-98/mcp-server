@@ -1,7 +1,7 @@
 import { executeDatabase } from '../core/services/database.js';
 import { sanitizeString } from '../core/services/validation.js';
 import { ResponseBuilder } from '../core/utils/response-builder.js';
-import { getEntityByName } from '../entities/get-by-name.js';
+import { getEntityByName } from './get-by-name.js';
 
 /**
  * Memory-social search
@@ -30,10 +30,10 @@ export const searchMemorySocialLinks = async (args: {
   // Filter by entity if specified
   if (args.entity_name) {
     const entity = await getEntityByName(args.entity_name);
-    if (!entity) {
+    if (!entity.success || !entity.data) {
       throw new Error(`Social entity '${args.entity_name}' not found`);
     }
-    searchConditions.socialEntityId = entity.id;
+    searchConditions.socialEntityId = entity.data.id;
   }
 
   // Filter by link types
@@ -108,17 +108,19 @@ export const searchMemorySocialLinks = async (args: {
       .filter((k): k is string => k !== undefined && k.length > 0);
 
     if (keywords.length > 0) {
-      filteredResults = results.filter((result: any) => {
+      const resultsData = results.success ? results.data || [] : [];
+      filteredResults = { success: true, data: resultsData.filter((result: any) => {
         if (!result.memory || !result.memory.content) return false;
 
         const contentStr = JSON.stringify(result.memory.content).toLowerCase();
         return keywords.some((keyword: string) => contentStr.includes(keyword.toLowerCase()));
-      });
+      }) };
     }
   }
 
   // Format results
-  const formattedResults = filteredResults.map((result: any) => ({
+  const dataToFormat = filteredResults.success ? filteredResults.data || [] : results.success ? results.data || [] : [];
+  const formattedResults = dataToFormat.map((result: any) => ({
     memory: {
       key: result.memory?.key,
       content: result.memory?.content,

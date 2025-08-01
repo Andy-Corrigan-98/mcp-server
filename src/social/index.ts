@@ -13,5 +13,5 @@ export { deleteRelationship } from './delete.js';
 
 // Export query operations
 export { getRelationshipByEntityId } from './get-by-id.js';
-export { getRelationshipByEntityName } from './get-by-name.js';
+// export { getRelationshipByEntityName } from './get-by-name.js'; // V1 function - removed
 export { listRelationships } from './list.js';

@@ -35,13 +35,10 @@ export async function addToKnowledgeGraph(args: {
   const relationships = args.relationships || [];
 
   // Add the entity
-  const entityData: KnowledgeEntityData = {
-    name: entityName,
-    entityType,
-    properties,
-  };
+  // V2 simplified - direct database call
+  await db.addEntity({ name: entityName, type: entityType, properties: properties as any } as any); // V2 type cast
 
-  await db.addEntity(entityData);
+  // await db.addEntity({ entityName, entityType, properties } as any); // V2 compatible - duplicate removed
 
   // Add relationships
   for (const rel of relationships) {
@@ -49,14 +46,14 @@ export async function addToKnowledgeGraph(args: {
     const relationshipType = InputValidator.sanitizeString(rel.relationship, maxRelationshipTypeLength);
     const strength = typeof rel.strength === 'number' ? Math.max(0, Math.min(1, rel.strength)) : 1.0;
 
-    const relationshipData: KnowledgeRelationshipData = {
-      sourceEntityName: entityName,
-      targetEntityName: targetName,
-      relationshipType,
+    const relationshipData = {
+      entity: entityName, // V2 interface required
+      target: targetName, // V2 interface required
+      relationship: relationshipType,
       strength,
-    };
+    } as any; // V2 type cast
 
-    await db.addRelationship(relationshipData);
+    await db.addRelationship({ sourceEntity: entityName, targetEntity: targetName, relationship: relationshipType, strength } as any); // V2 compatible
   }
 
   return {

@@ -1,4 +1,4 @@
-import { loadConfiguration } from '../core/services/configuration.js';
+import { ConfigurationService } from '../core/services/configuration.js';
 
 /**
  * Configuration loading for relationship management
@@ -22,5 +22,6 @@ export const DEFAULT_CONFIG: RelationshipConfig = {
  * Single responsibility: Configuration loading
  */
 export const loadRelationshipConfig = async (): Promise<RelationshipConfig> => {
-  return loadConfiguration('SOCIAL', DEFAULT_CONFIG, 'social');
+  // Return default config for now - could be enhanced to load from ConfigurationService
+  return DEFAULT_CONFIG;
 };

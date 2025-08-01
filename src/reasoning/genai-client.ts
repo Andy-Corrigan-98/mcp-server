@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { ConfigurationService } from '../../core/db/configuration-service.js';
+import { ConfigurationService } from '../core/services/configuration.js';
 
 /**
  * Interface for GenAI model with proper typing
@@ -16,11 +16,11 @@ export class GenAIClient {
   private static instance: GenAIClient | null = null;
   private genAI: GoogleGenerativeAI | null = null;
   private model: GenAIModel | null = null;
-  private configService: ConfigurationService;
+  // private configService: ConfigurationService; // V2 uses static access
   private initialized = false;
 
-  private constructor() {
-    this.configService = ConfigurationService.getInstance();
+  private   constructor() {
+    // ConfigurationService is used statically
   }
 
   /**
@@ -42,14 +42,14 @@ export class GenAIClient {
     }
 
     // Get API key from environment variable or configuration
-    const apiKey = process.env.GOOGLE_GENAI_API_KEY || (await this.configService.getString('genai.api_key', ''));
+    const apiKey = process.env.GOOGLE_GENAI_API_KEY || (await ConfigurationService.get('genai.api_key', ''));
 
     if (!apiKey) {
       throw new Error('GOOGLE_GENAI_API_KEY environment variable is required');
     }
 
-    // Get model name from configuration
-    const modelName = await this.configService.getString('genai.model_name', 'gemini-2.5-flash');
+    // Get model name from environment variable or configuration
+    const modelName = process.env.GOOGLE_GENAI_MODEL || (await ConfigurationService.get('genai.model_name', 'gemini-2.5-flash'));
 
     this.genAI = new GoogleGenerativeAI(apiKey);
     this.model = this.genAI.getGenerativeModel({ model: modelName });
@@ -80,7 +80,7 @@ export class GenAIClient {
    * Get current model name from configuration
    */
   async getModelName(): Promise<string> {
-    return await this.configService.getString('genai.model_name', 'gemini-2.5-flash');
+    return await ConfigurationService.get('genai.model_name', 'gemini-2.5-flash');
   }
 
   /**

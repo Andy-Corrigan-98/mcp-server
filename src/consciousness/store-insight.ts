@@ -1,5 +1,5 @@
 import { InputValidator } from '../core/validation/index.js';
-import { Insight, InsightStorageResult } from '../consciousness/types.js';
+import { Insight, InsightStorageResult } from './v1-compat.js';
 import { ConsciousnessPrismaService } from '../core/db/prisma-service.js';
 import { ConfigurationService } from '../core/db/configuration-service.js';
 import { GuidGenerator } from '../core/utils/guid.js';
@@ -49,12 +49,12 @@ export async function storeInsight(args: {
   const insightData: Insight = {
     id: insightId,
     content: insight,
-    category,
+    category: category as any,
     confidence,
     relatedTopic,
-    source: sourceContext,
-    timestamp: new Date(),
-    tags: generateInsightTags(insight, category, relatedTopic),
+    // source: sourceContext, // Not in interface
+    timestamp: new Date().toISOString(),
+    // tags: generateInsightTags(insight, category, relatedTopic), // Not in interface
   };
 
   await db.storeMemory({

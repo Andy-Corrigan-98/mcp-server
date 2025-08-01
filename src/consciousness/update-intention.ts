@@ -1,5 +1,5 @@
 import { InputValidator } from '../core/validation/index.js';
-import { Intention } from '../consciousness/types.js';
+import { Intention } from './v1-compat.js';
 import { ConsciousnessPrismaService } from '../core/db/prisma-service.js';
 import { ConfigurationService } from '../core/db/configuration-service.js';
 
@@ -51,16 +51,16 @@ export async function updateIntention(args: {
     const intentionData = memory.content as Intention;
 
     // Update the intention
-    intentionData.status = status;
-    intentionData.updatedAt = new Date();
+    intentionData.status = status as any;
+    intentionData.updatedAt = new Date().toISOString();
 
     if (newPriority) {
-      intentionData.priority = newPriority;
+      intentionData.priority = newPriority as any;
     }
 
     if (progressNote) {
       intentionData.progressNotes.push({
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         note: progressNote,
       });
     }

@@ -1,4 +1,4 @@
-import { RailroadContext } from './types.js';
+import { RailroadContext, RailroadCar } from './types.js';
 import { simpleConversation } from '../reasoning/simple-conversation.js';
 import { buildMessageAnalysisPrompt } from './subconscious-prompt-builder.js';
 
@@ -8,7 +8,7 @@ import { buildMessageAnalysisPrompt } from './subconscious-prompt-builder.js';
  * Analyzes the incoming message to understand intent, emotional context,
  * and what consciousness operations might be needed.
  */
-export async function messageAnalysisCar(context: RailroadContext): Promise<RailroadContext> {
+async function messageAnalysisProcess(context: RailroadContext): Promise<RailroadContext> {
   try {
     // Build consciousness-aware prompt using subconscious dialogue
     const promptResult = await buildMessageAnalysisPrompt(context.message, context.originalContext, {
@@ -82,3 +82,11 @@ function extractMentionsFallback(message: string): string[] {
 
   return mentions;
 }
+
+/**
+ * Export as RailroadCar object
+ */
+export const messageAnalysisCar: RailroadCar = {
+  name: 'message-analysis',
+  process: messageAnalysisProcess
+};

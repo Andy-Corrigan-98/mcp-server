@@ -1,7 +1,7 @@
 import { executeDatabase } from '../core/services/database.js';
 import { validateRequiredString } from '../core/services/validation.js';
 import { ResponseBuilder } from '../core/utils/response-builder.js';
-import { getEntityByName } from '../entities/get-by-name.js';
+import { getEntityByName } from './get-by-name.js';
 
 /**
  * Social context preparation
@@ -34,7 +34,7 @@ export const prepareSocialContext = async (args: {
 
   // Get the entity
   const entity = await getEntityByName(entityName);
-  if (!entity) {
+  if (!entity.success || !entity.data) {
     throw new Error(`Social entity '${entityName}' not found`);
   }
 
@@ -42,26 +42,26 @@ export const prepareSocialContext = async (args: {
   const socialContext = await executeDatabase(async prisma => {
     // Get relationship info
     const relationship = await prisma.socialRelationship.findFirst({
-      where: { entityId: entity.id },
+      where: { entityId: entity.data.id },
     });
 
     // Get recent interactions (last 5)
     const recentInteractions = await prisma.socialInteraction.findMany({
-      where: { entityId: entity.id },
+      where: { entityId: entity.data.id },
       orderBy: { createdAt: 'desc' },
       take: 5,
     });
 
     // Get emotional patterns
     const emotionalContexts = await prisma.emotionalContext.findMany({
-      where: { entityId: entity.id },
+      where: { entityId: entity.data.id },
       orderBy: { createdAt: 'desc' },
       take: 10,
     });
 
     // Get social learnings
     const socialLearnings = await prisma.socialLearning.findMany({
-      where: { entityId: entity.id },
+      where: { entityId: entity.data.id },
       orderBy: { createdAt: 'desc' },
       take: 5,
     });
@@ -78,20 +78,20 @@ export const prepareSocialContext = async (args: {
   // Build response
   const response: any = {
     entity: {
-      name: socialContext.entity.name,
-      display_name: socialContext.entity.displayName,
-      entity_type: socialContext.entity.entityType,
-      description: socialContext.entity.description,
-      last_interaction: socialContext.recentInteractions[0]?.createdAt,
+      name: entity.data.name,
+      display_name: entity.data.displayName,
+      entity_type: entity.data.entityType,
+      description: entity.data.description,
+      last_interaction: socialContext.data?.recentInteractions?.[0]?.createdAt,
     },
-    recent_interactions: socialContext.recentInteractions.map((interaction: any) => ({
+    recent_interactions: (socialContext.data?.recentInteractions || []).map((interaction: any) => ({
       type: interaction.interactionType,
       date: interaction.createdAt,
       quality: interaction.quality,
       summary: interaction.summary,
       learning_extracted: interaction.learningExtracted,
     })),
-    social_learnings: socialContext.socialLearnings.map((learning: any) => ({
+    social_learnings: (socialContext.data?.socialLearnings || []).map((learning: any) => ({
       type: learning.learningType,
       insight: learning.insight,
       confidence: learning.confidence,
@@ -107,21 +107,21 @@ export const prepareSocialContext = async (args: {
   };
 
   // Add relationship info if available
-  if (includeRelationshipAnalysis && socialContext.relationship) {
+  if (includeRelationshipAnalysis && socialContext.data?.relationship) {
     response.relationship = {
-      type: socialContext.relationship.relationshipType,
-      strength: socialContext.relationship.strength,
-      trust: socialContext.relationship.trust,
-      familiarity: socialContext.relationship.familiarity,
-      affinity: socialContext.relationship.affinity,
-      notes: socialContext.relationship.notes,
+      type: socialContext.data.relationship.relationshipType,
+      strength: socialContext.data.relationship.strength,
+      trust: socialContext.data.relationship.trust,
+      familiarity: socialContext.data.relationship.familiarity,
+      affinity: socialContext.data.relationship.affinity,
+      notes: socialContext.data.relationship.notes,
     };
   }
 
   // Add emotional patterns if requested
   if (includeEmotionalPrep) {
     const emotionalPatterns = new Map<string, number>();
-    socialContext.emotionalContexts.forEach((ec: any) => {
+    (socialContext.data?.emotionalContexts || []).forEach((ec: any) => {
       const count = emotionalPatterns.get(ec.emotionalState) || 0;
       emotionalPatterns.set(ec.emotionalState, count + 1);
     });
@@ -129,7 +129,7 @@ export const prepareSocialContext = async (args: {
     response.emotional_patterns = Array.from(emotionalPatterns.entries()).map(([state, frequency]) => ({
       state,
       frequency,
-      triggers: socialContext.emotionalContexts
+      triggers: socialContext.data?.emotionalContexts || []
         .filter((ec: any) => ec.emotionalState === state && ec.trigger)
         .map((ec: any) => ec.trigger!)
         .slice(0, 3),
@@ -137,16 +137,16 @@ export const prepareSocialContext = async (args: {
   }
 
   // Generate recommendations
-  if (includeConversationTips && socialContext.relationship) {
+  if (includeConversationTips && socialContext.data?.relationship) {
     response.recommendations.communication_tips.push(
-      `Relationship strength: ${socialContext.relationship.strength}/1.0`,
-      `Trust level: ${socialContext.relationship.trust}/1.0`,
-      `Familiarity: ${socialContext.relationship.familiarity}/1.0`
+      `Relationship strength: ${socialContext.data.relationship.strength}/1.0`,
+      `Trust level: ${socialContext.data.relationship.trust}/1.0`,
+      `Familiarity: ${socialContext.data.relationship.familiarity}/1.0`
     );
   }
 
-  if (includeEmotionalPrep && socialContext.emotionalContexts.length > 0) {
-    const lastEmotional = socialContext.emotionalContexts[0];
+  if (includeEmotionalPrep && socialContext.data?.emotionalContexts && Array.isArray(socialContext.data.emotionalContexts) && socialContext.data.emotionalContexts.length > 0) {
+    const lastEmotional = socialContext.data?.emotionalContexts?.[0];
     response.recommendations.emotional_prep
       .push(
         `Last emotional state: ${lastEmotional.emotionalState}`,

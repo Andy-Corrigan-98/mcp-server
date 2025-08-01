@@ -1,5 +1,5 @@
 /**
- * Railroad Pattern for Consciousness Context Building
+ * Consciousness Railroad Types - v2 Consciousness Substrate
  *
  * Each "car" in the railroad adds specific context and passes the enriched
  * context object to the next car in the pipeline.
@@ -9,7 +9,24 @@ export interface RailroadContext {
   // Core message data
   message: string;
   originalContext?: string;
-  timestamp: Date;
+  timestamp: string; // ISO string for easy serialization
+  sessionId: string; // Track consciousness session
+  userId: string;
+  metadata?: Record<string, unknown>;
+
+  // Execution tracking
+  operations: {
+    performed: string[];
+    insights_generated: string[];
+    memories_accessed: string[];
+    social_interactions: string[];
+    consciousness_updates: Record<string, unknown>;
+  };
+  errors: Array<{
+    car: string;
+    error: string;
+    recoverable: boolean;
+  }>;
 
   // Analysis results
   analysis?: {
@@ -45,42 +62,28 @@ export interface RailroadContext {
   socialContext?: {
     activeRelationships: Record<string, unknown>[];
     recentInteractions: Record<string, unknown>[];
-    entityMentioned?: string;
-    relationshipDynamics?: Record<string, unknown>;
+    contextualLearnings: Record<string, unknown>[];
   };
 
   // Personality context
   personalityContext?: {
-    vocabularyPreferences: Record<string, unknown>;
+    currentPreferences: Record<string, unknown>;
+    adaptationLevel: number;
+    responseStyle: string;
     learningPatterns: Record<string, unknown>;
-    communicationStyle: string;
-    currentPersonalityState: Record<string, unknown>;
   };
-
-  // Operations tracking
-  operations: {
-    performed: string[];
-    insights_generated: string[];
-    memories_accessed: string[];
-    social_interactions: string[];
-    consciousness_updates: Record<string, unknown>;
-  };
-
-  // Error handling
-  errors: Array<{
-    car: string;
-    error: string;
-    recoverable: boolean;
-  }>;
 }
 
 /**
- * A railroad car is a function that takes context and returns enriched context
+ * Railroad Car Interface
  */
-export type RailroadCar = (context: RailroadContext) => Promise<RailroadContext>;
+export interface RailroadCar {
+  name: string;
+  process(context: RailroadContext): Promise<RailroadContext>;
+}
 
 /**
- * Pipeline configuration
+ * Railroad Configuration
  */
 export interface RailroadConfig {
   cars: Array<{
@@ -110,4 +113,11 @@ export interface RailroadResult {
     error?: string;
   }>;
   totalExecutionTime: number;
+}
+
+/**
+ * Consciousness Railroad Interface
+ */
+export interface ConsciousnessRailroad {
+  process(context: RailroadContext): Promise<RailroadContext>;
 }

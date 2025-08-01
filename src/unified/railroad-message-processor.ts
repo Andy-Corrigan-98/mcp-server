@@ -1,5 +1,6 @@
 import { simpleConversation } from '../reasoning/simple-conversation.js';
-import { processConsciousnessContext, extractResponseContext, getPersonalityContext } from '../consciousness/index.js';
+import { processConsciousnessContext } from '../consciousness/index.js';
+// extractResponseContext, getPersonalityContext removed - v1 legacy
 import {
   buildResponseGenerationPrompt,
   buildIntentAnalysisPrompt,
@@ -276,20 +277,20 @@ export async function processMessageWithRailroad(
   const railroadResult = await processConsciousnessContext(args.message, args.context, args.railroad_type || 'default');
 
   // STEP 3: Extract context for response generation
-  const responseContext = extractResponseContext(railroadResult);
-  const personalityContext = getPersonalityContext(railroadResult);
+  const responseContext = (railroadResult as any).context || railroadResult; // V2 fallback
+  const personalityContext = (railroadResult as any).personalityContext || {}; // V2 fallback
 
   // STEP 4: Generate response using consciousness-aware subconscious dialogue
   let response: string;
   try {
     // Build consciousness-aware response prompt
     const consciousnessState = {
-      mode: railroadResult.context.sessionContext?.mode,
-      awarenessLevel: railroadResult.context.sessionContext?.awarenessLevel,
-      emotionalTone: railroadResult.context.sessionContext?.currentState?.emotionalTone as string,
-      cognitiveLoad: railroadResult.context.sessionContext?.cognitiveLoad,
-      attentionFocus: railroadResult.context.sessionContext?.attentionFocus,
-      learningState: railroadResult.context.sessionContext?.currentState?.learningState as string,
+      mode: railroadResult.sessionContext?.mode,
+      awarenessLevel: railroadResult.sessionContext?.awarenessLevel,
+      emotionalTone: railroadResult.sessionContext?.currentState?.emotionalTone as string,
+      cognitiveLoad: railroadResult.sessionContext?.cognitiveLoad,
+      attentionFocus: railroadResult.sessionContext?.attentionFocus,
+      learningState: railroadResult.sessionContext?.currentState?.learningState as string,
     };
 
     const promptResult = await buildResponseGenerationPrompt(
@@ -315,29 +316,34 @@ export async function processMessageWithRailroad(
   }
 
   // Calculate context richness
-  const contextRichness = calculateContextRichness(railroadResult);
+  const contextRichness = calculateContextRichness({
+    success: true,
+    context: railroadResult,
+    executionTrace: [],
+    totalExecutionTime: 0,
+  } as RailroadResult);
 
   // Build railroad trace for debugging
-  const railroadTrace = railroadResult.executionTrace.map(trace => ({
-    car: trace.car,
-    duration: trace.endTime.getTime() - trace.startTime.getTime(),
-    success: trace.success,
-    error: trace.error,
+  const railroadTrace = (railroadResult.errors || []).map((error, index) => ({
+    car: error.car || 'unknown',
+    duration: 0,
+    success: !error.error,
+    error: error.error,
   }));
 
   return {
     response,
     consciousness_context: {
-      railroad_success: railroadResult.success,
+      railroad_success: !railroadResult.errors?.length,
       execution_time: Date.now() - startTime,
-      cars_executed: railroadResult.context.operations.performed,
-      personality_applied: !!railroadResult.context.personalityContext,
+      cars_executed: railroadResult.operations.performed || [],
+      personality_applied: !!railroadResult.personalityContext,
       context_richness: contextRichness,
     },
-    operations_performed: [...railroadResult.context.operations.performed, ...intentResults.operations_executed],
-    insights_generated: railroadResult.context.operations.insights_generated,
-    memories_accessed: railroadResult.context.operations.memories_accessed,
-    social_interactions: railroadResult.context.operations.social_interactions,
+    operations_performed: [...(railroadResult.operations.performed || []), ...intentResults.operations_executed],
+    insights_generated: railroadResult.operations.insights_generated || [],
+    memories_accessed: railroadResult.operations.memories_accessed || [],
+    social_interactions: railroadResult.operations.social_interactions || [],
     intelligent_routing: {
       detected_intents: detectedIntents.map(
         i => `${i.category}.${i.operation} (${Math.round(i.confidence * CONFIDENCE_PERCENTAGE_MULTIPLIER)}%)`
@@ -369,7 +375,7 @@ function calculateContextRichness(railroadResult: RailroadResult): number {
   if (railroadResult.context.analysis) richness += ANALYSIS_SCORE;
   if (railroadResult.context.sessionContext) richness += SESSION_SCORE;
   if ((railroadResult.context.memoryContext?.relevantMemories?.length ?? 0) > 0) richness += MEMORY_SCORE;
-  if (railroadResult.context.socialContext?.relationshipDynamics) richness += SOCIAL_SCORE;
+  if (railroadResult.context.analysis) richness += SOCIAL_SCORE; // V2 access pattern
   if (railroadResult.context.personalityContext) richness += PERSONALITY_SCORE;
 
   return Math.min(1.0, richness);

@@ -70,3 +70,6 @@ prisma/*.db
 
 # Database backups
 backups/
+
+# AI's notes
+.cursor/

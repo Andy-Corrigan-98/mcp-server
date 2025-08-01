@@ -10,11 +10,11 @@ export { ConsciousnessRailroad, createSimpleRailroad } from './pipeline.js';
 export type { RailroadContext, RailroadCar, RailroadConfig, RailroadResult } from './types.js';
 
 // Individual railroad cars
-export { messageAnalysisCar } from './cars/message-analysis-car.js';
-export { sessionContextCar } from './cars/session-context-car.js';
-export { memoryContextCar } from './cars/memory-context-car.js';
-export { socialContextCar } from './cars/social-context-car.js';
-export { personalityContextCar } from './cars/personality-context-car.js';
+export { messageAnalysisCar } from './message-analysis-car.js';
+export { sessionContextCar } from './session-context-car.js';
+export { memoryContextCar } from './memory-context-car.js';
+export { socialContextCar } from './social-context-car.js';
+export { personalityContextCar } from './personality-context-car.js';
 
 // Pre-configured railroads and utilities
 export {
@@ -23,6 +23,6 @@ export {
   createMemoryFocusedRailroad,
   createSocialFocusedRailroad,
   processConsciousnessContext,
-  extractResponseContext,
-  getPersonalityContext,
+  // extractResponseContext, // V1 legacy function
+  // getPersonalityContext, // V1 legacy function
 } from './consciousness-railroad.js';

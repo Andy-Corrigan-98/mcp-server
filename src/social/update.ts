@@ -5,7 +5,7 @@ import {
   validateProbability,
   validateAndStringifyJson,
 } from '../core/services/validation.js';
-import { getEntityByName } from '../entities/index.js';
+import { getEntityByName } from './get-by-name.js';
 import { loadRelationshipConfig } from './load-config.js';
 import { getRelationshipByEntityId } from './get-by-id.js';
 
@@ -38,17 +38,17 @@ export const updateRelationship = async (args: {
   const DEFAULT_AFFINITY = 0.5;
 
   // Validate inputs
-  const entityName = validateRequiredString(args.entity_name, 'entity_name', MAX_ENTITY_NAME_LENGTH);
-  const notes = sanitizeString(args.notes, config.maxNotesLength);
+  const entityName = validateRequiredString(args.entity_name, 'entity_name');
+  const notes = sanitizeString(args.notes || '', config.maxNotesLength);
 
   // Get the entity
   const entity = await getEntityByName(entityName);
-  if (!entity) {
+  if (!entity.success || !entity.data) {
     throw new Error(`Social entity '${entityName}' not found`);
   }
 
   // Get existing relationship
-  const existingRelationship = await getRelationshipByEntityId(entity.id);
+  const existingRelationship = await getRelationshipByEntityId(entity.data.id);
   if (!existingRelationship) {
     throw new Error(`No relationship found for entity '${entityName}'`);
   }
@@ -58,11 +58,11 @@ export const updateRelationship = async (args: {
     updatedAt: new Date(),
   };
 
-  if (args.strength !== undefined) updateData.strength = validateProbability(args.strength, DEFAULT_STRENGTH);
-  if (args.trust !== undefined) updateData.trust = validateProbability(args.trust, DEFAULT_TRUST);
+  if (args.strength !== undefined) updateData.strength = validateProbability(args.strength, 'strength');
+  if (args.trust !== undefined) updateData.trust = validateProbability(args.trust, 'trust');
   if (args.familiarity !== undefined)
-    updateData.familiarity = validateProbability(args.familiarity, DEFAULT_FAMILIARITY);
-  if (args.affinity !== undefined) updateData.affinity = validateProbability(args.affinity, DEFAULT_AFFINITY);
+    updateData.familiarity = validateProbability(args.familiarity, 'familiarity');
+  if (args.affinity !== undefined) updateData.affinity = validateProbability(args.affinity, 'affinity');
   if (args.communication_style !== undefined)
     updateData.communicationStyle = validateAndStringifyJson(args.communication_style);
   if (notes !== undefined) updateData.notes = notes;
@@ -78,7 +78,7 @@ export const updateRelationship = async (args: {
   return {
     success: true,
     entity: entityName,
-    relationship_id: updatedRelationship.id,
+    relationship_id: updatedRelationship.data?.id,
     updated: updateData,
     message: `Relationship for '${entityName}' updated successfully`,
   };

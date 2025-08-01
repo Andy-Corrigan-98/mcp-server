@@ -1,20 +1,41 @@
-import { getEntityByName } from '../entities/index.js';
-import { getRelationshipByEntityId } from './get-by-id.js';
-
 /**
- * Relationship retrieval by name
- * Single responsibility: Get relationships by entity name only
+ * Get Social Entity by Name - v2 Consciousness Substrate
+ * Core function for retrieving social entities by name
  */
 
+import { executeDatabase } from '../core/services/database.js';
+
 /**
- * Get relationship by entity name
- * Single responsibility: Name-based relationship lookup
+ * Get a social entity by name
  */
-export const getRelationshipByEntityName = async (entityName: string): Promise<any | null> => {
-  const entity = await getEntityByName(entityName);
-  if (!entity) {
-    return null;
+export async function getEntityByName(name: string) {
+  if (!name || typeof name !== 'string') {
+    return { success: false, error: 'Entity name is required' };
   }
 
-  return getRelationshipByEntityId(entity.id);
-};
+  const result = await executeDatabase(async (prisma) => {
+    return prisma.socialEntity.findUnique({
+      where: { name: name.trim() },
+      include: {
+        relationships: true,
+        interactions: {
+          orderBy: { createdAt: 'desc' },
+          take: 10
+        }
+      }
+    });
+  });
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  if (!result.data) {
+    return { success: false, error: `Entity '${name}' not found` };
+  }
+
+  return { success: true, data: result.data };
+}
+
+// Re-export for compatibility
+export { executeDatabase } from '../core/services/database.js';

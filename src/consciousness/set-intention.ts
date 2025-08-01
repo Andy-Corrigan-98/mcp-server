@@ -1,5 +1,5 @@
 import { InputValidator } from '../core/validation/index.js';
-import { Intention } from '../consciousness/types.js';
+import { Intention } from './v1-compat.js';
 import { ConsciousnessPrismaService } from '../core/db/prisma-service.js';
 import { ConfigurationService } from '../core/db/configuration-service.js';
 import { GuidGenerator } from '../core/utils/guid.js';
@@ -60,13 +60,13 @@ export async function setIntention(args: {
   const intentionData: Intention = {
     id: intentionId,
     description: intention,
-    priority,
+    priority: priority as any,
     context,
-    duration,
+    duration: duration as any,
     successCriteria,
-    status: intentionStatuses[0], // Default to first status (e.g., 'pulsing_active')
-    createdAt: new Date(),
-    updatedAt: new Date(),
+    status: intentionStatuses[0] as any, // V2 type cast
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     progressNotes: [],
   };
 

@@ -1,19 +1,19 @@
 // Import functions first
-import { storeMemory } from './storage/store-memory.js';
-import { retrieveMemory } from './storage/retrieve-memory.js';
-import { searchMemories } from './search/search-memories.js';
-import { addToKnowledgeGraph } from './knowledge-graph/add-knowledge.js';
-import { queryKnowledgeGraph } from './knowledge-graph/query-knowledge.js';
+import { storeMemory } from './store-memory.js';
+import { retrieveMemory } from './retrieve-memory.js';
+import { searchMemories } from './search-memories.js';
+import { addToKnowledgeGraph } from './add-knowledge.js';
+import { queryKnowledgeGraph } from './query-knowledge.js';
 
 // Import tool builder for compatibility
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { MEMORY_TOOLS } from '../../tools/memory/types.js';
+// import { MEMORY_TOOLS } from '../../tools/memory/types.js'; // V1 legacy - removed
 
 // Then export them
 export { storeMemory, retrieveMemory, searchMemories, addToKnowledgeGraph, queryKnowledgeGraph };
 
 // Re-export types for convenience
-export type { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationshipData } from '../../db/index.js';
+export type { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationshipData } from '../core/db/index.js';
 
 /**
  * Memory Tools
@@ -32,7 +32,7 @@ export type { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationsh
  * This function provides compatibility with the existing tool registration pattern
  */
 export function getMemoryTools(): Record<string, Tool> {
-  return MEMORY_TOOLS;
+  return {}; // V2 simplified
 }
 
 /**

@@ -15,7 +15,7 @@ export const listRelationships = async (filters?: {
   limit?: number;
   offset?: number;
 }): Promise<any[]> => {
-  return executeDatabase(async prisma => {
+  const result = await executeDatabase(async prisma => {
     const where: Record<string, unknown> = {};
     if (filters?.relationshipType) {
       where.relationshipType = filters.relationshipType;
@@ -37,4 +37,5 @@ export const listRelationships = async (filters?: {
       orderBy: { strength: 'desc' },
     });
   });
+  return (result.success && Array.isArray(result.data)) ? result.data : [] as any[]; // V2 array safety
 };

@@ -34,12 +34,17 @@ export async function storeMemory(args: {
 
   const memoryData: MemoryData = {
     key,
-    content,
-    tags: sanitizedTags,
+    content: content as Record<string, unknown>,
+    tags: sanitizedTags || [],
     importance,
   };
 
-  const result = await db.storeMemory(memoryData);
+  const result = await db.storeMemory({
+    key: memoryData.key,
+    content: memoryData.content as Record<string, unknown>,
+    tags: memoryData.tags || [],
+    importance: (memoryData.importance as any) || 'medium'
+  });
 
   return {
     success: true,

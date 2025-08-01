@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { ImportanceLevel, ConfigurationCategory } from '@prisma/client';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import type {
   MemoryData,
   MemoryResult,

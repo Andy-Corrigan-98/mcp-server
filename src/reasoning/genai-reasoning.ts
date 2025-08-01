@@ -4,7 +4,7 @@
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-import { sequentialThinking, SequentialThinkingArgs } from '../sequential/index.js';
+import { sequentialThinking, SequentialThinkingArgs } from './sequential-thinking.js';
 
 /**
  * Tool definitions for GenAI-powered reasoning

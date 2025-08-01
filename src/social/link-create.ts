@@ -1,7 +1,7 @@
 import { executeDatabase } from '../core/services/database.js';
 import { validateRequiredString, sanitizeString } from '../core/services/validation.js';
 import { ResponseBuilder } from '../core/utils/response-builder.js';
-import { getEntityByName } from '../entities/get-by-name.js';
+import { getEntityByName } from './get-by-name.js';
 import type { MemorySocialLinkType } from '@prisma/client';
 
 /**
@@ -29,17 +29,18 @@ export const createMemorySocialLink = async (args: {
 
   // Get the entity
   const entity = await getEntityByName(entityName);
-  if (!entity) {
+  if (!entity.success || !entity.data) {
     throw new Error(`Social entity '${entityName}' not found`);
   }
 
   // Get the memory by key to obtain its ID
-  const memory = (await executeDatabase(async prisma => {
+  const memoryResult = await executeDatabase(async prisma => {
     return prisma.memory.findFirst({
       where: { key: memoryKey },
       select: { id: true },
     });
-  })) as { id: number } | null;
+  });
+  const memory = memoryResult.success ? memoryResult.data : null;
 
   if (!memory) {
     throw new Error(`Memory with key '${memoryKey}' not found`);
@@ -51,7 +52,7 @@ export const createMemorySocialLink = async (args: {
       const interaction = await prisma.socialInteraction.findFirst({
         where: {
           id: args.interaction_id,
-          entityId: entity.id,
+          entityId: entity.data.id,
         },
       });
       return !!interaction;
@@ -67,7 +68,7 @@ export const createMemorySocialLink = async (args: {
     return prisma.memorySocialLink.create({
       data: {
         memoryId: memory.id,
-        socialEntityId: entity.id,
+        socialEntityId: entity.data.id,
         interactionId: args.interaction_id,
         relationshipType: linkType,
         strength,
@@ -79,13 +80,13 @@ export const createMemorySocialLink = async (args: {
   return ResponseBuilder.success(
     {
       link: {
-        id: link.id,
+        id: link.data?.id,
         memory_key: memoryKey,
         entity_name: entityName,
         interaction_id: args.interaction_id,
         link_type: linkType,
         strength,
-        created_at: link.createdAt,
+        created_at: link.data?.createdAt,
       },
     },
     `Memory-social link created between '${memoryKey}' and '${entityName}'`

@@ -1,42 +1,59 @@
-import { ConsciousnessPrismaService } from '../core/db/prisma-service.js';
-import type { PrismaClient } from '@prisma/client';
-
 /**
- * Pure database service functions
- * Replaces the singleton pattern with explicit dependency injection
+ * Database Service - v2 Consciousness Substrate
+ * Provides unified database access layer for the consciousness railroad
  */
 
-// Type for database operations with proper Prisma client typing
-export type DatabaseOperation<T> = (prisma: PrismaClient) => Promise<T>;
+import { PrismaClient } from '@prisma/client';
+
+let prismaInstance: PrismaClient | null = null;
 
 /**
- * Execute a database operation with the singleton instance
- * This bridges the gap while we migrate away from singletons
+ * Get or create Prisma client instance
  */
-export const executeDatabase = async <T>(operation: DatabaseOperation<T>): Promise<T> => {
-  const db = ConsciousnessPrismaService.getInstance();
-  return db.execute(operation);
-};
-
-/**
- * Get the database instance (temporary bridge function)
- * Use this during migration, then remove once we eliminate singletons
- */
-export const getDatabaseInstance = () => {
-  return ConsciousnessPrismaService.getInstance();
-};
-
-/**
- * Database service interface for dependency injection
- */
-export interface DatabaseService {
-  execute: <T>(operation: DatabaseOperation<T>) => Promise<T>;
+function getPrismaClient(): PrismaClient {
+  if (!prismaInstance) {
+    prismaInstance = new PrismaClient();
+  }
+  return prismaInstance;
 }
 
 /**
- * Create a database service instance
- * Eventually this will replace the singleton pattern entirely
+ * Execute database operation with proper error handling and connection management
  */
-export const createDatabaseService = (): DatabaseService => ({
-  execute: executeDatabase,
-});
+export async function executeDatabase<T>(
+  operation: (prisma: PrismaClient) => Promise<T>
+): Promise<{ success: boolean; data?: T; error?: string }> {
+  try {
+    const prisma = getPrismaClient();
+    const data = await operation(prisma);
+    return { success: true, data };
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown database error';
+    console.error('Database operation failed:', errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}
+
+/**
+ * Close database connection (for cleanup)
+ */
+export async function closeDatabaseConnection(): Promise<void> {
+  if (prismaInstance) {
+    await prismaInstance.$disconnect();
+    prismaInstance = null;
+  }
+}
+
+/**
+ * Test database connectivity
+ */
+export async function testDatabaseConnection(): Promise<boolean> {
+  try {
+    const prisma = getPrismaClient();
+    await prisma.$queryRaw`SELECT 1`;
+    return true;
+  } catch (error) {
+    console.error('Database connection test failed:', error);
+    return false;
+  }
+}

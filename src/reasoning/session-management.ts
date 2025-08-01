@@ -1,4 +1,4 @@
-import { ThinkingSession, ThoughtStep } from '../reasoning/types.js';
+// import { ThinkingSession, ThoughtStep } from '../reasoning/types.js'; // V1 legacy - simplified
 
 /**
  * Session counter for generating unique session IDs
@@ -20,8 +20,8 @@ export function getCurrentSessionId(): string {
 /**
  * Create a new thinking session
  */
-export function createNewSession(sessionId: string, activeSessions: Map<string, ThinkingSession>): ThinkingSession {
-  const session: ThinkingSession = {
+export function createNewSession(sessionId: string, activeSessions: Map<string, any>): any { // V2 simplified
+  const session: any = { // V2 simplified
     sessionId,
     thoughts: [],
     branches: new Map(),
@@ -38,8 +38,8 @@ export function createNewSession(sessionId: string, activeSessions: Map<string, 
  * Handle branching logic for alternative reasoning paths
  */
 export function handleBranching(
-  session: ThinkingSession,
-  thoughtStep: ThoughtStep,
+  session: any, // V2 simplified
+  thoughtStep: any, // V2 simplified
   branchId: string,
   _branchFromThought: number
 ): void {

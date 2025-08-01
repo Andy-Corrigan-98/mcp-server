@@ -1,7 +1,7 @@
 import { executeDatabase } from '../core/services/database.js';
 import { validateRequiredString, sanitizeString } from '../core/services/validation.js';
 import { ResponseBuilder } from '../core/utils/response-builder.js';
-import { getEntityByName } from '../entities/get-by-name.js';
+import { getEntityByName } from './get-by-name.js';
 
 /**
  * Social pattern analysis
@@ -47,10 +47,10 @@ export const analyzeSocialPatterns = async (args: {
   let entityId: number | undefined;
   if (entityName) {
     const entity = await getEntityByName(entityName);
-    if (!entity) {
+    if (!entity.success || !entity.data) {
       throw new Error(`Social entity '${entityName}' not found`);
     }
-    entityId = entity.id;
+    entityId = entity.data.id;
   }
 
   // Perform analysis based on type
