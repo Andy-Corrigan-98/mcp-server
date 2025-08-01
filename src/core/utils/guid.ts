@@ -22,7 +22,7 @@ export function generateSessionId(): string {
 }
 
 /**
- * GUID Generator class for compatibility
+ * GUID Generator utilities
  */
 export class GuidGenerator {
   static generate(): string {

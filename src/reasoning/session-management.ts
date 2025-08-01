@@ -1,4 +1,4 @@
-// import { ThinkingSession, ThoughtStep } from '../reasoning/types.js'; // V1 legacy - simplified
+
 
 /**
  * Session counter for generating unique session IDs

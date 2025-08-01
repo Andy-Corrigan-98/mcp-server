@@ -1,11 +1,14 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-// V1 legacy - removed
+
+/**
+ * Error factory for tool execution
+ */
 class ErrorFactory {
-  static createError(msg: string) { return new Error(msg); } // V2 compatibility stub
-  static toolNotFound(name: string, context?: any, extra?: any) { return new Error(`Tool not found: ${name}`); } // V2 compatibility stub
-  static toolExecutionFailed(name: string, error: any, context?: any, details?: any) { return new Error(`Tool execution failed: ${name} - ${error}`); } // V2 compatibility stub
-  static operationNotSupported(msg: string, context?: any, extra?: any) { return new Error(`Operation not supported: ${msg}`); } // V2 compatibility stub
-} // V2 compatibility stub
+  static createError(msg: string) { return new Error(msg); }
+  static toolNotFound(name: string, context?: any, extra?: any) { return new Error(`Tool not found: ${name}`); }
+  static toolExecutionFailed(name: string, error: any, context?: any, details?: any) { return new Error(`Tool execution failed: ${name} - ${error}`); }
+  static operationNotSupported(msg: string, context?: any, extra?: any) { return new Error(`Operation not supported: ${msg}`); }
+}
 
 // Constants to avoid magic numbers
 const MAX_LOG_STRING_LENGTH = 200;

@@ -10,7 +10,7 @@ import { personalityContextCar } from './personality-context-car.js';
  * Main Consciousness Railroad Builder
  *
  * Creates and configures the complete consciousness context pipeline.
- * This replaces the scattered consciousness operations with a traceable,
+ * Provides a traceable, organized approach to consciousness operations with
  * testable railroad pattern.
  */
 
@@ -73,7 +73,7 @@ export function createSocialFocusedRailroad(): ConsciousnessRailroad {
 
 /**
  * Process a message through the consciousness railroad
- * This is the main entry point that replaces scattered consciousness operations
+ * This is the main entry point for organized consciousness operations
  */
 export async function processConsciousnessContext(
   message: string,

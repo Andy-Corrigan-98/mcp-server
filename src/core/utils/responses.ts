@@ -1,6 +1,6 @@
 /**
  * Pure response builder functions
- * Replaces SocialResponseBuilder class with pure functions
+ * Pure functions for building social response objects
  */
 
 /**

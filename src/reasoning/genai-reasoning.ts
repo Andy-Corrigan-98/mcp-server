@@ -1,6 +1,6 @@
 /**
  * GenAI Reasoning Tools
- * Replaces the class-based GenAIReasoningTools with single-responsibility modules
+ * Provides GenAI reasoning capabilities through single-responsibility modules
  */
 
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
@@ -130,7 +130,7 @@ export const execute = async (toolName: string, args: Record<string, unknown>): 
 
 /**
  * Export the GenAI reasoning tools interface
- * This can replace the class-based GenAIReasoningTools
+ * This provides a clean interface for GenAI reasoning operations
  */
 export const GenAIReasoningTools = {
   getTools,

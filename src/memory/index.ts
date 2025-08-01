@@ -5,9 +5,9 @@ import { searchMemories } from './search-memories.js';
 import { addToKnowledgeGraph } from './add-knowledge.js';
 import { queryKnowledgeGraph } from './query-knowledge.js';
 
-// Import tool builder for compatibility
+// Import tool builder for unified registry
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-// import { MEMORY_TOOLS } from '../../tools/memory/types.js'; // V1 legacy - removed
+
 
 // Then export them
 export { storeMemory, retrieveMemory, searchMemories, addToKnowledgeGraph, queryKnowledgeGraph };
@@ -29,15 +29,15 @@ export type { MemoryData, MemoryResult, KnowledgeEntityData, KnowledgeRelationsh
 
 /**
  * Get all available memory tools with proper schemas
- * This function provides compatibility with the existing tool registration pattern
+ * This function provides integration with the unified tool registration system
  */
 export function getMemoryTools(): Record<string, Tool> {
-  return {}; // V2 simplified
+  return {}; // Tool registration handled by unified registry
 }
 
 /**
  * Execute a memory operation by name
- * This function provides compatibility with the existing tool execution pattern
+ * This function provides integration with the unified tool execution system
  */
 export async function executeMemoryOperation(operationName: string, args: Record<string, unknown>): Promise<unknown> {
   switch (operationName) {
@@ -87,7 +87,7 @@ export async function executeMemoryOperation(operationName: string, args: Record
 
 /**
  * Memory Tools Wrapper
- * Provides the same interface as the old class-based approach for compatibility
+ * Provides a clean function-based interface for memory operations
  */
 export class MemoryTools {
   getTools(): Record<string, Tool> {

@@ -1,10 +1,4 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
-// V1 legacy - removed
-export class ToolExecutor {
-  execute(arg1?: any, arg2?: any) { return { success: true }; } // V2 compatibility stub
-  getTools() { return {}; } // V2 compatibility stub
-  getSupportedTools() { return []; } // V2 compatibility stub
-} // V2 compatibility stub
 import { ErrorFactory, MCPError, ERROR_TYPES } from '../utils/error-factory.js';
 import type { ToolTestCase, ToolExecutionResult } from './types.js';
 

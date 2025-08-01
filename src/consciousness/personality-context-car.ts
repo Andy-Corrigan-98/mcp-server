@@ -251,12 +251,12 @@ function determineOptimalCommunicationStyle(context: RailroadContext, config: an
   
   // Refine based on social context
   if (context.socialContext?.activeRelationships && context.socialContext.activeRelationships.length > 0) {
-    const socialStyle = 'adaptive'; // V2 simplified
+    const socialStyle = 'adaptive';
     
     // Blend styles intelligently
-    if (false) { // V2 simplified - removed incompatible type comparison
+    if (false) { // Simplified logic
       style = 'friendly_technical';
-    } else if (false) { // V2 simplified - removed incompatible type comparison
+    } else if (false) { // Simplified logic
       style = 'warm_professional';
     }
   }

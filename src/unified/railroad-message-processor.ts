@@ -1,6 +1,5 @@
 import { simpleConversation } from '../reasoning/simple-conversation.js';
 import { processConsciousnessContext } from '../consciousness/index.js';
-// extractResponseContext, getPersonalityContext removed - v1 legacy
 import {
   buildResponseGenerationPrompt,
   buildIntentAnalysisPrompt,
@@ -15,8 +14,8 @@ import { TimeTools } from '../time/time-tools.js';
 /**
  * Railroad-Powered Message Processor
  *
- * This replaces the scattered consciousness operations with a clean railroad pipeline
- * that builds personality context in a traceable, testable way.
+ * A clean railroad pipeline that builds personality context in a traceable, 
+ * testable way through sequential processing cars.
  */
 
 export interface RailroadMessageProcessorArgs {
@@ -84,7 +83,7 @@ function getTimeTools(): TimeTools {
 
 /**
  * AI-powered message analysis using Gemini to detect user intents
- * This replaces the primitive string matching with intelligent understanding
+ * Provides intelligent understanding of user intent through analysis
  */
 async function analyzeMessageIntents(message: string, context?: string): Promise<DetectedIntent[]> {
   try {
@@ -382,29 +381,12 @@ function calculateContextRichness(railroadResult: RailroadResult): number {
 }
 
 /**
- * Comparison function to show the difference between old and new approaches
+ * Documentation function showing railroad pattern architecture and benefits
  */
-export function compareApproaches() {
+export function getRailroadPatternInfo() {
   return {
-    old_approach: {
-      description: 'Scattered consciousness operations',
-      problems: [
-        'Hard to trace what personality context gets included',
-        'Difficult to test individual components',
-        'Error in one operation can break everything',
-        'No visibility into execution flow',
-        'Hard to debug personality inconsistencies',
-      ],
-      code_pattern: `
-// Old: scattered operations
-await consciousness.updateSession(...)
-const memories = await memory.searchMemories(...)  
-await social.recordInteraction(...)
-// Context gets assembled ad-hoc with unclear dependencies
-      `.trim(),
-    },
-    new_approach: {
-      description: 'Railroad pattern with traceable pipeline',
+    railroad_pattern: {
+      description: 'Sequential consciousness processing pipeline',
       benefits: [
         "Linear, traceable execution through each 'car'",
         'Each car is independently testable',
@@ -414,7 +396,7 @@ await social.recordInteraction(...)
         'Easy to add/remove/reorder context sources',
       ],
       code_pattern: `
-// New: railroad pipeline
+// Railroad pipeline processing
 const result = await processConsciousnessContext(message, context, 'default');
 // Automatically flows through: analysis → session → memory → social → personality
 // Rich context available in result.context with full execution trace

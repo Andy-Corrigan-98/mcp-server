@@ -6,7 +6,7 @@
 import { executeDatabase } from './database.js';
 
 /**
- * Configuration service interface compatible with v1
+ * Configuration service interface for unified tool access
  */
 export class ConfigurationService {
   /**

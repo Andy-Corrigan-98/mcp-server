@@ -37,5 +37,5 @@ export async function getEntityByName(name: string) {
   return { success: true, data: result.data };
 }
 
-// Re-export for compatibility
+// Re-export for convenience
 export { executeDatabase } from '../core/services/database.js';

@@ -1,9 +1,9 @@
 /**
- * Core Database Index - v2 Consciousness Substrate
- * Compatibility layer for v1 imports
+ * Core Database Services
+ * Unified access to database operations and utilities
  */
 
-// Re-export services for compatibility with existing imports
+// Re-export core database services
 export { ConfigurationService } from '../services/configuration.js';
 export { executeDatabase } from '../services/database.js';
 export { 
@@ -17,7 +17,7 @@ export {
   validateAndStringifyJson
 } from '../services/validation.js';
 
-// Compatibility types for database operations
+// Common types for database operations
 export interface MemoryResult {
   id: number;
   key: string;

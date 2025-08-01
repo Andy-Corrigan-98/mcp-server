@@ -88,7 +88,7 @@ function extractMemorySearchTerms(context: RailroadContext): string[] {
     terms.push(context.analysis.intent);
   }
   
-  return Array.from(new Set(terms)); // Remove duplicates - v2 compatible
+  return Array.from(new Set(terms)); // Remove duplicates
 }
 
 /**
@@ -176,7 +176,7 @@ function generateMemoryInsights(memories: any[], context: RailroadContext) {
   
   // Analyze memory patterns
   if (memories.length > 0) {
-    // Check for recent vs old memories
+    // Check for recent vs older memories
     const recentMemories = memories.filter(m => 
       new Date(m.updatedAt).getTime() > Date.now() - (7 * 24 * 60 * 60 * 1000)
     );

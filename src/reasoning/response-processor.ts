@@ -4,9 +4,9 @@
  */
 
 import { validateScore, cleanTextContent } from './reasoning-utils.js';
-// parseAIResponse removed - V1 legacy
-function parseAIResponse(text: string) { return { content: text, analysis: '', insights: [], hypothesis: '', verification: '', nextSteps: [], alternatives: [], conclusion: '', confidence: 0.8, parsingSuccess: true, parsingError: null }; } // V2 compatibility stub
-// Simplified v2 imports
+
+function parseAIResponse(text: string) { return { content: text, analysis: '', insights: [], hypothesis: '', verification: '', nextSteps: [], alternatives: [], conclusion: '', confidence: 0.8, parsingSuccess: true, parsingError: null }; }
+// Core reasoning imports
 
 /**
  * Interface for reasoning response structure

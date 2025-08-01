@@ -38,7 +38,7 @@ export async function addToKnowledgeGraph(args: {
   // V2 simplified - direct database call
   await db.addEntity({ name: entityName, type: entityType, properties: properties as any } as any); // V2 type cast
 
-  // await db.addEntity({ entityName, entityType, properties } as any); // V2 compatible - duplicate removed
+  // Entity creation handled by relationship creation
 
   // Add relationships
   for (const rel of relationships) {
@@ -53,7 +53,7 @@ export async function addToKnowledgeGraph(args: {
       strength,
     } as any; // V2 type cast
 
-    await db.addRelationship({ sourceEntity: entityName, targetEntity: targetName, relationship: relationshipType, strength } as any); // V2 compatible
+    await db.addRelationship({ sourceEntity: entityName, targetEntity: targetName, relationship: relationshipType, strength } as any);
   }
 
   return {

@@ -1,4 +1,4 @@
-// import { ThinkingSession, ThoughtStep } from '../reasoning/types.js'; // V1 legacy - simplified
+
 
 /**
  * Get all thoughts from a session (main thoughts + branch thoughts)

@@ -1,8 +1,8 @@
 /**
  * Consciousness Railroad Pattern
  *
- * A traceable, testable pipeline for building personality context that replaces
- * scattered consciousness operations with a linear, composable flow.
+ * A traceable, testable pipeline for building personality context through 
+ * a linear, composable flow of railroad cars.
  */
 
 // Core railroad infrastructure
@@ -23,6 +23,4 @@ export {
   createMemoryFocusedRailroad,
   createSocialFocusedRailroad,
   processConsciousnessContext,
-  // extractResponseContext, // V1 legacy function
-  // getPersonalityContext, // V1 legacy function
 } from './consciousness-railroad.js';
