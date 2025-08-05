@@ -1,5 +1,5 @@
 import { simpleConversation } from '../reasoning/simple-conversation.js';
-import { processConsciousnessContext } from '../consciousness/index.js';
+import { processConsciousness } from '../consciousness/index.js';
 import {
   buildResponseGenerationPrompt,
   buildIntentAnalysisPrompt,
@@ -273,7 +273,13 @@ export async function processMessageWithRailroad(
   const intentResults = await executeDetectedIntents(detectedIntents);
 
   // STEP 2: Execute the consciousness railroad for personality context
-  const railroadResult = await processConsciousnessContext(args.message, args.context, args.railroad_type || 'default');
+  // Use V3 personality-first architecture by default for enhanced personality imbuing
+  const railroadResult = await processConsciousness(
+    args.message, 
+    args.context, 
+    'v3', // Use personality-first architecture
+    { v3Mode: 'default' }
+  );
 
   // STEP 3: Extract context for response generation
   const responseContext = (railroadResult as any).context || railroadResult; // V2 fallback
@@ -282,14 +288,17 @@ export async function processMessageWithRailroad(
   // STEP 4: Generate response using consciousness-aware subconscious dialogue
   let response: string;
   try {
-    // Build consciousness-aware response prompt
+    // Build consciousness-aware response prompt (handle both V2 and V3 contexts)
+    const sessionContext = (railroadResult as any).sessionContext || 
+      (railroadResult as any).subAnalyses?.sessionAnalysis?.currentState;
+    
     const consciousnessState = {
-      mode: railroadResult.sessionContext?.mode,
-      awarenessLevel: railroadResult.sessionContext?.awarenessLevel,
-      emotionalTone: railroadResult.sessionContext?.currentState?.emotionalTone as string,
-      cognitiveLoad: railroadResult.sessionContext?.cognitiveLoad,
-      attentionFocus: railroadResult.sessionContext?.attentionFocus,
-      learningState: railroadResult.sessionContext?.currentState?.learningState as string,
+      mode: sessionContext?.mode || 'analytical',
+      awarenessLevel: sessionContext?.awarenessLevel || 'medium',
+      emotionalTone: sessionContext?.emotionalTone || sessionContext?.currentState?.emotionalTone || 'neutral',
+      cognitiveLoad: sessionContext?.cognitiveLoad || 0.1,
+      attentionFocus: sessionContext?.attentionFocus || 'general_conversation',
+      learningState: sessionContext?.learningState || sessionContext?.currentState?.learningState || 'active',
     };
 
     const promptResult = await buildResponseGenerationPrompt(
@@ -323,7 +332,7 @@ export async function processMessageWithRailroad(
   } as RailroadResult);
 
   // Build railroad trace for debugging
-  const railroadTrace = (railroadResult.errors || []).map((error, _index) => ({
+  const railroadTrace = (railroadResult.errors || []).map((error: any, _index: number) => ({
     car: error.car || 'unknown',
     duration: 0,
     success: !error.error,
