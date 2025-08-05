@@ -1,19 +1,19 @@
 /**
  * V3 Personality Synthesis Car - Central Intelligence
- * 
- * The heart of the personality-first architecture. This car receives all parallel 
+ *
+ * The heart of the personality-first architecture. This car receives all parallel
  * sub-analyses and synthesizes them into a comprehensive personality-aware context
  * that becomes the central organizing principle for consciousness.
  */
 
-import { 
-  PersonalitySynthesisCar, 
-  RailroadContext, 
+import {
+  PersonalitySynthesisCar,
+  RailroadContext,
   MessageSubAnalysis,
   SessionSubAnalysis,
   MemorySubAnalysis,
   SocialSubAnalysis,
-  PersonalitySynthesizedContext
+  PersonalitySynthesizedContext,
 } from './types-v3.js';
 import { executeDatabase } from '../core/services/database.js';
 
@@ -24,7 +24,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
   name = 'personality-synthesis' as const;
 
   async synthesize(
-    baseContext: RailroadContext, 
+    baseContext: RailroadContext,
     subAnalyses: {
       messageAnalysis?: MessageSubAnalysis;
       sessionAnalysis?: SessionSubAnalysis;
@@ -37,25 +37,25 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
     try {
       // Get current personality configuration and evolution state
       const personalityEvolution = await this.getPersonalityEvolution();
-      
+
       // Synthesize core traits based on all sub-analyses
       const coreTraits = this.synthesizeCoreTraits(personalityEvolution, subAnalyses);
-      
+
       // Determine contextual adaptations needed
       const contextualAdaptations = this.determineContextualAdaptations(subAnalyses, coreTraits);
-      
+
       // Generate synthesized insights by integrating all sub-analyses
       const synthesizedInsights = this.generateSynthesizedInsights(subAnalyses);
-      
+
       // Track personality evolution indicators
       const evolutionIndicators = this.trackEvolutionIndicators(subAnalyses, personalityEvolution, coreTraits);
-      
+
       // Create optimized communication strategy
       const communicationStrategy = this.createCommunicationStrategy(subAnalyses, coreTraits, contextualAdaptations);
-      
+
       // Calculate overall synthesis confidence
       const synthesisConfidence = this.calculateSynthesisConfidence(subAnalyses);
-      
+
       // Generate reasoning for personality decisions
       const synthesisReasoning = this.generateSynthesisReasoning(subAnalyses, coreTraits, contextualAdaptations);
 
@@ -67,7 +67,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
         evolutionIndicators,
         communicationStrategy,
         synthesisConfidence,
-        synthesisReasoning
+        synthesisReasoning,
       };
 
       // Store personality evolution insights for future learning
@@ -77,23 +77,24 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
       baseContext.operations.consciousness_updates['personality_synthesis'] = {
         traitsReinforced: evolutionIndicators.traitReinforcement,
         adaptationLevel: contextualAdaptations.adaptationLevel,
-        synthesisConfidence
+        synthesisConfidence,
       };
 
-      console.log(`✅ Personality Synthesis: ${synthesisConfidence.toFixed(2)} confidence, ${contextualAdaptations.adaptationLevel.toFixed(2)} adaptation`);
+      console.log(
+        `✅ Personality Synthesis: ${synthesisConfidence.toFixed(2)} confidence, ${contextualAdaptations.adaptationLevel.toFixed(2)} adaptation`
+      );
 
       return {
         ...baseContext,
-        personalityContext
+        personalityContext,
       };
-
     } catch (error) {
       console.error('❌ Personality Synthesis failed:', error);
-      
+
       // Return context with fallback personality synthesis
       return {
         ...baseContext,
-        personalityContext: this.createFallbackPersonalityContext(subAnalyses)
+        personalityContext: this.createFallbackPersonalityContext(subAnalyses),
       };
     }
   }
@@ -103,15 +104,15 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
    */
   private async getPersonalityEvolution() {
     try {
-      const result = await executeDatabase(async (prisma) => {
+      const result = await executeDatabase(async prisma => {
         const configs = await prisma.configuration.findMany({
           where: {
             key: {
-              startsWith: 'personality.'
-            }
-          }
+              startsWith: 'personality.',
+            },
+          },
         });
-        
+
         const evolution: Record<string, any> = {};
         configs.forEach(config => {
           const key = config.key.replace('personality.', '');
@@ -121,10 +122,10 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
             evolution[key] = config.value;
           }
         });
-        
+
         return evolution;
       });
-      
+
       return result.success ? result.data : {};
     } catch (error) {
       console.error('Failed to get personality evolution:', error);
@@ -142,20 +143,20 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
       problemSolvingApproach: personalityEvolution.problemSolvingApproach || 'systematic',
       communicationNature: personalityEvolution.communicationNature || 'analytical',
       learningPreference: personalityEvolution.learningPreference || 'experiential',
-      emotionalIntelligence: personalityEvolution.emotionalIntelligence || 'adaptive'
+      emotionalIntelligence: personalityEvolution.emotionalIntelligence || 'adaptive',
     };
 
     // Adapt traits based on current context
     if (subAnalyses.messageAnalysis) {
       const { intent, emotional_context } = subAnalyses.messageAnalysis;
-      
+
       // Adapt curiosity style based on intent
       if (intent === 'learning_request') {
         baseTraits.curiosityStyle = 'deep-dive';
       } else if (intent === 'technical_discussion') {
         baseTraits.curiosityStyle = 'pattern-seeking';
       }
-      
+
       // Adapt communication based on emotional context
       if (emotional_context === 'frustrated') {
         baseTraits.communicationNature = 'supportive';
@@ -184,7 +185,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
   /**
    * Determine contextual adaptations needed based on all analyses
    */
-  private determineContextualAdaptations(subAnalyses: any, coreTraits: any) {
+  private determineContextualAdaptations(subAnalyses: any, _coreTraits: any) {
     let adaptationLevel = 0.5; // Base adaptation
     const triggers: string[] = [];
     const reasoning: string[] = [];
@@ -193,21 +194,21 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
     // Message analysis adaptations
     if (subAnalyses.messageAnalysis) {
       const { intent, emotional_context, confidence } = subAnalyses.messageAnalysis;
-      
+
       if (intent === 'learning_request') {
         adaptationLevel += 0.2;
         responseStyle = 'educational';
         triggers.push('learning_context');
         reasoning.push('Learning intent detected - adapting to teaching mode');
       }
-      
+
       if (emotional_context === 'frustrated') {
         adaptationLevel += 0.3;
         responseStyle = 'supportive';
         triggers.push('emotional_support_needed');
         reasoning.push('Frustration detected - prioritizing support and clarity');
       }
-      
+
       if (confidence > 0.8) {
         reasoning.push(`High confidence message analysis (${confidence.toFixed(2)})`);
       }
@@ -216,13 +217,13 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
     // Session analysis adaptations
     if (subAnalyses.sessionAnalysis) {
       const { currentState } = subAnalyses.sessionAnalysis;
-      
+
       if (currentState.cognitiveLoad > 0.6) {
         adaptationLevel += 0.2;
         triggers.push('high_cognitive_load');
         reasoning.push('High cognitive load detected - simplifying communication');
       }
-      
+
       if (currentState.awarenessLevel === 'high') {
         adaptationLevel += 0.1;
         triggers.push('heightened_awareness');
@@ -239,8 +240,10 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
 
     // Social analysis adaptations
     if (subAnalyses.socialAnalysis?.activeRelationships.length > 0) {
-      const avgStrength = subAnalyses.socialAnalysis.activeRelationships.reduce((sum: number, rel: any) => sum + rel.strength, 0) / subAnalyses.socialAnalysis.activeRelationships.length;
-      
+      const avgStrength =
+        subAnalyses.socialAnalysis.activeRelationships.reduce((sum: number, rel: any) => sum + rel.strength, 0) /
+        subAnalyses.socialAnalysis.activeRelationships.length;
+
       if (avgStrength > 0.7) {
         adaptationLevel += 0.15;
         responseStyle = 'personalized';
@@ -256,7 +259,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
       responseStyle,
       adaptationLevel,
       triggers,
-      reasoning
+      reasoning,
     };
   }
 
@@ -301,7 +304,9 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
 
     // Evaluate memory relevance
     if (subAnalyses.memoryAnalysis?.relevantMemories.length > 0) {
-      const avgRelevance = subAnalyses.memoryAnalysis.relevantMemories.reduce((sum: number, m: any) => sum + m.relevanceScore, 0) / subAnalyses.memoryAnalysis.relevantMemories.length;
+      const avgRelevance =
+        subAnalyses.memoryAnalysis.relevantMemories.reduce((sum: number, m: any) => sum + m.relevanceScore, 0) /
+        subAnalyses.memoryAnalysis.relevantMemories.length;
       if (avgRelevance > 0.7) {
         memoryRelevance = 'highly_relevant';
       } else if (avgRelevance > 0.4) {
@@ -314,7 +319,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
       emotionalLandscape,
       cognitiveApproach,
       socialDynamics,
-      memoryRelevance
+      memoryRelevance,
     };
   }
 
@@ -332,7 +337,10 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
       traitReinforcement.push('deep_dive_curiosity');
     }
 
-    if (subAnalyses.socialAnalysis?.socialPatterns.communicationStyle.includes('technical') && coreTraits.communicationNature === 'analytical') {
+    if (
+      subAnalyses.socialAnalysis?.socialPatterns.communicationStyle.includes('technical') &&
+      coreTraits.communicationNature === 'analytical'
+    ) {
       traitReinforcement.push('analytical_communication');
     }
 
@@ -370,7 +378,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
       traitReinforcement,
       emergingPatterns,
       adaptationSuccess,
-      growthOpportunities
+      growthOpportunities,
     };
   }
 
@@ -389,19 +397,19 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
     // Adapt based on message analysis
     if (subAnalyses.messageAnalysis) {
       const { intent, emotional_context } = subAnalyses.messageAnalysis;
-      
+
       if (intent === 'technical_discussion') {
         technicality = 'high';
         tone = 'focused';
         personalizedApproach.push('technical_depth');
       }
-      
+
       if (emotional_context === 'excited') {
         enthusiasm = 'natural';
         tone = 'warm';
         personalizedApproach.push('enthusiasm_matching');
       }
-      
+
       if (emotional_context === 'frustrated') {
         supportiveness = 'high';
         tone = 'understanding';
@@ -413,18 +421,18 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
     // Adapt based on social context
     if (subAnalyses.socialAnalysis) {
       const { socialPatterns } = subAnalyses.socialAnalysis;
-      
+
       if (socialPatterns.communicationStyle.includes('friendly')) {
         tone = 'warm';
         formality = 'relaxed';
         personalizedApproach.push('friendly_rapport');
       }
-      
+
       if (socialPatterns.communicationStyle.includes('direct')) {
         formality = 'direct';
         personalizedApproach.push('direct_communication');
       }
-      
+
       if (socialPatterns.relationshipDepth === 'deep') {
         tone = 'personal';
         personalizedApproach.push('deep_relationship_context');
@@ -434,12 +442,12 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
     // Adapt based on session state
     if (subAnalyses.sessionAnalysis) {
       const { currentState } = subAnalyses.sessionAnalysis;
-      
+
       if (currentState.cognitiveLoad > 0.6) {
         technicality = 'simplified';
         personalizedApproach.push('cognitive_load_adapted');
       }
-      
+
       if (currentState.mode === 'creative') {
         enthusiasm = 'inspiring';
         tone = 'encouraging';
@@ -462,7 +470,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
       formality,
       enthusiasm,
       supportiveness,
-      personalizedApproach
+      personalizedApproach,
     };
   }
 
@@ -504,7 +512,7 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
     }
 
     // Boost confidence if most analyses were successful
-    if (totalAnalyses > 0 && (successfulAnalyses / totalAnalyses) > 0.75) {
+    if (totalAnalyses > 0 && successfulAnalyses / totalAnalyses > 0.75) {
       confidence += 0.1;
     }
 
@@ -519,17 +527,25 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
 
     // Message analysis reasoning
     if (subAnalyses.messageAnalysis) {
-      reasoning.push(`Message intent: ${subAnalyses.messageAnalysis.intent} (confidence: ${subAnalyses.messageAnalysis.confidence.toFixed(2)})`);
+      reasoning.push(
+        `Message intent: ${subAnalyses.messageAnalysis.intent} (confidence: ${subAnalyses.messageAnalysis.confidence.toFixed(2)})`
+      );
       if (subAnalyses.messageAnalysis.emotional_context !== 'neutral') {
         reasoning.push(`Emotional context: ${subAnalyses.messageAnalysis.emotional_context}`);
       }
     }
 
     // Core traits reasoning
-    reasoning.push(`Applied core traits: ${Object.entries(coreTraits).map(([k, v]) => `${k}=${v}`).join(', ')}`);
+    reasoning.push(
+      `Applied core traits: ${Object.entries(coreTraits)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(', ')}`
+    );
 
     // Adaptation reasoning
-    reasoning.push(`Adaptation level: ${contextualAdaptations.adaptationLevel.toFixed(2)} (${contextualAdaptations.triggers.join(', ')})`);
+    reasoning.push(
+      `Adaptation level: ${contextualAdaptations.adaptationLevel.toFixed(2)} (${contextualAdaptations.triggers.join(', ')})`
+    );
 
     // Context integration reasoning
     const contextSources: string[] = [];
@@ -562,23 +578,22 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
         context: {
           messageIntent: subAnalyses.messageAnalysis?.intent,
           sessionMode: subAnalyses.sessionAnalysis?.currentState.mode,
-          socialContext: subAnalyses.socialAnalysis?.socialPatterns
-        }
+          socialContext: subAnalyses.socialAnalysis?.socialPatterns,
+        },
       };
 
       // Store in memory system for future reference
-      await executeDatabase(async (prisma) => {
+      await executeDatabase(async prisma => {
         await prisma.memory.create({
           data: {
             key: insightKey,
             content: insightContent as any,
             tags: JSON.stringify(['personality_evolution', 'consciousness_development']),
             importance: 'medium',
-            accessCount: 0
-          }
+            accessCount: 0,
+          },
         });
       });
-
     } catch (error) {
       console.error('Failed to store personality evolution insights:', error);
       // Non-critical error, continue processing
@@ -595,26 +610,26 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
         problemSolvingApproach: 'systematic',
         communicationNature: 'adaptive',
         learningPreference: 'experiential',
-        emotionalIntelligence: 'moderate'
+        emotionalIntelligence: 'moderate',
       },
       contextualAdaptations: {
         responseStyle: 'adaptive',
         adaptationLevel: 0.5,
         triggers: ['fallback_mode'],
-        reasoning: ['Personality synthesis failed - using fallback traits']
+        reasoning: ['Personality synthesis failed - using fallback traits'],
       },
       synthesizedInsights: {
         primaryFocus: 'general_conversation',
         emotionalLandscape: 'neutral',
         cognitiveApproach: 'balanced',
         socialDynamics: 'standard',
-        memoryRelevance: 'minimal'
+        memoryRelevance: 'minimal',
       },
       evolutionIndicators: {
         traitReinforcement: [],
         emergingPatterns: [],
         adaptationSuccess: 0.3,
-        growthOpportunities: ['synthesis_improvement']
+        growthOpportunities: ['synthesis_improvement'],
       },
       communicationStrategy: {
         tone: 'balanced',
@@ -622,10 +637,10 @@ class PersonalitySynthesisCarImpl implements PersonalitySynthesisCar {
         formality: 'professional',
         enthusiasm: 'measured',
         supportiveness: 'available',
-        personalizedApproach: ['fallback_approach']
+        personalizedApproach: ['fallback_approach'],
       },
       synthesisConfidence: 0.2,
-      synthesisReasoning: ['Fallback personality context due to synthesis failure']
+      synthesisReasoning: ['Fallback personality context due to synthesis failure'],
     };
   }
 }
