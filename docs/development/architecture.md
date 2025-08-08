@@ -20,79 +20,177 @@ The codebase follows **single-responsibility functional architecture**:
 
 ### Core Components
 
-#### 1. **Consciousness Layer** - `src/features/consciousness/`
+#### 1. **Consciousness Railroad Layer** - `src/consciousness/`
 ```
 consciousness/
-├── context/              # Rich context preparation
-├── insights/             # Agent insight storage with personality impact
-├── intentions/           # Long-term goal persistence
-├── session/             # Cognitive load and learning pattern tracking
-└── index.ts            # Clean composition and tool routing
+├── consciousness-railroad.ts    # Main railroad builder and orchestrator
+├── pipeline.ts                 # Core railroad pipeline execution engine
+├── types.ts                    # Railroad pattern type definitions
+├── message-analysis-car.ts     # Message intent and entity analysis
+├── session-context-car.ts      # Session state and cognitive load tracking
+├── memory-context-car.ts       # Relevant memory retrieval
+├── social-context-car.ts       # Social relationship context
+├── personality-context-car.ts  # Personality and communication style
+├── get-context.ts             # Legacy API compatibility
+├── prepare-context.ts         # Context preparation utilities
+├── store-insight.ts           # Insight storage with personality impact
+├── set-intention.ts           # Long-term goal persistence
+├── update-intention.ts        # Intention progress tracking
+├── update-session.ts          # Session state updates
+└── index.ts                   # Railroad pattern exports
 ```
 
-#### 2. **Memory & Knowledge Layer** - `src/features/memory/`
+**🚂 Railroad Pattern**: The core innovation of v2 - a traceable, testable pipeline where "cars" sequentially enrich consciousness context, replacing scattered operations with a linear, composable flow.
+
+#### 2. **Memory & Knowledge Layer** - `src/memory/`
 ```
 memory/
-├── storage/             # Memory persistence operations
-├── search/              # Semantic search with relevance scoring
-├── knowledge-graph/     # Relational knowledge structures
-└── index.ts            # Memory tool composition
+├── store-memory.ts         # Memory persistence operations
+├── retrieve-memory.ts      # Memory retrieval by key
+├── search-memories.ts      # Semantic search with relevance scoring
+├── add-knowledge.ts        # Knowledge graph entity and relationship management
+├── query-knowledge.ts      # Knowledge graph traversal and querying
+└── index.ts               # Memory tool composition and exports
 ```
 
-#### 3. **Social Consciousness Layer** - `src/features/social/`
+#### 3. **Social Consciousness Layer** - `src/social/`
 ```
 social/
-├── entities/           # Social entity management (7 modules)
-├── relationships/      # Relationship dynamics (8 modules)
-├── interactions/       # Social interaction tracking
-├── emotional/          # Emotional state and pattern tracking
-├── learning/           # Social insights and communication learning
-├── memory/            # Memory-social integration
-├── patterns/          # Social pattern analysis
-├── context/           # Social interaction context preparation
-└── index.ts          # Social tool composition and routing
+├── create.ts           # Social entity registration (people, groups, communities)
+├── update.ts           # Entity information updates
+├── get-by-name.ts      # Entity retrieval by name
+├── get-by-id.ts        # Entity retrieval by ID
+├── delete.ts           # Entity deletion
+├── list.ts             # Entity listing and filtering
+├── record.ts           # Social interaction recording
+├── search.ts           # Interaction search and filtering
+├── link-create.ts      # Relationship establishment and dynamics
+├── analyze.ts          # Social pattern analysis and insights
+├── context.ts          # Social interaction context preparation
+├── prepare.ts          # Pre-interaction context preparation
+├── load-config.ts      # Social configuration management
+└── index.ts           # Social tool composition and exports
 ```
 
-#### 4. **GenAI Integration Layer** - `src/features/reasoning/`
+#### 4. **GenAI Integration Layer** - `src/reasoning/`
 ```
 reasoning/
-├── shared/            # Common GenAI infrastructure
-│   ├── client/        # Unified GenAI client management (singleton)
-│   ├── security/      # Prompt injection protection
-│   ├── validation/    # Input validation & sanitization
-│   └── responses/     # Response parsing utilities
-├── sequential/        # AI-powered sequential thinking
-├── conversational/    # Natural dialogue management
-├── genai-reasoning/   # Advanced AI reasoning
-└── index.ts          # Reasoning tool composition
+├── genai-client.ts         # Unified GenAI client management (singleton)
+├── security-guard.ts       # Prompt injection protection and sanitization
+├── genai-validation.ts     # Input validation and security checks
+├── response-parser.ts      # JSON response extraction and parsing
+├── response-processor.ts   # Response processing and error handling
+├── sequential-thinking.ts  # AI-powered sequential reasoning pipeline
+├── simple-conversation.ts  # Natural dialogue with GenAI
+├── multi-turn-chat.ts     # Context-aware multi-turn conversations
+├── genai-reasoning.ts     # Advanced AI reasoning with fallbacks
+├── generate-insights.ts   # AI-powered insight generation
+├── prompt-builder.ts      # Prompt construction utilities
+├── session-management.ts  # Conversation session management
+├── reasoning-utils.ts     # Common reasoning utilities
+└── index.ts              # Reasoning tool composition and exports
 ```
 
-#### 5. **Daydreaming & Insight Layer** - `src/features/daydreaming/`
+#### 5. **Daydreaming & Insight Layer** - `src/daydreaming/`
 ```
 daydreaming/
-├── config/           # Configuration management
-├── sampling/         # Concept sampling strategies (4 approaches)
-├── exploration/      # Connection hypothesis generation
-├── evaluation/       # AI-powered insight evaluation
-├── storage/          # Insight storage and retrieval
-├── cycles/           # Cycle execution orchestration
-├── sources/          # Knowledge graph and memory access
-└── index.ts         # Daydreaming tool composition
+├── configure.ts              # Configuration management
+├── load-config.ts           # Configuration loading and defaults
+├── sample-concepts.ts       # Concept sampling orchestration
+├── random.ts               # Random sampling strategy
+├── importance-weighted.ts  # Importance-weighted sampling
+├── recent-biased.ts        # Recent activity-biased sampling
+├── cross-domain.ts         # Cross-domain sampling
+├── explore-connection.ts   # Connection hypothesis generation
+├── generate-hypothesis.ts  # Hypothesis generation logic
+├── evaluate-insight.ts     # Insight evaluation orchestration
+├── evaluate-insight-core.ts # Core evaluation logic
+├── evaluate-hypothesis.ts  # Hypothesis evaluation with AI
+├── fallback-evaluator.ts   # Fallback evaluation when AI fails
+├── execute-cycle.ts        # Complete daydreaming cycle execution
+├── store-insight.ts        # Insight storage and persistence
+├── get-insights.ts         # Insight retrieval and filtering
+├── concept-distance.ts     # Concept relationship scoring
+├── knowledge-graph.ts      # Knowledge graph access
+├── memory.ts              # Memory system access
+├── context.ts             # Context preparation utilities
+├── prompt-builder.ts      # AI prompt construction
+├── response-processor.ts  # AI response processing
+└── index.ts              # Daydreaming tool exports
 ```
 
-#### 6. **Configuration Layer** - `src/tools/configuration/`
+#### 6. **Configuration Layer** - `src/configuration/`
+```
+configuration/
+├── configuration-tools.ts   # Configuration management tools
+├── types.ts                # Configuration type definitions
+└── index.ts               # Configuration exports
+```
 - **84+ Parameters**: Database-driven configuration system
 - **Runtime Adaptation**: Agent can modify its own parameters
 - **Evolution Tracking**: Change history with reasoning
 
+## 🚂 Consciousness Railroad Pattern
+
+The **Railroad Pattern** is the core architectural innovation of v2, replacing scattered consciousness operations with a traceable, testable pipeline.
+
+### Railroad Architecture
+
+```
+Message Input → [Car 1] → [Car 2] → [Car 3] → [Car 4] → [Car 5] → Rich Context Output
+               Analysis   Session   Memory    Social    Personality
+```
+
+### Railroad Cars (Sequential Context Enrichment)
+
+1. **Message Analysis Car** (`message-analysis-car.ts`)
+   - Analyzes message intent and emotional context
+   - Identifies entities mentioned and required operations
+   - Determines if memory/social context is needed
+
+2. **Session Context Car** (`session-context-car.ts`)
+   - Loads current session state and cognitive load
+   - Determines consciousness mode (analytical, creative, etc.)
+   - Tracks session duration and attention focus
+
+3. **Memory Context Car** (`memory-context-car.ts`)
+   - Retrieves relevant memories based on message analysis
+   - Provides memory search results and recent activity
+   - Optional - fails gracefully if memory is unavailable
+
+4. **Social Context Car** (`social-context-car.ts`)
+   - Loads relationship context for mentioned entities
+   - Provides recent interaction history and dynamics
+   - Optional - only runs if social entities are involved
+
+5. **Personality Context Car** (`personality-context-car.ts`)
+   - Loads vocabulary preferences and communication style
+   - Provides current personality state and learning patterns
+   - Optional - falls back to defaults if unavailable
+
+### Railroad Types
+
+- **Default Railroad**: All 5 cars for complete context
+- **Lightweight Railroad**: Essential cars only (analysis + session)
+- **Memory-Focused Railroad**: Emphasizes memory and knowledge retrieval
+- **Social-Focused Railroad**: Prioritizes social relationship context
+
+### Benefits of Railroad Pattern
+
+- **Traceability**: Each car execution is logged with timing
+- **Testability**: Individual cars can be unit tested in isolation
+- **Composability**: Different railroad configurations for different needs
+- **Error Resilience**: Optional cars fail gracefully without breaking pipeline
+- **Performance**: Only required cars execute based on message analysis
+
 ### Shared Infrastructure Patterns
 
-#### **GenAI Infrastructure** - `src/features/reasoning/shared/`
+#### **GenAI Infrastructure** - `src/reasoning/`
 Unified infrastructure for all AI-powered features:
-- **Client Management**: Singleton pattern with proper lifecycle management
-- **Security Layer**: Consistent prompt injection detection and sanitization
-- **Validation**: Input validation and sanitization across all GenAI tools
-- **Response Processing**: Common JSON extraction and parsing utilities
+- **Client Management**: Singleton pattern with proper lifecycle management (`genai-client.ts`)
+- **Security Layer**: Consistent prompt injection detection and sanitization (`security-guard.ts`)
+- **Validation**: Input validation and sanitization across all GenAI tools (`genai-validation.ts`)
+- **Response Processing**: Common JSON extraction and parsing utilities (`response-parser.ts`, `response-processor.ts`)
 
 #### **Tool Registry** - `src/tools/registry.ts`
 Central orchestration of all consciousness tools:
@@ -120,14 +218,25 @@ Central orchestration of all consciousness tools:
 
 ## 🔄 Data Flow
 
-### 1. Functional Module Execution Flow
+### 1. Consciousness Railroad Execution Flow
 ```
-MCP Request → Tool Registry → Module Router → Single-Responsibility Function
-                    ↓
-Response Assembly ← Data Processing ← Database Operation ← Input Validation
+Message Input → Railroad Selector → Car Pipeline → Context Assembly
+                     ↓                     ↓             ↓
+              [Type Selection]    [Sequential Execution]  [Rich Context]
+                     ↓                     ↓             ↓
+              Default/Lightweight   Message→Session→Memory  Response Context
+              Memory/Social-Focused  →Social→Personality    + Operation History
 ```
 
-### 2. GenAI Integration Flow
+### 2. Individual Railroad Car Flow
+```
+Car Input (Context) → Car-Specific Logic → Database/AI Operations → Context Enrichment
+        ↓                     ↓                    ↓                      ↓
+   Previous Context    Analysis/Retrieval/    Memory/Social/Config      Enhanced Context
+   + Car Requirements   Processing Logic      Database Operations       + Car Results
+```
+
+### 3. GenAI Integration Flow
 ```
 User Input → Security Check → Input Validation → Shared GenAI Client
                     ↓
@@ -136,18 +245,22 @@ AI Response ← Response Parser ← GenAI Model ← Prompt Builder
 Processed Result ← Fallback Handler ← Error Detection ← Raw Response
 ```
 
-### 3. Consciousness Evolution Flow
+### 4. Consciousness Evolution Flow
 ```
-Agent Activity → Session Tracking → Personality Updates → Configuration Changes
-                      ↓
-Memory Formation → Knowledge Graph → Relationship Updates → Insight Storage
+Agent Activity → Railroad Processing → Session Updates → Personality Evolution
+                         ↓                    ↓                  ↓
+                Memory Formation     Insight Storage    Configuration Changes
+                         ↓                    ↓                  ↓
+                Knowledge Graph      Pattern Learning   Vocabulary Evolution
 ```
 
-### 4. Social Interaction Flow
+### 5. Social Interaction Flow
 ```
-Social Event → Interaction Recording → Relationship Updates → Emotional Processing
-                    ↓
-Memory Linking → Pattern Analysis → Social Learning → Context Preparation
+Social Message → Railroad (Social-Focused) → Interaction Recording → Relationship Updates
+                        ↓                            ↓                       ↓
+              Social Context Car           Memory Linking         Pattern Analysis
+                        ↓                            ↓                       ↓
+              Relationship Loading         Emotional Processing   Learning Storage
 ```
 
 ## 🎯 Design Principles

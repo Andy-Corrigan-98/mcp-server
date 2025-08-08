@@ -43,19 +43,28 @@ export class FeatureTools {
 ```
 
 ### **Creating New Features**
-1. **Create modules** in `src/features/your-feature/`
-2. **Use shared infrastructure** for GenAI features
-3. **Follow composition pattern** in `index.ts`
-4. **Write comprehensive tests** - pure functions are easy to test
+1. **Create modules** in appropriate `src/` directories (`consciousness/`, `social/`, `memory/`, etc.)
+2. **Use shared infrastructure** for GenAI features (`src/reasoning/` modules)
+3. **Follow functional architecture** with single-responsibility modules
+4. **Consider railroad pattern** for consciousness-related features
+5. **Write comprehensive tests** - pure functions are easy to test
 
 ### **Directory Structure**
 ```
-src/features/your-feature/
+src/your-feature/
 ├── create.ts            # Creation operations
 ├── update.ts            # Update operations  
 ├── get-by-id.ts        # Retrieval operations
-├── index.ts            # Feature composition
+├── index.ts            # Feature composition and exports
 └── create.test.ts      # Tests
+
+# Example: Social consciousness features
+src/social/
+├── create.ts           # Entity creation
+├── update.ts           # Entity updates
+├── record.ts           # Interaction recording
+├── analyze.ts          # Pattern analysis
+└── index.ts           # Tool exports
 ```
 
 ## 📦 Scripts
@@ -82,18 +91,23 @@ npm run db:migrate  # Create migration
 ### Test Structure
 ```
 src/
-├── features/              # Pure function tests
-│   ├── social/entities/create.test.ts
-│   └── consciousness/insights/store-insight.test.ts
-└── tools/                # Integration tests
-    ├── social/social-tools.test.ts
-    └── consciousness/consciousness-tools.test.ts
+├── consciousness/         # Consciousness module tests
+│   ├── consciousness-railroad.test.ts
+│   └── pipeline.test.ts
+├── social/               # Social intelligence tests
+│   └── create.test.ts
+├── memory/               # Memory system tests
+│   └── store-memory.test.ts
+├── reasoning/            # GenAI integration tests
+│   └── genai-client.test.ts
+└── configuration/        # Configuration tests
+    └── configuration-tools.test.ts
 ```
 
 ### Testing Patterns
 ```typescript
 // Pure function test
-import { createSocialEntity } from '../features/social/entities/create.js';
+import { createSocialEntity } from '../social/create.js';
 
 describe('createSocialEntity', () => {
   it('creates entity with validated data', async () => {
