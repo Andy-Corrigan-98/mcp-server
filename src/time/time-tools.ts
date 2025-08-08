@@ -6,6 +6,18 @@ import type { TimeResult, TimeConversionResult, TimeAwarenessResult } from './ty
 import { toZonedTime, format } from 'date-fns-tz';
 import { parseISO, isValid } from 'date-fns';
 
+/**
+ * Utility function to get current London time with automatic DST handling
+ * Returns a human-readable timestamp string suitable for MCP server responses
+ */
+export function getLondonTimestamp(): string {
+  const now = new Date();
+  const londonTime = toZonedTime(now, 'Europe/London');
+
+  // Format: "Friday 8th August 14:30" (London time, automatically handles DST)
+  return format(londonTime, 'EEEE do MMMM HH:mm', { timeZone: 'Europe/London' });
+}
+
 // Constants to avoid magic numbers
 const MAX_TIMEZONE_LENGTH = 50;
 const MAX_TIME_INPUT_LENGTH = 100;

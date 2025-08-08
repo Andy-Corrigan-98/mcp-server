@@ -9,7 +9,7 @@ import type { RailroadResult } from '../consciousness/types.js';
 // Import all backend operations for internal routing
 import { executeMemoryOperation } from '../memory/index.js';
 import { ConfigurationTools } from '../configuration/configuration-tools.js';
-import { TimeTools } from '../time/time-tools.js';
+import { TimeTools, getLondonTimestamp } from '../time/time-tools.js';
 
 /**
  * Railroad-Powered Message Processor
@@ -49,6 +49,7 @@ export interface RailroadMessageProcessorResult {
     success: boolean;
     error?: string;
   }>;
+  current_time: string;
 }
 
 /**
@@ -275,8 +276,8 @@ export async function processMessageWithRailroad(
   // STEP 2: Execute the consciousness railroad for personality context
   // Use V3 personality-first architecture by default for enhanced personality imbuing
   const railroadResult = await processConsciousness(
-    args.message, 
-    args.context, 
+    args.message,
+    args.context,
     'v3', // Use personality-first architecture
     { v3Mode: 'default' }
   );
@@ -289,9 +290,9 @@ export async function processMessageWithRailroad(
   let response: string;
   try {
     // Build consciousness-aware response prompt (handle both V2 and V3 contexts)
-    const sessionContext = (railroadResult as any).sessionContext || 
-      (railroadResult as any).subAnalyses?.sessionAnalysis?.currentState;
-    
+    const sessionContext =
+      (railroadResult as any).sessionContext || (railroadResult as any).subAnalyses?.sessionAnalysis?.currentState;
+
     const consciousnessState = {
       mode: sessionContext?.mode || 'analytical',
       awarenessLevel: sessionContext?.awarenessLevel || 'medium',
@@ -360,6 +361,7 @@ export async function processMessageWithRailroad(
       auto_completions: intentResults.auto_completions,
     },
     railroad_trace: railroadTrace,
+    current_time: getLondonTimestamp(),
   };
 }
 
