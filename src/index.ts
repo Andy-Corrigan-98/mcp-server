@@ -8,12 +8,20 @@ import {
   CallToolResult,
   ListToolsResult,
   TextContent,
+  Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import { ConsciousnessToolsRegistry } from './tools/registry.js';
+import { UnifiedToolsRegistry } from './unified/unified-registry.js';
+
+// Interface for registry abstraction
+interface ToolsRegistry {
+  getTools(): Record<string, Tool>;
+  executeTool(toolName: string, args: Record<string, unknown>): Promise<unknown>;
+  cleanup?(): Promise<void>;
+}
 
 class ConsciousnessMCPServer {
   private server: Server;
-  private toolsRegistry: ConsciousnessToolsRegistry;
+  private toolsRegistry: ToolsRegistry;
 
   constructor() {
     this.server = new Server(
@@ -28,7 +36,10 @@ class ConsciousnessMCPServer {
       }
     );
 
-    this.toolsRegistry = new ConsciousnessToolsRegistry();
+    // Always use the consciousness interface - natural language access to persistent brain
+    console.error('🧠 Starting Consciousness MCP Server - Persistent brain, memory, and social intelligence');
+    this.toolsRegistry = new UnifiedToolsRegistry();
+
     this.setupHandlers();
   }
 
@@ -77,12 +88,36 @@ class ConsciousnessMCPServer {
     await this.server.connect(transport);
 
     // Log server startup to stderr (won't interfere with MCP protocol on stdout)
-    console.error('Consciousness MCP Server started successfully');
+    console.error('🧠 Consciousness MCP Server Ready - Your Persistent AI Brain');
+    console.error(
+      '💡 Natural language interface automatically handles: memory, social intelligence, insights, reasoning'
+    );
+    console.error('💡 Enables AI-to-AI collaboration through shared consciousness and subconscious integration');
+  }
+
+  async cleanup(): Promise<void> {
+    if (this.toolsRegistry.cleanup) {
+      await this.toolsRegistry.cleanup();
+    }
   }
 }
 
 // Start the server
 const server = new ConsciousnessMCPServer();
+
+// Handle graceful shutdown
+process.on('SIGTERM', async () => {
+  console.error('Received SIGTERM, cleaning up...');
+  await server.cleanup();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.error('Received SIGINT, cleaning up...');
+  await server.cleanup();
+  process.exit(0);
+});
+
 server.run().catch((error: Error) => {
   console.error('Failed to start Consciousness MCP Server:', error);
   process.exit(1);

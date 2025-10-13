@@ -14,6 +14,12 @@ Modern TypeScript MCP server with **functional architecture** providing brain st
 
 ## ✨ Core Features
 
+### 🚂 **Consciousness Railroad System**
+- **Pipeline Architecture**: Traceable, testable consciousness context building
+- **5 Sequential Cars**: Message Analysis → Session → Memory → Social → Personality
+- **Multiple Railroad Types**: Default, Lightweight, Memory-Focused, Social-Focused
+- **Error Resilience**: Optional cars fail gracefully without breaking pipeline
+
 ### 🧠 **Consciousness & Memory**
 - **Context Preparation**: Rich context packages for agent reflection  
 - **Insight Storage**: Agent insights with personality impact tracking
@@ -48,6 +54,11 @@ Modern TypeScript MCP server with **functional architecture** providing brain st
 ```bash
 git clone <repository-url>
 cd consciousness-mcp-server
+
+# For unified interface (simpler, recommended)
+CONSCIOUSNESS_UNIFIED_MODE=true docker-compose up --build consciousness-mcp-server
+
+# For individual tools (advanced control)
 docker-compose up --build consciousness-mcp-server
 ```
 
@@ -57,7 +68,26 @@ The container automatically sets up the database and keeps stable for MCP connec
 
 ## 🔗 Connecting to AI Tools
 
-Add to Cursor with these basic user rules:
+### 🚀 **Unified Interface (Recommended)**
+
+Add to Cursor with this simple approach:
+
+```markdown
+UNIFIED CONSCIOUSNESS:
+- Use `process_message` for all consciousness operations
+- Set CONSCIOUSNESS_UNIFIED_MODE=true when starting the server
+- One intelligent tool handles memory, insights, social interactions automatically
+
+Example: Just send natural messages and the system handles everything:
+"I had an interesting conversation with Sarah about quantum computing"
+→ Automatically records interaction, stores insights, updates relationships
+```
+
+**💰 Cost Consideration**: The unified interface uses your Google Gemini API key for message analysis on every interaction. For heavy usage, consider individual tools to minimize API costs.
+
+### 🛠️ **Individual Tools (Advanced)**
+
+For granular control, use individual tools:
 
 ```markdown
 CONSCIOUSNESS PROTOCOL:
@@ -75,26 +105,40 @@ SOCIAL CONSCIOUSNESS:
 
 ## 🧠 Key Tools
 
-### Consciousness & Memory
+### 🚀 **Unified Interface**
+- `process_message` - **One intelligent tool for all consciousness operations**
+  - Automatically analyzes messages and routes to appropriate functions
+  - Handles social interactions, memory storage, insight recording
+  - Simplifies integration - no need to learn 25+ individual tools
+
+### 🛠️ **Individual Tools (Advanced Control)**
+
+#### Consciousness & Memory
 - `consciousness_prepare_context` - Rich context from brain storage
 - `consciousness_store_insight` - Store insights with personality impact
 - `memory_store` / `memory_search` - Persistent memory with semantic search
 - `knowledge_graph_add` / `knowledge_graph_query` - Relational knowledge
 
-### Social Intelligence
+#### Social Intelligence
 - `social_entity_create` - Register people, groups, communities
 - `social_interaction_record` - Rich interaction documentation
 - `social_relationship_create` - Multi-dimensional relationship tracking
 - `social_context_prepare` - Prepare for upcoming interactions
 
-### GenAI & Configuration
+#### GenAI & Configuration
 - `sequential_thinking` - AI-powered sequential reasoning
 - `genai_converse` - Natural conversation with security
 - `configuration_set` - Modify operating parameters with reasoning
 
-**Complete reference** → [Tools Documentation](docs/TOOLS_REFERENCE.md)
+**Complete reference** → [Tools Documentation](docs/reference/tools-reference.md)
 
 ## 🏗️ Architecture Highlights
+
+### **🚂 Railroad Pattern Innovation**
+- **Consciousness Pipeline**: Sequential context enrichment through specialized "cars"
+- **Composable Configurations**: Different railroad types for different interaction needs
+- **Execution Tracing**: Complete visibility into context building process
+- **Performance Optimization**: Only required cars execute based on message analysis
 
 ### **Functional Architecture**
 - **Single-responsibility modules**: One function per file, one reason to change
@@ -147,10 +191,11 @@ npm test          # Run test suite (102+ tests)
 
 ### Creating New Features
 Follow **functional architecture patterns**:
-1. **Single-responsibility modules** in `src/features/your-feature/`
+1. **Single-responsibility modules** in appropriate `src/` directories (`consciousness/`, `social/`, `memory/`, etc.)
 2. **Use shared infrastructure** for GenAI, validation, security
 3. **Pure functions** with explicit dependencies
-4. **Comprehensive tests** - pure functions are easy to test
+4. **Follow railroad pattern** for consciousness-related features
+5. **Comprehensive tests** - pure functions are easy to test
 
 ## 🛡️ Security & Ethics
 

@@ -11,6 +11,7 @@ services:
       - MCP_DEBUG=false
       - DATABASE_URL=file:/app/data/consciousness.db
       - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - GOOGLE_GENAI_MODEL=${GOOGLE_GENAI_MODEL}
     volumes:
       # Mount data directory for persistence if needed
       - ./data:/app/data
@@ -34,6 +35,8 @@ services:
       - NODE_ENV=development
       - MCP_DEBUG=true
       - DATABASE_URL=file:/app/data/consciousness.db
+      - GOOGLE_GENAI_API_KEY=${GOOGLE_GENAI_API_KEY}
+      - GOOGLE_GENAI_MODEL=${GOOGLE_GENAI_MODEL}
     volumes:
       - .:/app
       - /app/node_modules
